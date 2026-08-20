@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>World War Table - Mobile Controller</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .host-requests-list {
+      margin-top: 15px;
+      padding: 10px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      border: 1px dashed var(--gold-color, #ffd700);
+    }
+    .request-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .request-item:last-child { border-bottom: none; }
+  </style>
+</head>
+<body>
+
+  <div id="screen-gameplay">
+    <header class="game-header">
+      <h1 id="txt-title">Global Domination & Fortune</h1>
+      <div class="header-controls">
+        <div class="lang-selector">
+          <label for="lang-select">🌐</label>
+          <select id="lang-select">
+            <option value="en">English 🇬🇧</option>
+            <option value="tr">Türkçe 🇹🇷</option>
+            <option value="fa">فارسی 🇮🇷</option>
+          </select>
+        </div>
+        <div class="role-switcher">
+          <label id="lbl-view-mode">View Mode:</label>
+          <button id="btn-mode-player" class="btn btn-small active" onclick="switchMode('player')">Mobile Player 📱</button>
+          <button id="btn-mode-host" class="btn btn-small" onclick="switchMode('host')">Host Console 👑</button>
+          <a class="btn btn-small rulebook-link" href="rulebook.html" target="_blank" rel="noopener">📖 Rulebook</a>
+        </div>
+        <div class="phase-badge"><span id="lbl-status">Status</span>: <span id="current-phase">Round 1 / 3</span></div>
+      </div>
+    </header>
+
+    <main class="dashboard-container">
+
+      <!-- HOST ONLY CONSOLE -->
+      <section id="host-panel" class="card full-width host-card hidden">
+        <div class="card-header-flex">
+          <h2 id="txt-host-title">👑 Game Runner (Host) Controls</h2>
+          <span class="badge-host" id="txt-referee">Master Referee Active</span>
+        </div>
+        
+        <div class="host-grid">
+          <div class="host-box full-width">
+            <h3 id="txt-master-ctrl">Master Game Controls</h3>
+            <div class="button-group">
+              <button id="btn-host-deal" class="btn btn-primary" onclick="hostDealCards()">Deal Cards (2 per player)</button>
+              <button id="btn-host-event" class="btn btn-secondary round-action-locked" onclick="drawGlobalCondition()" disabled>Draw Global Event</button>
+              <button id="btn-host-advance" class="btn btn-success" onclick="hostAdvanceRound()">Close & Calculate Round</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- HOST COIN REQUEST APPROVAL QUEUE -->
+        <div class="host-requests-list">
+          <h3 id="txt-pending-requests-title" style="margin-bottom: 5px; color: var(--gold-color);">📥 Pending Coin Purchase Requests</h3>
+          <div id="host-requests-container">
+            <p style="color: var(--text-muted); font-size: 0.9rem;">No pending coin purchase requests.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- GLOBAL EVENT BANNER -->
+      <section id="global-event-banner" class="card full-width hidden" style="border: 2px solid var(--secondary-color); background: rgba(59, 130, 246, 0.1); text-align: center; display: none;">
+        <h2 id="txt-global-event-title" style="color: var(--secondary-color); margin-bottom: 5px;">🌍 Active Global Event</h2>
+        <strong id="global-event-name" style="font-size: 1.1rem; color: white;"></strong>
+        <p id="global-event-desc" style="color: var(--text-muted); margin-top: 5px;"></p>
+      </section>
+
+      <!-- PLAYER OVERVIEW -->
+      <section class="card player-card">
+        <h2 id="txt-overview-title">Player Overview</h2>
+        <div class="info-row">
+          <span id="lbl-country">Country:</span>
+          <strong id="player-country">Loading Country...</strong>
+        </div>
+        <div class="info-row highlight">
+          <span id="lbl-coins">Total Coins Balance:</span>
+          <strong><span id="player-coins">0</span> / 500 Max Coins</strong>
+        </div>
+        <div class="info-row">
+          <span id="lbl-loan">Active Loan:</span>
+          <strong><span id="player-loan">0</span> Coins</strong>
+        </div>
+        <div class="info-row">
+          <span id="lbl-merchant-bonus">Merchant Bonus Active:</span>
+          <strong id="merchant-status" style="color: var(--gold-color);">No ❌</strong>
+        </div>
+      </section>
+
+      <!-- ROUND CLOSING CONSENSUS STATUS -->
+      <section class="card full-width ready-consensus-card compact-round-card">
+        <div class="round-close-layout">
+          <div>
+            <h2 id="txt-ready-title">🏁 Round Closure Consensus</h2>
+            <p id="txt-ready-desc">Finish your actions, then mark yourself ready.</p>
+          </div>
+          <div class="round-ready-actions">
+            <div class="round-ready-progress">
+              <span>Ready:</span>
+              <strong><span id="val-ready-count">0</span> / <span id="val-total-players">1</span></strong>
+            </div>
+            <button id="btn-player-ready" class="btn btn-success" onclick="togglePlayerReadyToClose()">🏁 Ready for Next Round</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ROUND ANNOUNCEMENTS -->
+      <section class="card full-width announcement-card">
+        <div class="card-header-flex">
+          <div>
+            <h2 id="txt-announcements">📣 Round Announcements</h2>
+            <p class="announcement-subtitle">Current round activity only</p>
+          </div>
+          <span class="round-live-indicator">LIVE</span>
+        </div>
+        <div id="round-announcements" class="announcement-feed" aria-live="polite"></div>
+      </section>
+
+      <!-- RESOURCE MULTIPLIERS & FIELD INVESTMENTS -->
+      <section class="resource-workspace full-width">
+        <section class="card multiplier-card">
+          <h2 id="txt-mult-title">Resource Multipliers</h2>
+          <div class="multiplier-grid">
+            <div class="mult-box">
+              <span class="icon">🌾</span>
+              <span class="label" id="lbl-mult-agri">Agriculture</span>
+              <strong id="mult-agri">x1</strong>
+            </div>
+            <div class="mult-box">
+              <span class="icon">🛢️</span>
+              <span class="label" id="lbl-mult-oil">Oil</span>
+              <strong id="mult-oil">x1</strong>
+            </div>
+            <div class="mult-box">
+              <span class="icon">⛏️</span>
+              <span class="label" id="lbl-mult-mines">Mines</span>
+              <strong id="mult-mines">x1</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="card investment-card">
+          <div class="card-header-flex">
+            <h2 id="txt-invest-title">Field Investments</h2>
+            <div class="budget-badge">
+              <span id="lbl-unallocated">Unallocated:</span> <span id="unallocated-coins">0</span> / <span id="total-budget">0</span> Coins
+            </div>
+          </div>
+
+          <div class="investment-grid">
+            <div class="field-box">
+              <div class="field-title">🌾 Agriculture <strong><span id="val-agri">0</span> Coins</strong></div>
+              <input type="range" id="slider-agri" min="0" max="0" value="0" oninput="onSliderChange('agri')">
+            </div>
+
+            <div class="field-box">
+              <div class="field-title">🛢️ Oil <strong><span id="val-oil">0</span> Coins</strong></div>
+              <input type="range" id="slider-oil" min="0" max="0" value="0" oninput="onSliderChange('oil')">
+            </div>
+
+            <div class="field-box">
+              <div class="field-title">⛏️ Mines <strong><span id="val-mines">0</span> Coins</strong></div>
+              <input type="range" id="slider-mines" min="0" max="0" value="0" oninput="onSliderChange('mines')">
+            </div>
+          </div>
+
+          <div class="investment-footer">
+            <button id="btn-lock-invest" class="btn btn-primary btn-large" onclick="confirmInvestments()">Lock In Investments</button>
+          </div>
+        </section>
+      </section>
+
+      <!-- PENDING TRADE & ALLIANCE BANNER -->
+      <section id="pending-proposal-banner" class="card full-width hidden" style="border: 2px solid var(--gold-color); text-align: center; display: none;">
+        <h2 id="txt-proposal-title" style="color: var(--gold-color); margin-bottom: 5px;">📜 Invitation Received</h2>
+        <p id="txt-proposal-desc" style="color: var(--text-muted); margin-bottom: 15px;"></p>
+        <div class="button-group" style="justify-content: center;">
+          <button id="btn-proposal-accept" class="btn btn-success btn-large" onclick="respondToGenericProposal(true)">✅ ACCEPT</button>
+          <button id="btn-proposal-reject" class="btn btn-danger btn-large" onclick="respondToGenericProposal(false)">❌ REJECT</button>
+        </div>
+      </section>
+
+      <!-- ACTIVE COALITION & MERGER DISPLAY -->
+      <section id="coalition-panel" class="card full-width hidden" style="border: 2px solid var(--gold-color); display: none;">
+        <div class="card-header-flex">
+          <h2 id="coalition-title">🏛️ Active Coalition Pool</h2>
+          <span class="badge-host">Alliance Approved</span>
+        </div>
+        <div class="multiplier-grid">
+          <div class="mult-box">
+            <span>🌾 Shared Agri</span>
+            <strong id="pool-agri">0 Coins</strong>
+          </div>
+          <div class="mult-box">
+            <span>🛢️ Shared Oil</span>
+            <strong id="pool-oil">0 Coins</strong>
+          </div>
+          <div class="mult-box">
+            <span>⛏️ Shared Mines</span>
+            <strong id="pool-mines">0 Coins</strong>
+          </div>
+        </div>
+        <p id="coalition-members-list" class="log-message" style="color: var(--gold-color); font-weight: bold; margin-top: 10px;"></p>
+         <div class="button-group">
+           <button id="btn-alliance-skirmish" class="btn btn-danger" style="display: none;" onclick="openAllianceSkirmishModal()">⚔️ Alliance Skirmish</button>
+         </div>
+      </section>
+
+      <!-- COUNTER-UNION DEFENSE BANNER -->
+      <section id="counter-union-banner" class="card full-width hidden" style="border: 2px solid var(--danger-color); text-align: center; display: none;">
+        <h2 id="txt-counter-union-title" style="color: var(--danger-color); margin-bottom: 5px;">⚠️ Superpower Mega-Merger Formed!</h2>
+        <p id="txt-counter-union-desc" style="color: var(--text-muted); margin-bottom: 15px;">Up to 3 unaligned powers can propose a Counter-Union to pool resources and defend against the Merger.</p>
+        <button id="btn-counter-union" class="btn btn-danger btn-large" onclick="openCounterUnionModal()">🛡️ Propose Defensive Counter-Union</button>
+      </section>
+
+      <!-- BANK, BUY & TRADING ACTIONS -->
+      <section class="card action-card">
+        <h2 id="txt-bank-title">Market, Trading & Actions</h2>
+        <div class="button-group">
+          <button id="btn-buy-coins" class="btn btn-primary" onclick="requestBuyCoins()">Buy 100 Coins (Max 500)</button>
+          <button id="btn-open-trade" class="btn btn-secondary" onclick="openTradeModal()">🤝 Asymmetric Field Trade</button>
+          <button id="btn-field-battle" class="btn btn-danger" onclick="openSkirmishModal()">⚔️ Skirmish Field Battle</button>
+        </div>
+      </section>
+
+      <!-- PROFICIENCY CARDS HAND -->
+      <section class="card hand-card full-width">
+        <div class="card-header-flex">
+          <h2 id="txt-hand-title">Your Proficiency Hand (2 Cards)</h2>
+          <span id="txt-click-card" class="lock-indicator">👆 Click Card to Action</span>
+        </div>
+        <div id="cards-container" class="cards-grid"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- SHARED GAME RESULT POPUP -->
+  <div id="game-result-modal" class="modal-overlay result-alert-overlay hidden" role="alertdialog" aria-modal="true" aria-hidden="true" aria-labelledby="game-result-title" aria-describedby="game-result-summary game-result-details" onkeydown="trapGameResultFocus(event)">
+    <div class="modal-card result-alert-card">
+      <div class="result-alert-header">
+        <span id="game-result-icon" class="result-alert-icon" aria-hidden="true">📣</span>
+        <span id="game-result-eyebrow" class="result-alert-eyebrow">GAME RESULT</span>
+      </div>
+      <h2 id="game-result-title">Round Update</h2>
+      <p id="game-result-summary" class="result-alert-summary"></p>
+      <p id="game-result-details" class="result-alert-details"></p>
+      <p id="game-result-queue-status" class="result-alert-queue-status" aria-live="polite"></p>
+      <button id="btn-dismiss-game-result" type="button" class="btn btn-primary btn-large" onclick="dismissGameResult()">Continue</button>
+    </div>
+  </div>
+
+  <!-- ASYMMETRIC FIELD TRADE MODAL -->
+  <div id="trade-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h2 id="txt-modal-trade-title">🤝 Asymmetric Trade Exchange</h2>
+      <p id="txt-modal-trade-desc">Trade coins/field investments with another nation on custom terms.</p>
+      
+      <div class="field-box modal-input-box">
+        <label class="modal-label" id="lbl-partner-nation">Trade Partner Nation:</label>
+        <select id="select-trade-partner" class="modal-select"></select>
+      </div>
+
+      <div style="border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
+        <h4 style="color: var(--gold-color); margin-bottom: 5px;" id="txt-trade-give">📤 You Give:</h4>
+        <div class="field-box modal-input-box">
+          <label class="modal-label">Source Asset/Field:</label>
+          <select id="select-offer-field" class="modal-select" onchange="updateOfferSliderCapacity()">
+            <option value="unallocated">💰 Unallocated Cash Balance</option>
+            <option value="agri">🌾 Agriculture Investment</option>
+            <option value="oil">🛢️ Oil Investment</option>
+            <option value="mines">⛏️ Mines Investment</option>
+          </select>
+        </div>
+        <div class="field-box modal-input-box">
+          <label class="modal-label">Offered Amount (Live Cap: <span id="offer-max-label">0</span> Coins):</label>
+          <input type="range" id="slider-offer-amount" min="0" max="0" value="0" oninput="setTxt('val-offer-amount', this.value); updateTradePreview()">
+          <p>Amount: <strong id="val-offer-amount">0</strong> Coins</p>
+        </div>
+      </div>
+
+      <div style="border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
+        <h4 style="color: #4CAF50; margin-bottom: 5px;" id="txt-trade-request">📥 You Request In Return:</h4>
+        <div class="field-box modal-input-box">
+          <label class="modal-label">Target Asset/Field:</label>
+          <select id="select-request-field" class="modal-select">
+            <option value="unallocated">💰 Unallocated Cash Balance</option>
+            <option value="agri">🌾 Agriculture Investment</option>
+            <option value="oil">🛢️ Oil Investment</option>
+            <option value="mines">⛏️ Mines Investment</option>
+          </select>
+        </div>
+        <div class="field-box modal-input-box">
+          <label class="modal-label">Requested Amount (Coins):</label>
+          <input type="range" id="slider-request-amount" min="10" max="500" value="50" oninput="setTxt('val-request-amount', this.value); updateTradePreview()">
+          <p>Amount: <strong id="val-request-amount">50</strong> Coins</p>
+        </div>
+      </div>
+
+      <div id="trade-condition-preview" class="trade-condition-preview" aria-live="polite">
+        <strong>🌍 Final trade cost after active conditions</strong>
+        <p id="txt-trade-condition-preview">Your escrow requirement will appear here.</p>
+      </div>
+
+      <div class="button-group modal-btn-group">
+        <button id="btn-send-trade-proposal" class="btn btn-success" onclick="sendBilateralTradeProposal()">🤝 Send Trade Proposal</button>
+        <button class="btn btn-small cancel-btn" onclick="closeTradeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- OTHER MODALS -->
+  <div id="skirmish-modal" class="modal-overlay hidden">
+    <div class="modal-card alert-card">
+      <h2 style="color: var(--danger-color);">⚔️ Skirmish Field Battle</h2>
+      <p>Target a rival country's resource field. Defeating them seizes 100% of their targeted field resources!</p>
+      <div class="field-box modal-input-box">
+        <label class="modal-label">Target Enemy Nation:</label>
+        <select id="select-skirmish-target-country" class="modal-select"></select>
+      </div>
+      <div class="field-box modal-input-box">
+        <label class="modal-label">Battleground Resource Field:</label>
+        <select id="select-skirmish-target-field" class="modal-select">
+          <option value="agri">🌾 Agriculture Field</option>
+          <option value="oil">🛢️ Oil Field</option>
+          <option value="mines">⛏️ Mines Field</option>
+        </select>
+      </div>
+      <div id="skirmish-attack-counter" class="info-row" style="margin-top: 10px;">
+        <span>Attacks Remaining:</span>
+        <strong id="val-attacks-left">1</strong>
+      </div>
+      <div class="button-group modal-btn-group">
+        <button class="btn btn-danger" onclick="executeSkirmishAttack()">⚔️ EXECUTE ATTACK</button>
+        <button class="btn btn-small cancel-btn" onclick="closeSkirmishModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="alliance-skirmish-modal" class="modal-overlay hidden">
+    <div class="modal-card alert-card">
+      <h2 style="color: var(--danger-color);">⚔️ Alliance Skirmish</h2>
+      <p>Your coalition gets one attack this round. Battle power uses the live shared pool, country multiplier, and active global condition.</p>
+      <div class="field-box modal-input-box">
+        <label class="modal-label">Valid enemy target:</label>
+        <select id="select-alliance-skirmish-target" class="modal-select"></select>
+      </div>
+      <div class="field-box modal-input-box">
+        <label class="modal-label">Contested resource:</label>
+        <select id="select-alliance-skirmish-field" class="modal-select">
+          <option value="agri">🌾 Agriculture</option>
+          <option value="oil">🛢️ Oil</option>
+          <option value="mines">⛏️ Mines</option>
+        </select>
+      </div>
+      <div class="button-group modal-btn-group">
+        <button class="btn btn-danger" onclick="executeAllianceSkirmish()">⚔️ Launch Coalition Attack</button>
+        <button class="btn btn-small cancel-btn" onclick="closeAllianceSkirmishModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="counter-union-modal" class="modal-overlay hidden">
+    <div class="modal-card alert-card">
+      <h2 style="color: var(--danger-color);">🛡️ Propose Defensive Counter-Union</h2>
+      <p>Select up to 2 other unaligned powers to invite into defense (Max 3 Nations total).</p>
+      <div class="field-box modal-input-box">
+        <label class="modal-label">Defensive Ally 1:</label>
+        <select id="select-union-partner-1" class="modal-select"></select>
+      </div>
+      <div class="field-box modal-input-box">
+        <label class="modal-label">Defensive Ally 2 (Optional):</label>
+        <select id="select-union-partner-2" class="modal-select"></select>
+      </div>
+      <div class="button-group modal-btn-group">
+        <button class="btn btn-danger" onclick="confirmCounterUnion()">🛡️ Send Union Proposals</button>
+        <button class="btn btn-small cancel-btn" onclick="document.getElementById('counter-union-modal').classList.add('hidden')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="loan-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h2>🏦 Banker Loan Terminal</h2>
+      <p>Select loan amount (Max 250 coins). Principal plus 20% interest is repaid at round end; any unpaid balance carries forward.</p>
+      <div class="field-box">
+        <input type="range" id="slider-loan" min="0" max="250" value="0" oninput="setTxt('val-loan-input', this.value)">
+        <p>Selected: <strong id="val-loan-input">0</strong> Coins</p>
+      </div>
+      <div class="button-group modal-btn-group">
+        <button class="btn btn-success" onclick="confirmLoan()">Confirm Loan</button>
+        <button class="btn btn-small cancel-btn" onclick="document.getElementById('loan-modal').classList.add('hidden')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="president-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h2>🏛️ President Mega-Merger</h2>
+      <p>Select allied powers to invite into an alliance merger.</p>
+      <div class="field-box modal-input-box">
+        <label class="modal-label">First Partner Country:</label>
+        <select id="select-pres-partner-1" class="modal-select"></select>
+      </div>
+      <div class="field-box modal-input-box">
+        <label class="modal-label">Second Partner Country (Optional):</label>
+        <select id="select-pres-partner-2" class="modal-select"></select>
+      </div>
+      <div class="button-group modal-btn-group">
+        <button class="btn btn-success" onclick="confirmPresidentMergerProposal()">Send Merger Invites</button>
+        <button class="btn btn-small cancel-btn" onclick="closePresidentModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="spy-modal" class="modal-overlay hidden">
+    <div class="modal-card alert-card">
+      <h2>🕵️ Spy Intelligence Operation</h2>
+      <p>Select an active deal agreement to expose and break.</p>
+      <div class="field-box modal-input-box">
+        <label class="modal-label">Select Deal to Interrupt:</label>
+        <select id="select-spy-target-deal" class="modal-select"></select>
+      </div>
+      <div class="button-group modal-btn-group">
+        <button class="btn btn-danger" onclick="confirmSpyInterruption()">Expose & Break Deal</button>
+        <button class="btn btn-small cancel-btn" onclick="closeSpyModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="atomic-modal" class="modal-overlay hidden">
+    <div class="modal-card alert-card">
+      <h2 style="color: var(--danger-color);">☢️ Atomic Bomb Targeting</h2>
+      <p>Select a rival nation and resource field to completely annihilate its investments for this round.</p>
+      <div class="field-box modal-input-box">
+        <label class="modal-label">Target Power:</label>
+        <select id="select-atomic-target-country" class="modal-select"></select>
+      </div>
+      <div class="field-box modal-input-box">
+        <label class="modal-label">Target Resource Field:</label>
+        <select id="select-atomic-target-field" class="modal-select">
+          <option value="Agriculture">🌾 Agriculture</option>
+          <option value="Oil">🛢️ Oil</option>
+          <option value="Mines">⛏️ Mines</option>
+        </select>
+      </div>
+      <div class="button-group modal-btn-group">
+        <button class="btn btn-danger" onclick="confirmAtomicStrike()">☢️ LAUNCH STRIKE</button>
+        <button class="btn btn-small cancel-btn" onclick="closeAtomicModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js?v=20260820-15"></script>
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      initMobilePlayerSession();
+      // Ensure language change bindings work safely
+      const langSelect = document.getElementById("lang-select");
+      if(langSelect) {
+        langSelect.addEventListener("change", (e) => changeLanguage(e.target.value));
+      }
+    });
+  </script>
+</body>
+</html>

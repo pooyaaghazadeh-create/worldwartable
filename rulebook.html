@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Global Domination & Fortune — Rulebook</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="rulebook-page">
+  <header class="rulebook-hero">
+    <div>
+      <p class="rulebook-kicker">OFFICIAL TABLE GUIDE</p>
+      <h1>🌍 Global Domination <span>&amp; Fortune</span></h1>
+      <p class="rulebook-lead">Build the strongest resource economy, outmaneuver rival powers, and agree with your table when to stop and compare fortunes.</p>
+    </div>
+    <a class="btn btn-primary rulebook-back" href="index.html">← Back to game</a>
+  </header>
+
+  <nav class="rulebook-nav" aria-label="Rulebook sections">
+    <a href="#quick-start">Quick start</a>
+    <a href="#round">Round flow</a>
+    <a href="#economy">Economy</a>
+    <a href="#cards">Cards</a>
+    <a href="#conflict">Conflict</a>
+    <a href="#events">Events</a>
+  </nav>
+
+  <main class="rulebook-layout">
+    <aside class="rulebook-summary">
+      <div class="rulebook-summary-title">At a glance</div>
+      <dl>
+        <div><dt>Players</dt><dd>1–10 powers</dd></div>
+        <div><dt>Suggested scoring</dt><dd>After 3 calculations</dd></div>
+        <div><dt>Starting coins</dt><dd>0</dd></div>
+        <div><dt>Coin purchases</dt><dd>100 at a time, up to 500</dd></div>
+        <div><dt>Leader</dt><dd>Most coins at the table’s scoring point</dd></div>
+      </dl>
+      <p class="rulebook-note">The room creator is the host. The host can run round controls, but never decides a player’s private strategy.</p>
+    </aside>
+
+    <div class="rulebook-content">
+      <section id="quick-start" class="rulebook-section">
+        <p class="section-number">01 — SETUP</p>
+        <h2>Claim a country and build a fortune</h2>
+        <div class="rulebook-callout">
+          <strong>Scoring convention:</strong> Many tables compare balances after three calculations and call the highest balance the winner. The current controller does not stop the session, prevent further round calculations, or declare a winner automatically—your table decides when to score and end play.
+        </div>
+        <ol class="rulebook-steps">
+          <li>Enter a unique commander name. The game assigns you one available country.</li>
+          <li>Each country has Agriculture, Oil, and Mines multipliers. Lean into your strongest resources.</li>
+          <li>Players begin with <strong>0 coins</strong>. The purchase control requests 100 coins at a time and is available when your current balance is 400 coins or less.</li>
+          <li>The first authenticated player to join the room is its host. Only that player can access host controls.</li>
+        </ol>
+
+        <h3>Country multipliers</h3>
+        <div class="rulebook-table-wrap">
+          <table class="rulebook-table">
+            <thead><tr><th>Country</th><th>🌾 Agriculture</th><th>🛢️ Oil</th><th>⛏️ Mines</th></tr></thead>
+            <tbody>
+              <tr><td>USA</td><td>×3</td><td>×2</td><td>×1</td></tr>
+              <tr><td>Saudi Arabia</td><td>×1</td><td>×3</td><td>×2</td></tr>
+              <tr><td>Australia</td><td>×2</td><td>×1</td><td>×3</td></tr>
+              <tr><td>Brazil</td><td>×3</td><td>×1</td><td>×2</td></tr>
+              <tr><td>Norway</td><td>×1</td><td>×2</td><td>×3</td></tr>
+              <tr><td>Canada</td><td>×2</td><td>×3</td><td>×1</td></tr>
+              <tr><td>China</td><td>×3</td><td>×1</td><td>×3</td></tr>
+              <tr><td>Japan</td><td>×1</td><td>×2</td><td>×2</td></tr>
+              <tr><td>Germany</td><td>×2</td><td>×2</td><td>×3</td></tr>
+              <tr><td>South Africa</td><td>×2</td><td>×1</td><td>×3</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="round" class="rulebook-section">
+        <p class="section-number">02 — ROUND FLOW</p>
+        <h2>Every calculation follows the same six steps</h2>
+        <div class="rulebook-timeline">
+          <article><span>1</span><div><h3>Deal proficiency cards</h3><p>The host deals exactly two cards to every player. Cards can create an economic advantage, an alliance, or a conflict.</p></div></article>
+          <article><span>2</span><div><h3>Draw a Global Condition</h3><p>After cards are dealt, the host draws one condition. Its effect lasts until this round is calculated.</p></div></article>
+          <article><span>3</span><div><h3>Fund and invest</h3><p>Request coins, allocate them among your three fields, and leave any amount you may need for trades.</p></div></article>
+          <article><span>4</span><div><h3>Negotiate or act</h3><p>Make trades, play cards, form alliances, or launch skirmishes when their requirements are met.</p></div></article>
+          <article><span>5</span><div><h3>Lock and mark ready</h3><p>Lock field investments, then mark yourself ready. Locked investments cannot be edited for that round.</p></div></article>
+          <article><span>6</span><div><h3>Calculate</h3><p>Once every seated player has locked investments and marked ready, the host closes the round and payouts are calculated. The controller then opens another round; stop and score manually whenever your table has reached its agreed end point.</p></div></article>
+        </div>
+      </section>
+
+      <section id="economy" class="rulebook-section">
+        <p class="section-number">03 — ECONOMY &amp; INVESTMENTS</p>
+        <h2>Turn investments into round income</h2>
+        <div class="rulebook-formula">
+          <span>Field payout</span>
+          <strong>⌊ investment × country multiplier × 1.5 ⌋</strong>
+        </div>
+        <p>Calculate Agriculture, Oil, and Mines separately, then add them together. Unallocated coins stay in your wallet, but do not generate field income. After the round payout, field allocations reset and you allocate again next round.</p>
+        <div class="rulebook-two-column">
+          <article class="rulebook-mini-card">
+            <h3>🏦 Coin purchases</h3>
+            <p>Use <strong>Buy 100 Coins</strong> to submit a request. The host approves or rejects it. The 500-coin threshold applies to purchase requests only; payouts, loans, and transfers can take a balance higher.</p>
+          </article>
+          <article class="rulebook-mini-card">
+            <h3>🏦 Banker loans</h3>
+            <p>The Banker card lets you borrow up to 250 coins and is consumed when used. At round end, the full repayment is collected from your available balance and current-round income: original principal plus 20% interest. A 100-coin loan therefore requires 120 coins. If you cannot cover the full amount, all available coins are collected and the unpaid balance remains as an active loan for the next round.</p>
+          </article>
+        </div>
+
+        <h3>Trades</h3>
+        <p>A bilateral trade exchanges coins from unallocated cash or a selected field for coins in the other player’s selected field or wallet. Sending an offer reserves your adjusted offer in escrow immediately. If it is rejected, cannot settle, or remains unresolved at round calculation, escrow is returned.</p>
+        <ul class="rulebook-list">
+          <li><strong>Pandemic:</strong> all Agriculture, Oil, and Mines multipliers are overridden to ×1 for the round.</li>
+          <li><strong>Economic Recession:</strong> received trade income is rounded down after a 20% reduction.</li>
+          <li><strong>Merchant:</strong> adds 10% to trade income before any Recession reduction.</li>
+        </ul>
+      </section>
+
+      <section id="cards" class="rulebook-section">
+        <p class="section-number">04 — PROFICIENCY CARDS</p>
+        <h2>Use each card at the right moment</h2>
+        <div class="rulebook-card-grid">
+          <article><span>🏦</span><h3>Banker</h3><p>Borrow up to 250 coins. The card is consumed.</p></article>
+          <article><span>🏛️</span><h3>President</h3><p>After locking investments, invite one or two powers into a Mega-Merger. Every invited power must approve.</p></article>
+          <article><span>🎖️</span><h3>General</h3><p>Gain two skirmish attacks this round instead of the normal one.</p></article>
+          <article><span>🕵️</span><h3>Spy</h3><p>Publish a visible Spy operation against an agreement selected in the card dialog. In the current build, it does not reverse a live trade escrow. Cold War prevents this card from being used and does not consume it.</p></article>
+          <article><span>💰</span><h3>Merchant</h3><p>Gain +10% trade income for the current round.</p></article>
+          <article><span>☢️</span><h3>Atomic Bomb</h3><p>After locking investments, destroy all investments in one selected field of another power.</p></article>
+        </div>
+
+        <h3>Alliances</h3>
+        <p>A President Mega-Merger joins two or three consenting powers for the current round. For each resource, the shared pool is calculated from the initiator’s locked investment: <strong>max(150, initiator investment × member count + 150)</strong>. Each member then applies their own country multiplier to that shared pool and receives an equal rounded-down share. This is not a sum of every member’s investments. When a Mega-Merger forms, unaligned powers can invite one or two partners into a mutually approved Counter-Union using the same formula. Alliances clear after the round calculation.</p>
+      </section>
+
+      <section id="conflict" class="rulebook-section">
+        <p class="section-number">05 — CONFLICT</p>
+        <h2>Locked investments can become battle power</h2>
+        <p>You must lock your investments before a skirmish or an Atomic Bomb can be used. Each player may launch one skirmish per round; a General increases that limit to two.</p>
+        <div class="rulebook-two-column">
+          <article class="rulebook-mini-card">
+            <h3>⚔️ Skirmish</h3>
+            <p>Choose a rival and field. Your attack power is your investment in that field multiplied by your country’s multiplier. A higher attack wins seized coins; a tie changes nothing. If you lose, your investment in the attacked field is wiped out.</p>
+          </article>
+          <article class="rulebook-mini-card">
+            <h3>🏛️ Alliance skirmish</h3>
+            <p>Only the country that initiated a confirmed Mega-Merger or Counter-Union may launch one coalition skirmish each round. It may target a locked, unaligned country or the opposing confirmed alliance. Both sides use their live contested resource, country multiplier, and any active Global Condition. The higher power takes the other side’s entire current resource into its own pool or field; a tie transfers nothing.</p>
+          </article>
+          <article class="rulebook-mini-card">
+            <h3>☢️ Atomic strike</h3>
+            <p>Choose a rival and one field. The Atomic Bomb immediately wipes that target field’s investments. It is a precision disruption tool, not a coin transfer.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="events" class="rulebook-section">
+        <p class="section-number">06 — GLOBAL CONDITIONS</p>
+        <h2>Adapt to the world state</h2>
+        <div class="rulebook-event-grid">
+          <article><span>📉</span><h3>Economic Recession</h3><p>Trade income is reduced by 20% this round.</p></article>
+          <article><span>🌡️</span><h3>Global Warming</h3><p>Agriculture and Oil payouts are each reduced by 10% this round.</p></article>
+          <article><span>🦠</span><h3>Pandemic</h3><p>All Agriculture, Oil, and Mines multipliers become ×1 this round.</p></article>
+          <article><span>🕊️</span><h3>Cold War</h3><p>Spy cards cannot be played this round.</p></article>
+        </div>
+        <div class="rulebook-callout rulebook-finish">
+          <strong>Final reminder:</strong> Watch the round announcements and result popups. They confirm trade settlements, battle results, alliances, global conditions, and the final payout details.
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="rulebook-footer">
+    <span>Global Domination &amp; Fortune</span>
+    <a href="mobile.html">Open player controller →</a>
+  </footer>
+</body>
+</html>

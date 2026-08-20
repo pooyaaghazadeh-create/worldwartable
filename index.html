@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>World War Game - Entry</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body style="display: flex; justify-content: center; align-items: center; min-height: 90vh;">
+
+  <div class="card" style="max-width: 420px; text-align: center; padding: 30px; width: 90%;">
+    <h1 style="color: var(--gold-color); font-size: 2rem; margin-bottom: 10px;">🌍 World War Table</h1>
+     <p id="entry-intro" style="color: var(--text-muted); margin-bottom: 20px;">Enter your name to claim a seat. You start with 0 coins and can buy up to a maximum of 500 coins!</p>
+    
+    <div id="entry-actions">
+      <div class="field-box modal-input-box" style="text-align: left; margin-bottom: 20px;">
+        <label class="modal-label">Commander Name:</label>
+        <input type="text" id="input-commander-name" class="modal-select" placeholder="Enter commander handle..." />
+      </div>
+
+      <button class="btn btn-success btn-large" style="font-size: 1.1rem; padding: 14px;" onclick="enterGameAutoSeat()">
+        ⚔️ Enter World War Game
+      </button>
+
+      <div style="border-top: 1px solid rgba(255,255,255,0.14); margin: 26px 0 18px; padding-top: 22px;">
+        <h2 id="reconnect-heading" style="font-size: 1.05rem; color: var(--gold-color); margin: 0 0 8px;">Returning after a disconnect?</h2>
+        <p id="reconnect-description" style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 14px;">Use the reconnect code you saved to return to your original country.</p>
+        <div class="field-box modal-input-box" style="text-align: left; margin-bottom: 10px;">
+          <label class="modal-label">Commander Name:</label>
+          <input type="text" id="input-reconnect-name" class="modal-select" placeholder="Your original commander name" />
+        </div>
+        <div class="field-box modal-input-box" style="text-align: left; margin-bottom: 14px;">
+          <label class="modal-label">Reconnect Code:</label>
+          <input type="text" id="input-reconnect-code" class="modal-select" autocomplete="one-time-code" placeholder="Paste your saved reconnect code" />
+        </div>
+        <button class="btn btn-secondary btn-large" onclick="resumeGameSeat()">↩️ Reconnect to My Seat</button>
+      </div>
+
+      <button class="btn btn-small cancel-btn" style="margin-top: 15px;" onclick="resetAllTableSeats()">
+        🔄 Reset Table Seats (Clear Room Memory)
+      </button>
+    </div>
+
+    <section id="reconnect-code-card" class="field-box hidden" style="display: none; text-align: left; border: 1px solid var(--gold-color); background: rgba(255, 215, 0, 0.08); margin: 18px 0;">
+      <h2 id="reconnect-code-title" style="color: var(--gold-color); font-size: 1.15rem; margin: 0 0 8px;">Save Your Reconnect Code</h2>
+      <p style="color: var(--text-muted); margin: 0 0 12px;">Keep this private. It is shown once and is required to reclaim your country if you disconnect.</p>
+      <code id="reconnect-code-value" style="display: block; overflow-wrap: anywhere; color: white; font-size: 0.95rem; padding: 10px; border-radius: 6px; background: rgba(0,0,0,0.32);"></code>
+      <p style="color: var(--text-muted); font-size: 0.82rem; margin: 12px 0 16px;">Each successful reconnect gives you a new code and invalidates the previous one.</p>
+      <button class="btn btn-success btn-large" onclick="continueToController()">I Saved It — Continue</button>
+    </section>
+    <a class="entry-rulebook-link" href="rulebook.html">📖 Read the Rulebook</a>
+  </div>
+
+  <script>
+    async function enterGameAutoSeat() {
+      const inputEl = document.getElementById("input-commander-name");
+      const pName = inputEl ? inputEl.value.trim() : "";
+      
+      if (!pName) {
+        alert("Please enter your commander name!");
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/room/join", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ handle: pName })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          alert(data.error || "Could not join the room.");
+          return;
+        }
+
+        showReconnectCode(data.reconnectCode, "Save Your Reconnect Code");
+      } catch (e) {
+        alert("Could not reach the game server. Please try again.");
+      }
+    }
+
+    async function resumeGameSeat() {
+      const nameEl = document.getElementById("input-reconnect-name");
+      const codeEl = document.getElementById("input-reconnect-code");
+      const handle = nameEl ? nameEl.value.trim() : "";
+      const reconnectCode = codeEl ? codeEl.value.trim() : "";
+      if (!handle || !reconnectCode) {
+        alert("Enter both your commander name and reconnect code.");
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/room/resume", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ handle, reconnectCode })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          alert(data.error || "Could not resume this player. Check your commander name and reconnect code.");
+          return;
+        }
+        showReconnectCode(data.reconnectCode, "Save Your New Reconnect Code");
+      } catch (e) {
+        alert("Could not reach the game server. Please try again.");
+      }
+    }
+
+    function showReconnectCode(code, title) {
+      if (!code) {
+        alert("The game server did not provide a reconnect code. Please try joining again.");
+        return;
+      }
+      document.getElementById("reconnect-code-title").textContent = title;
+      document.getElementById("reconnect-code-value").textContent = code;
+      document.getElementById("entry-actions").style.display = "none";
+      const reconnectCard = document.getElementById("reconnect-code-card");
+      document.getElementById("entry-intro").textContent = "Your seat is reserved. Save the reconnect code below before continuing.";
+      reconnectCard.style.display = "block";
+      reconnectCard.classList.remove("hidden");
+      reconnectCard.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function continueToController() {
+      window.location.href = "mobile.html";
+    }
+
+    async function prepareReconnectEntry() {
+      const query = new URLSearchParams(window.location.search);
+      if (query.get("mode") !== "reconnect") return;
+
+      const heading = document.getElementById("reconnect-heading");
+      const description = document.getElementById("reconnect-description");
+      const reconnectSection = heading?.parentElement;
+      if (heading) heading.textContent = "📱 Rejoin from the TV QR code";
+      if (description) description.textContent = "Checking whether this phone still has your game session…";
+
+      try {
+        const response = await fetch("/api/session", { credentials: "same-origin" });
+        const session = response.ok ? await response.json() : null;
+        if (session?.player) {
+          window.location.replace("mobile.html");
+          return;
+        }
+      } catch (e) {}
+
+      if (description) description.textContent = "Enter the commander name and saved reconnect code for the country you want to reclaim.";
+      if (reconnectSection) reconnectSection.scrollIntoView({ block: "center" });
+      document.getElementById("input-reconnect-name")?.focus();
+    }
+
+    window.addEventListener("DOMContentLoaded", prepareReconnectEntry);
+
+    async function resetAllTableSeats() {
+      try {
+        const response = await fetch("/api/room/reset", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: "{}"
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          alert(data.error || "Only the room creator can reset the room.");
+          return;
+        }
+        alert("World War Table seats reset successfully!");
+        location.reload();
+      } catch (e) {
+        alert("Could not reach the game server. Please try again.");
+      }
+    }
+  </script>
+</body>
+</html>

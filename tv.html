@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>World War Table Arena - TV View</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+</head>
+<body class="tv-body">
+
+  <header class="tv-header">
+    <h1>🌍 WORLD WAR TABLE ARENA</h1>
+    <div class="header-room-box">
+      <div class="room-code-badge">ROOM CODE: <strong>WW-TABLE</strong></div>
+      <a class="tv-rulebook-link" href="rulebook.html" target="_blank" rel="noopener">📖 Rulebook</a>
+      <div id="qr-code-container" class="qr-code-box" aria-label="QR Code to reconnect to the game"></div>
+      <div class="qr-code-caption">📱 Scan to rejoin<br><small>Use your saved reconnect code</small></div>
+    </div>
+  </header>
+
+  <main class="tv-container">
+    <section class="poker-table-felt tv-felt" aria-label="Virtual Game Table">
+      <div class="table-center-pot">
+        <div class="table-logo">⚔️ WORLD WAR TABLE</div>
+        <div id="tv-status-ticker" class="table-ticker-broadcast">Awaiting Commanders to join on mobile...</div>
+      </div>
+      <div id="poker-seats-wrapper" class="poker-seats-grid"></div>
+    </section>
+  </main>
+
+  <!-- SHARED GAME RESULT POPUP -->
+  <div id="game-result-modal" class="modal-overlay result-alert-overlay hidden" role="alertdialog" aria-modal="true" aria-hidden="true" aria-labelledby="game-result-title" aria-describedby="game-result-summary game-result-details" onkeydown="trapGameResultFocus(event)">
+    <div class="modal-card result-alert-card">
+      <div class="result-alert-header">
+        <span id="game-result-icon" class="result-alert-icon" aria-hidden="true">📣</span>
+        <span id="game-result-eyebrow" class="result-alert-eyebrow">GAME RESULT</span>
+      </div>
+      <h2 id="game-result-title">Round Update</h2>
+      <p id="game-result-summary" class="result-alert-summary"></p>
+      <p id="game-result-details" class="result-alert-details"></p>
+      <p id="game-result-queue-status" class="result-alert-queue-status" aria-live="polite"></p>
+      <button id="btn-dismiss-game-result" type="button" class="btn btn-primary btn-large" onclick="dismissGameResult()">Continue</button>
+    </div>
+  </div>
+
+  <script src="script.js?v=20260820-15"></script>
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      // 1. Initialize TV view listener/state engine
+      if (typeof initTvView === "function") {
+        initTvView();
+      }
+
+      // 2. Safe QR Code URL generation using relative URL constructor
+      const qrBox = document.getElementById("qr-code-container");
+      if (qrBox && typeof QRCode !== "undefined") {
+        qrBox.innerHTML = "";
+
+        // Construct an absolute reconnect URL safely regardless of origin type.
+        // The QR opens the reconnect form, but never exposes a player's secret
+        // reconnect code on the public TV screen.
+        let targetUrl;
+        try {
+          targetUrl = new URL("index.html?mode=reconnect", window.location.href).href;
+        } catch (e) {
+          targetUrl = window.location.href.replace(/tv\.html$/, "index.html?mode=reconnect");
+        }
+
+        new QRCode(qrBox, {
+          text: targetUrl,
+          width: 72,
+          height: 72,
+          colorDark: "#0f172a",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.H
+        });
+      }
+    });
+  </script>
+</body>
+</html>
