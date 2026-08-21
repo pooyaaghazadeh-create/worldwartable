@@ -321,6 +321,7 @@ if (gameBroadcast) {
 }
 
 let countryMultipliers = { agri: 1, oil: 1, mines: 1 };
+let roundResourceMultipliers = {};
 let investments = { agri: 0, oil: 0, mines: 0 };
 let activeRoomPlayers = [];
 let pendingServerTrades = [];
@@ -337,6 +338,26 @@ function activeCountryCard(country) {
   return countryCards.find(card => cleanStr(card.name) === cleanStr(country));
 }
 
+function getCountryRoundMultipliers(country, fallbackCard = null) {
+  const multipliers = roundResourceMultipliers?.[country];
+  if (
+    multipliers &&
+    ["agri", "oil", "mines"].every(field => Number.isInteger(multipliers[field]) && multipliers[field] >= 1 && multipliers[field] <= 3)
+  ) {
+    return multipliers;
+  }
+  return fallbackCard
+    ? { agri: fallbackCard.agri, oil: fallbackCard.oil, mines: fallbackCard.mines }
+    : { agri: 1, oil: 1, mines: 1 };
+}
+
+function applyRoundResourceMultipliers(multipliers) {
+  roundResourceMultipliers = multipliers && typeof multipliers === "object" ? multipliers : {};
+  if (assignedCountry) {
+    countryMultipliers = { ...getCountryRoundMultipliers(assignedCountry.name, assignedCountry) };
+  }
+}
+
 function applyRoomSnapshot(room) {
   if (!room || !Array.isArray(room.players)) return;
   const serverRound = Number(room.roundNumber);
@@ -345,6 +366,8 @@ function applyRoomSnapshot(room) {
   }
   gameFinished = Boolean(room.gameFinished);
   finalPlacements = Array.isArray(room.finalPlacements) ? room.finalPlacements : [];
+  applyRoundResourceMultipliers(room.resourceMultipliers);
+  updateCountryUI();
   activeRoomPlayers = room.players;
   pendingServerTrades = Array.isArray(room.pendingTrades) ? room.pendingTrades : [];
   registeredPlayersCount = activeRoomPlayers.length || 1;
@@ -393,6 +416,7 @@ function renderTvRoster() {
   wrapper.replaceChildren();
   activeRoomPlayers.forEach(player => {
     const country = activeCountryCard(player.country);
+    const multipliers = getCountryRoundMultipliers(player.country, country);
     const alliance = [activePresidentCoalition, activeCounterUnion].find(item =>
       Array.isArray(item?.members) && item.members.some(member => cleanStr(member) === cleanStr(player.country))
     );
@@ -414,9 +438,9 @@ function renderTvRoster() {
     const resources = document.createElement("div");
     resources.className = "tv-seat-resources";
     [
-      ["🌾", "Agriculture", country?.agri ?? "—"],
-      ["🛢️", "Oil", country?.oil ?? "—"],
-      ["⛏️", "Mines", country?.mines ?? "—"]
+      ["🌾", "Agriculture", getEffectiveResourceMultiplier("agri", multipliers.agri)],
+      ["🛢️", "Oil", getEffectiveResourceMultiplier("oil", multipliers.oil)],
+      ["⛏️", "Mines", getEffectiveResourceMultiplier("mines", multipliers.mines)]
     ].forEach(([icon, label, value]) => {
       const item = document.createElement("span");
       item.title = label;
@@ -1442,6 +1466,14 @@ function isGlobalConditionActive(conditionId) {
 function getEffectiveResourceMultiplier(field, baseMultiplier = countryMultipliers[field]) {
   const override = activeGlobalCondition?.resourceMultiplierOverride;
   if (Number.isFinite(override)) return override;
+  if (
+    activeGlobalCondition?.id === "global-warming" &&
+    (field === "agri" || field === "oil")
+  ) {
+    return Number((baseMultiplier * activeGlobalCondition[field === "agri"
+      ? "agricultureIncomeMultiplier"
+      : "oilIncomeMultiplier"]).toFixed(1));
+  }
   return baseMultiplier || 1;
 }
 
@@ -1486,6 +1518,7 @@ function activateGlobalCondition(condition) {
   } catch (e) {}
 
   renderActiveGlobalCondition();
+  renderTvRoster();
   updateTradePreview();
   updateCountryUI();
   updateAllianceUI();
@@ -2734,6 +2767,7 @@ function calculateAndAdvanceRound(canonicalResult = null, roundResult = {}) {
   currentRound = gameFinished
     ? (Number.isInteger(completedRound) ? completedRound : 3)
     : (Number.isInteger(nextRound) ? nextRound : Math.min(currentRound + 1, 3));
+  applyRoundResourceMultipliers(roundResult.resourceMultipliers);
   resetRoundAnnouncements();
 
   investmentsLocked = false;
@@ -2779,6 +2813,9 @@ function calculateAndAdvanceRound(canonicalResult = null, roundResult = {}) {
   updateReadyConsensusUI();
   updateAllianceUI();
   updateUI();
+  updateCountryUI();
+  renderTvRoster();
+  updateTvRoundStatus();
   renderFinalPlacements();
   syncFinishedGameControls();
 
@@ -2795,7 +2832,7 @@ function calculateAndAdvanceRound(canonicalResult = null, roundResult = {}) {
     : ` Gross +${grossRoundProfit} Coins (Agri:${earnedAgriYield}, Oil:${earnedOilYield}, Mines:${earnedMinesYield}).`;
   const roundMessage = gameFinished
     ? `🏆 Round 3 is complete. Final placements are available; choose the winner together at the table.${canonicalSummary}${loanSummary}`
-    : `🎬 Round ${currentRound} is open. Previous round result:${canonicalSummary}${loanSummary} Net balance change: ${netBalanceLabel} Coins.${conditionSummary} Deal cards and one Global Event are ready.`;
+    : `🎲 Round ${currentRound} is open with freshly randomized resource multipliers. Previous round result:${canonicalSummary}${loanSummary} Net balance change: ${netBalanceLabel} Coins.${conditionSummary} Deal cards and one Global Event are ready.`;
   logAction(roundMessage, "ROUND");
 }
 

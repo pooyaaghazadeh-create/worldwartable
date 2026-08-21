@@ -36,6 +36,8 @@ COUNTRIES = [
     {"id": 10, "country": "South Africa 🇿🇦"},
 ]
 CARD_TITLES = ("Banker", "President", "General", "Spy", "Merchant", "Atomic Bomb")
+RESOURCE_FIELDS = ("agri", "oil", "mines")
+ROUND_MULTIPLIER_VALUES = (1, 2, 3)
 GLOBAL_CONDITIONS = (
     {"id": "economic-recession"},
     {"id": "global-warming"},
@@ -67,6 +69,35 @@ ROOM_EVENT_TYPES = {
     "SPY_INTERRUPT",
 }
 RECONNECT_CODE_TTL_SECONDS = 24 * 60 * 60
+
+
+def generate_round_resource_multipliers() -> dict[str, dict[str, int]]:
+    randomizer = secrets.SystemRandom()
+    return {
+        country["country"]: {
+            field: value
+            for field, value in zip(RESOURCE_FIELDS, randomizer.sample(ROUND_MULTIPLIER_VALUES, len(RESOURCE_FIELDS)))
+        }
+        for country in COUNTRIES
+    }
+
+
+def parse_round_resource_multipliers(raw_value: str | None) -> dict[str, dict[str, int]]:
+    try:
+        multipliers = json.loads(raw_value) if raw_value else {}
+    except (TypeError, json.JSONDecodeError):
+        return {}
+    if not isinstance(multipliers, dict):
+        return {}
+    for country in COUNTRIES:
+        values = multipliers.get(country["country"])
+        if (
+            not isinstance(values, dict)
+            or any(not isinstance(values.get(field), int) for field in RESOURCE_FIELDS)
+            or sorted(values[field] for field in RESOURCE_FIELDS) != list(ROUND_MULTIPLIER_VALUES)
+        ):
+            return {}
+    return multipliers
 
 
 @contextmanager
@@ -141,7 +172,8 @@ def initialize_database() -> None:
               event_drawn INTEGER NOT NULL DEFAULT 0,
               round_number INTEGER NOT NULL DEFAULT 1,
               game_finished INTEGER NOT NULL DEFAULT 0,
-              final_placements TEXT
+               final_placements TEXT,
+               resource_multipliers TEXT
             );
             CREATE TABLE IF NOT EXISTS player_round_effects (
               player_id INTEGER PRIMARY KEY REFERENCES players(id) ON DELETE CASCADE,
@@ -224,8 +256,18 @@ def initialize_database() -> None:
             )
         if "final_placements" not in round_columns:
             connection.execute("ALTER TABLE round_state ADD COLUMN final_placements TEXT")
+        if "resource_multipliers" not in round_columns:
+            connection.execute("ALTER TABLE round_state ADD COLUMN resource_multipliers TEXT")
         connection.execute("INSERT OR IGNORE INTO room_state (id, host_player_id) VALUES (1, NULL)")
         connection.execute("INSERT OR IGNORE INTO round_state (id) VALUES (1)")
+        multiplier_row = connection.execute(
+            "SELECT resource_multipliers FROM round_state WHERE id = 1"
+        ).fetchone()
+        if not multiplier_row or not parse_round_resource_multipliers(multiplier_row["resource_multipliers"]):
+            connection.execute(
+                "UPDATE round_state SET resource_multipliers = ? WHERE id = 1",
+                (json.dumps(generate_round_resource_multipliers()),),
+            )
         connection.execute(
             """
             INSERT OR IGNORE INTO player_wallets (player_id, coins, loans)
@@ -396,7 +438,8 @@ class GameHandler(SimpleHTTPRequestHandler):
         room = connection.execute(
             """
             SELECT room_state.active_condition, round_state.round_number,
-                   round_state.game_finished, round_state.final_placements
+                   round_state.game_finished, round_state.final_placements,
+                   round_state.resource_multipliers
             FROM room_state
             JOIN round_state ON round_state.id = 1
             WHERE room_state.id = 1
@@ -474,6 +517,9 @@ class GameHandler(SimpleHTTPRequestHandler):
             "roundNumber": room["round_number"] if room else 1,
             "gameFinished": bool(room["game_finished"]) if room else False,
             "finalPlacements": json.loads(room["final_placements"]) if room and room["final_placements"] else [],
+            "resourceMultipliers": (
+                parse_round_resource_multipliers(room["resource_multipliers"]) if room else {}
+            ),
         }
 
     def send_room_state(self) -> None:
@@ -747,7 +793,11 @@ class GameHandler(SimpleHTTPRequestHandler):
                 locked_count = connection.execute("SELECT COUNT(*) FROM player_round_resources").fetchone()[0]
                 ready_count = connection.execute("SELECT COUNT(*) FROM player_round_readiness").fetchone()[0]
                 state = connection.execute(
-                    "SELECT cards_dealt, event_drawn, round_number, game_finished FROM round_state WHERE id = 1"
+                    """
+                    SELECT cards_dealt, event_drawn, round_number, game_finished,
+                           resource_multipliers
+                    FROM round_state WHERE id = 1
+                    """
                 ).fetchone()
                 if not player_count or locked_count != player_count or ready_count != player_count or not state["cards_dealt"] or not state["event_drawn"]:
                     self.send_json({"error": "Every seated player must lock resources and mark ready after cards and a Global Condition are set."}, HTTPStatus.CONFLICT)
@@ -755,6 +805,13 @@ class GameHandler(SimpleHTTPRequestHandler):
                 if state["game_finished"] or state["round_number"] > 3:
                     self.send_json(
                         {"error": "The three-round game is finished. Restart the room to begin a new game."},
+                        HTTPStatus.CONFLICT,
+                    )
+                    return
+                round_multipliers = parse_round_resource_multipliers(state["resource_multipliers"])
+                if not round_multipliers:
+                    self.send_json(
+                        {"error": "Round resource multipliers are unavailable. Restart the room to begin a new game."},
                         HTTPStatus.CONFLICT,
                     )
                     return
@@ -786,12 +843,23 @@ class GameHandler(SimpleHTTPRequestHandler):
                     if alliance:
                         member_count = len(json.loads(alliance["members"]))
                         gross_profit = sum(
-                            int(alliance[field] * self.field_multiplier(seated["country"], field, condition) / member_count)
+                            int(
+                                alliance[field]
+                                * self.field_multiplier(
+                                    seated["country"], field, condition, round_multipliers
+                                )
+                                / member_count
+                            )
                             for field in ("agri", "oil", "mines")
                         )
                     else:
                         gross_profit = sum(
-                            int(resources[field] * self.field_multiplier(seated["country"], field, condition))
+                            int(
+                                resources[field]
+                                * self.field_multiplier(
+                                    seated["country"], field, condition, round_multipliers
+                                )
+                            )
                             for field in ("agri", "oil", "mines")
                         )
                     repayment_due = int(seated["loans"] * 1.20)
@@ -839,6 +907,7 @@ class GameHandler(SimpleHTTPRequestHandler):
                     "gameFinished": completed_round == 3,
                     "nextRound": None if completed_round == 3 else completed_round + 1,
                     "placements": final_placements,
+                    "resourceMultipliers": round_multipliers,
                 }
                 connection.execute("DELETE FROM player_round_resources")
                 connection.execute("DELETE FROM solo_skirmish_state")
@@ -860,14 +929,17 @@ class GameHandler(SimpleHTTPRequestHandler):
                         (json.dumps(final_placements),),
                     )
                 else:
+                    next_round_multipliers = generate_round_resource_multipliers()
+                    event_payload["resourceMultipliers"] = next_round_multipliers
                     connection.execute(
                         """
                         UPDATE round_state
                         SET cards_dealt = 0, event_drawn = 0, round_number = ?,
-                            game_finished = 0, final_placements = NULL
+                            game_finished = 0, final_placements = NULL,
+                            resource_multipliers = ?
                         WHERE id = 1
                         """,
-                        (completed_round + 1,),
+                        (completed_round + 1, json.dumps(next_round_multipliers)),
                     )
             cursor = connection.execute(
                 "INSERT INTO host_events (event_type, payload, created_at) VALUES (?, ?, ?)",
@@ -1294,22 +1366,15 @@ class GameHandler(SimpleHTTPRequestHandler):
         self.send_json({"event": event}, HTTPStatus.CREATED)
 
     @staticmethod
-    def field_multiplier(country: str, field: str, condition: dict | None) -> float:
-        multipliers = {
-            "USA 🇺🇸": {"agri": 3, "oil": 2, "mines": 1},
-            "Saudi Arabia 🇸🇦": {"agri": 1, "oil": 3, "mines": 2},
-            "Australia 🇦🇺": {"agri": 2, "oil": 1, "mines": 3},
-            "Brazil 🇧🇷": {"agri": 3, "oil": 1, "mines": 2},
-            "Norway 🇳🇴": {"agri": 1, "oil": 2, "mines": 3},
-            "Canada 🇨🇦": {"agri": 2, "oil": 3, "mines": 1},
-            "China 🇨🇳": {"agri": 3, "oil": 1, "mines": 3},
-            "Japan 🇯🇵": {"agri": 1, "oil": 2, "mines": 2},
-            "Germany 🇩🇪": {"agri": 2, "oil": 2, "mines": 3},
-            "South Africa 🇿🇦": {"agri": 2, "oil": 1, "mines": 3},
-        }
+    def field_multiplier(
+        country: str,
+        field: str,
+        condition: dict | None,
+        round_multipliers: dict[str, dict[str, int]],
+    ) -> float:
         if condition and condition.get("id") == "pandemic":
             return 1
-        multiplier = multipliers.get(country, {}).get(field, 1)
+        multiplier = round_multipliers.get(country, {}).get(field, 1)
         if condition and condition.get("id") == "global-warming" and field in {"agri", "oil"}:
             return multiplier * 0.9
         return multiplier
@@ -1378,8 +1443,18 @@ class GameHandler(SimpleHTTPRequestHandler):
             condition = json.loads(condition_row["active_condition"]) if condition_row and condition_row["active_condition"] else None
             if not isinstance(condition, dict):
                 condition = None
-            attacker_power = attack_resource * self.field_multiplier(attacker["initiator_country"], field, condition)
-            defender_power = defend_resource * self.field_multiplier(defender_country, field, condition)
+            multiplier_row = connection.execute(
+                "SELECT resource_multipliers FROM round_state WHERE id = 1"
+            ).fetchone()
+            round_multipliers = parse_round_resource_multipliers(
+                multiplier_row["resource_multipliers"] if multiplier_row else None
+            )
+            attacker_power = attack_resource * self.field_multiplier(
+                attacker["initiator_country"], field, condition, round_multipliers
+            )
+            defender_power = defend_resource * self.field_multiplier(
+                defender_country, field, condition, round_multipliers
+            )
             if attacker_power > defender_power:
                 outcome = "victory"
                 transfer = defend_resource
@@ -1577,9 +1652,17 @@ class GameHandler(SimpleHTTPRequestHandler):
             )
             if not isinstance(condition, dict):
                 condition = None
-            attacker_power = attack_resource * self.field_multiplier(player["country"], field, condition)
+            multiplier_row = connection.execute(
+                "SELECT resource_multipliers FROM round_state WHERE id = 1"
+            ).fetchone()
+            round_multipliers = parse_round_resource_multipliers(
+                multiplier_row["resource_multipliers"] if multiplier_row else None
+            )
+            attacker_power = attack_resource * self.field_multiplier(
+                player["country"], field, condition, round_multipliers
+            )
             defender_power = defend_resource * self.field_multiplier(
-                target_player["country"], field, condition
+                target_player["country"], field, condition, round_multipliers
             )
             if attacker_power > defender_power:
                 outcome = "victory"
@@ -2059,9 +2142,11 @@ class GameHandler(SimpleHTTPRequestHandler):
                     """
                     UPDATE round_state
                     SET cards_dealt = 0, event_drawn = 0, round_number = 1,
-                        game_finished = 0, final_placements = NULL
+                        game_finished = 0, final_placements = NULL,
+                        resource_multipliers = ?
                     WHERE id = 1
-                    """
+                    """,
+                    (json.dumps(generate_round_resource_multipliers()),),
                 )
             else:
                 self.publish_room_event(
@@ -2114,9 +2199,11 @@ class GameHandler(SimpleHTTPRequestHandler):
                 """
                 UPDATE round_state
                 SET cards_dealt = 0, event_drawn = 0, round_number = 1,
-                    game_finished = 0, final_placements = NULL
+                    game_finished = 0, final_placements = NULL,
+                    resource_multipliers = ?
                 WHERE id = 1
-                """
+                """,
+                (json.dumps(generate_round_resource_multipliers()),),
             )
         self.send_json({"ok": True}, cookie="world_war_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0")
 
