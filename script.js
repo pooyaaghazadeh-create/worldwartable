@@ -5,6 +5,8 @@ let coins = 0;
 const MAX_PURCHASE_CAP = 500;   
 let loans = 0;
 let currentRound = 1;
+let gameFinished = false;
+let finalPlacements = [];
 let activeMode = 'player';
 let currentLang = 'en';
 
@@ -300,15 +302,17 @@ if (gameBroadcast) {
     } else if (data.type === "ATOMIC_STRIKE") {
       if (assignedCountry && cleanStr(data.payload.targetCountry) === cleanStr(assignedCountry.name)) {
         const fieldName = data.payload.targetField;
-        const destroyedAmount = investments[fieldName] || 0;
-        investments[fieldName] = 0;
-        coins = Math.max(0, coins - destroyedAmount);
+        const destroyedAmount = Number(data.payload.destroyed) || 0;
+        const remainingAmount = Number(data.payload.remaining);
+        investments[fieldName] = Number.isFinite(remainingAmount)
+          ? remainingAmount
+          : Math.max(0, (investments[fieldName] || 0) - destroyedAmount);
 
         const slider = document.getElementById(`slider-${fieldName}`);
-        if (slider) slider.value = 0;
+        if (slider) slider.value = investments[fieldName];
 
         updateUI();
-        logAction(`☢️ ATOMIC STRIKE! ${data.payload.attackerCountry} destroyed your ${fieldName.toUpperCase()} field and wiped ${destroyedAmount} invested coins.`, "ATOMIC");
+        logAction(`☢️ ATOMIC STRIKE! ${data.payload.attackerCountry} destroyed ${destroyedAmount} Coins in your ${fieldName.toUpperCase()} field. ${investments[fieldName]} Coins remain invested.`, "ATOMIC");
       }
     } else if (data.type.endsWith("_ALLIANCE")) {
       handleAllianceRoomEvent(data);
@@ -335,6 +339,12 @@ function activeCountryCard(country) {
 
 function applyRoomSnapshot(room) {
   if (!room || !Array.isArray(room.players)) return;
+  const serverRound = Number(room.roundNumber);
+  if (Number.isInteger(serverRound) && serverRound >= 1 && serverRound <= 3) {
+    currentRound = serverRound;
+  }
+  gameFinished = Boolean(room.gameFinished);
+  finalPlacements = Array.isArray(room.finalPlacements) ? room.finalPlacements : [];
   activeRoomPlayers = room.players;
   pendingServerTrades = Array.isArray(room.pendingTrades) ? room.pendingTrades : [];
   registeredPlayersCount = activeRoomPlayers.length || 1;
@@ -345,6 +355,9 @@ function applyRoomSnapshot(room) {
   if (room.activeCondition?.id) {
     activateGlobalCondition(room.activeCondition);
     eventDrawnThisRound = true;
+  } else {
+    clearActiveGlobalCondition();
+    eventDrawnThisRound = false;
   }
 
   if (Array.isArray(room.alliances)) {
@@ -359,6 +372,9 @@ function applyRoomSnapshot(room) {
   updateAllianceUI();
   renderTvRoster();
   updateTvRoundStatus();
+  renderFinalPlacements();
+  syncFinishedGameControls();
+  syncHostButtonsUI();
 }
 
 async function refreshRoomSnapshot() {
@@ -430,6 +446,10 @@ function renderTvRoster() {
 function updateTvRoundStatus() {
   const status = document.getElementById("tv-round-status");
   if (!status) return;
+  if (gameFinished) {
+    status.textContent = "GAME COMPLETE · FINAL PLACEMENTS READY";
+    return;
+  }
   if (activeRoomPlayers.length === 0 && !assignedCountry) {
     status.textContent = "AWAITING COMMANDERS";
     return;
@@ -437,6 +457,45 @@ function updateTvRoundStatus() {
   const readyCount = readyPlayersSet.size;
   const total = registeredPlayersCount || activeRoomPlayers.length || 1;
   status.textContent = `ROUND ${currentRound} / 3 · ${readyCount} OF ${total} COMMANDERS READY`;
+}
+
+function renderFinalPlacements() {
+  const panel = document.getElementById("final-placements-panel");
+  const list = document.getElementById("final-placements-list");
+  if (!panel || !list) return;
+
+  panel.classList.toggle("hidden", !gameFinished);
+  panel.setAttribute("aria-hidden", String(!gameFinished));
+  if (!gameFinished) return;
+
+  list.replaceChildren();
+  finalPlacements.forEach(entry => {
+    const item = document.createElement("li");
+    const placement = document.createElement("strong");
+    placement.textContent = `#${entry.placement}`;
+    const country = document.createElement("span");
+    country.textContent = entry.country;
+    const balance = document.createElement("span");
+    balance.textContent = `${entry.coins} Coins`;
+    item.append(placement, country, balance);
+    list.appendChild(item);
+  });
+}
+
+function syncFinishedGameControls() {
+  if (!gameFinished) return;
+  [
+    "btn-buy-coins",
+    "btn-open-trade",
+    "btn-field-battle",
+    "btn-counter-union",
+    "btn-alliance-skirmish",
+    "btn-lock-invest",
+    "btn-player-ready"
+  ].forEach(id => {
+    const control = document.getElementById(id);
+    if (control) control.disabled = true;
+  });
 }
 
 function pulseTvSeat(country, className = "is-broadcast-highlight") {
@@ -479,7 +538,7 @@ const cardDeck = [
   { title: "General", icon: "🎖️", desc: "Grants 2 skirmish attacks per round." },
   { title: "Spy", icon: "🕵️", desc: "Interrupt rival deal agreements." },
   { title: "Merchant", icon: "💰", desc: "Generates +10% extra profit on all field buy/sell transactions." },
-  { title: "Atomic Bomb", icon: "☢️", desc: "Wipe out all investments in 1 target field." }
+  { title: "Atomic Bomb", icon: "☢️", desc: "Destroy half of 1 target field's investment." }
 ];
 
 function setTxt(id, text) {
@@ -1062,7 +1121,18 @@ function applyHostEvent(event) {
     pulseVisual(document.querySelector(".table-center-pot"), "is-global-highlight", 620);
   } else if (event.type === "EXECUTE_ROUND_CALCULATION") {
     const result = assignedCountry ? event.payload?.results?.[assignedCountry.name] : null;
-    calculateAndAdvanceRound(result || null);
+    calculateAndAdvanceRound(result || null, event.payload || {});
+    if (event.payload?.gameFinished) {
+      publishGameResult({
+        id: Number.isFinite(event.id) ? `final-placements-${event.id}` : "final-placements",
+        icon: "🏆",
+        category: "GAME COMPLETE",
+        tone: "success",
+        title: "Three Rounds Complete",
+        summary: "Final player placements are now available on the table.",
+        details: "Review the rankings together and choose the winner at your table."
+      });
+    }
   } else if (event.type === "RESOLVE_COIN_REQUEST") {
     const request = event.payload;
     if (assignedCountry && cleanStr(request.country) === cleanStr(assignedCountry.name)) {
@@ -1116,8 +1186,13 @@ function applyHostEvent(event) {
     }
   } else if (event.type === "ATOMIC_STRIKE") {
     if (assignedCountry && cleanStr(event.payload?.targetCountry) === cleanStr(assignedCountry.name)) {
-      investments[event.payload.targetField] = 0;
-      if (Number.isFinite(event.payload.targetCoins)) coins = event.payload.targetCoins;
+      const destroyedAmount = Number(event.payload.destroyed) || 0;
+      const remainingAmount = Number(event.payload.remaining);
+      investments[event.payload.targetField] = Number.isFinite(remainingAmount)
+        ? remainingAmount
+        : Math.max(0, (investments[event.payload.targetField] || 0) - destroyedAmount);
+      const slider = document.getElementById(`slider-${event.payload.targetField}`);
+      if (slider) slider.value = investments[event.payload.targetField];
       updateUI();
     }
     void refreshRoomSnapshot();
@@ -1130,7 +1205,7 @@ function applyHostEvent(event) {
       tone: "danger",
       title: "Atomic Strike Detonated",
       summary: `${event.payload.attackerCountry} launched an Atomic Bomb against ${event.payload.targetCountry}.`,
-      details: `${event.payload.targetField} investments destroyed: ${event.payload.destroyed}.`
+      details: `${event.payload.targetField} investments destroyed: ${event.payload.destroyed}. Remaining investment: ${event.payload.remaining}.`
     });
     pulseTvSeat(event.payload.targetCountry, "is-combat-highlight");
   } else if (event.type === "PROPOSE_TRADE") {
@@ -1280,14 +1355,18 @@ function startHostEventPolling() {
 function syncHostButtonsUI() {
   const dealBtn = document.getElementById("btn-host-deal");
   const eventBtn = document.getElementById("btn-host-event");
+  const advanceBtn = document.getElementById("btn-host-advance");
+  const restartBtn = document.getElementById("btn-host-restart");
 
   const labels = translations[currentLang] || translations.en;
 
   if (dealBtn) {
-    dealBtn.disabled = !isRoomCreator || cardsDealtThisRound;
+    dealBtn.disabled = !isRoomCreator || cardsDealtThisRound || gameFinished;
     dealBtn.classList.toggle("round-action-used", cardsDealtThisRound);
     dealBtn.classList.remove("round-action-locked");
-    dealBtn.textContent = cardsDealtThisRound ? labels.btnHostDealUsed : labels.btnHostDeal;
+    dealBtn.textContent = gameFinished
+      ? "Game Complete"
+      : cardsDealtThisRound ? labels.btnHostDealUsed : labels.btnHostDeal;
     dealBtn.setAttribute("aria-label", dealBtn.textContent);
   }
 
@@ -1296,10 +1375,12 @@ function syncHostButtonsUI() {
     const allInvestmentsLocked = seatedPlayers > 0 && lockedPlayersSet.size >= seatedPlayers;
     const eventLocked = !cardsDealtThisRound || !allInvestmentsLocked;
     const eventUsed = eventDrawnThisRound;
-    eventBtn.disabled = !isRoomCreator || eventLocked || eventUsed;
+    eventBtn.disabled = !isRoomCreator || eventLocked || eventUsed || gameFinished;
     eventBtn.classList.toggle("round-action-locked", eventLocked);
     eventBtn.classList.toggle("round-action-used", eventUsed);
-    eventBtn.textContent = eventUsed
+    eventBtn.textContent = gameFinished
+      ? "Game Complete"
+      : eventUsed
       ? labels.btnHostEventUsed
       : eventLocked
         ? !cardsDealtThisRound
@@ -1310,6 +1391,16 @@ function syncHostButtonsUI() {
     eventBtn.title = eventLocked && cardsDealtThisRound
       ? "Every seated player must lock investments before drawing the Global Condition."
       : "";
+  }
+
+  if (advanceBtn) {
+    advanceBtn.disabled = !isRoomCreator || gameFinished;
+    advanceBtn.textContent = gameFinished ? "Game Complete" : "Close & Calculate Round";
+  }
+
+  if (restartBtn) {
+    restartBtn.classList.toggle("hidden", !isRoomCreator || !gameFinished);
+    restartBtn.disabled = !isRoomCreator || !gameFinished;
   }
 }
 
@@ -2520,6 +2611,10 @@ window.executeAllianceSkirmish = async function() {
 // ==========================================
 window.hostAdvanceRound = async function() {
   if (!requireRoomCreator("close the round")) return;
+  if (gameFinished) {
+    logAction("🏆 This three-round game is complete. Restart the room to begin a new game.", "ROUND");
+    return;
+  }
   const blockers = [];
   if (!cardsDealtThisRound) blockers.push("proficiency cards have not been dealt");
   if (!eventDrawnThisRound) blockers.push("the Global Condition card has not been dealt");
@@ -2538,7 +2633,31 @@ window.hostAdvanceRound = async function() {
   await submitHostCommand("EXECUTE_ROUND_CALCULATION");
 };
 
-function calculateAndAdvanceRound(canonicalResult = null) {
+window.restartCompletedGame = async function() {
+  if (!requireRoomCreator("restart the game") || !gameFinished) return;
+  if (!window.confirm("Restart the game? This clears all seats, balances, cards, and final placements so commanders can join a new game.")) {
+    return;
+  }
+  try {
+    const response = await fetch("/api/room/reset", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: "{}"
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      logAction(`⛔ ${data.error || "The room could not be restarted."}`, "HOST");
+      return;
+    }
+    clearPlayerGameMemory();
+    window.location.replace("index.html");
+  } catch (e) {
+    logAction("⛔ Could not contact the game server to restart the room.", "HOST");
+  }
+};
+
+function calculateAndAdvanceRound(canonicalResult = null, roundResult = {}) {
   if (pendingOutgoingTrade) {
     refundTradeEscrow(pendingOutgoingTrade);
     pendingOutgoingTrade = null;
@@ -2608,7 +2727,13 @@ function calculateAndAdvanceRound(canonicalResult = null) {
   }
   const netBalanceChange = coins - balanceBeforeRound;
 
-  currentRound = Math.min(currentRound + 1, 3);
+  gameFinished = Boolean(roundResult.gameFinished);
+  finalPlacements = Array.isArray(roundResult.placements) ? roundResult.placements : [];
+  const nextRound = Number(roundResult.nextRound);
+  const completedRound = Number(roundResult.round);
+  currentRound = gameFinished
+    ? (Number.isInteger(completedRound) ? completedRound : 3)
+    : (Number.isInteger(nextRound) ? nextRound : Math.min(currentRound + 1, 3));
   resetRoundAnnouncements();
 
   investmentsLocked = false;
@@ -2632,29 +2757,32 @@ function calculateAndAdvanceRound(canonicalResult = null) {
   ["slider-agri", "slider-oil", "slider-mines"].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
-      el.disabled = false;
+      el.disabled = gameFinished;
       el.value = "0";
     }
   });
 
   const lockBtn = document.getElementById("btn-lock-invest");
   if (lockBtn) {
-    lockBtn.disabled = false;
-    lockBtn.textContent = "Lock In Investments";
+    lockBtn.disabled = gameFinished;
+    lockBtn.textContent = gameFinished ? "🏆 Game Complete" : "Lock In Investments";
   }
 
   const readyBtn = document.getElementById("btn-player-ready");
   if (readyBtn) {
     readyBtn.textContent = (translations[currentLang] || translations.en).btnReadyNextRound;
     readyBtn.className = "btn btn-success btn-large";
+    readyBtn.disabled = gameFinished;
   }
 
   syncHostButtonsUI();
   updateReadyConsensusUI();
   updateAllianceUI();
   updateUI();
+  renderFinalPlacements();
+  syncFinishedGameControls();
 
-  setTxt("current-phase", `Round ${currentRound} / 3`);
+  setTxt("current-phase", gameFinished ? "Game Complete" : `Round ${currentRound} / 3`);
   const conditionSummary = completedCondition
     ? ` Global Condition resolved: ${completedCondition.title}.`
     : "";
@@ -2665,7 +2793,10 @@ function calculateAndAdvanceRound(canonicalResult = null) {
   const canonicalSummary = canonicalResult
     ? ` Server settlement: Gross +${canonicalResult.grossProfit} Coins.`
     : ` Gross +${grossRoundProfit} Coins (Agri:${earnedAgriYield}, Oil:${earnedOilYield}, Mines:${earnedMinesYield}).`;
-  logAction(`🎬 Round ${currentRound} is open. Previous round result:${canonicalSummary}${loanSummary} Net balance change: ${netBalanceLabel} Coins.${conditionSummary} Deal cards and one Global Event are ready.`, "ROUND");
+  const roundMessage = gameFinished
+    ? `🏆 Round 3 is complete. Final placements are available; choose the winner together at the table.${canonicalSummary}${loanSummary}`
+    : `🎬 Round ${currentRound} is open. Previous round result:${canonicalSummary}${loanSummary} Net balance change: ${netBalanceLabel} Coins.${conditionSummary} Deal cards and one Global Event are ready.`;
+  logAction(roundMessage, "ROUND");
 }
 
 // ==========================================

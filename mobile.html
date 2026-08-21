@@ -65,6 +65,7 @@
               <button id="btn-host-deal" class="btn btn-primary" onclick="hostDealCards()">Deal Cards (2 per player)</button>
               <button id="btn-host-event" class="btn btn-secondary round-action-locked" onclick="drawGlobalCondition()" disabled>Draw Global Event</button>
               <button id="btn-host-advance" class="btn btn-success" onclick="hostAdvanceRound()">Close & Calculate Round</button>
+              <button id="btn-host-restart" class="btn btn-danger hidden" onclick="restartCompletedGame()">Restart Game</button>
             </div>
           </div>
         </div>
@@ -125,6 +126,13 @@
           <span id="round-readiness-fill"></span>
         </div>
         <p id="round-readiness-label" class="round-readiness-label">0 of 1 commanders ready</p>
+      </section>
+
+      <section id="final-placements-panel" class="card full-width final-placements-panel hidden" aria-live="polite" aria-hidden="true">
+        <p class="section-kicker">GAME COMPLETE</p>
+        <h2>🏆 Final Player Placements</h2>
+        <p>Three rounds are complete. Review the rankings together and decide the winner at your table.</p>
+        <ol id="final-placements-list" class="final-placements-list"></ol>
       </section>
 
       <!-- ROUND ANNOUNCEMENTS -->
@@ -454,7 +462,7 @@
   <div id="atomic-modal" class="modal-overlay hidden">
     <div class="modal-card alert-card">
       <h2 style="color: var(--danger-color);">☢️ Atomic Bomb Targeting</h2>
-      <p>Select a rival nation and resource field to completely annihilate its investments for this round.</p>
+      <p>Select a rival nation and resource field to destroy half of its current investment for this round.</p>
       <div class="field-box modal-input-box">
         <label class="modal-label">Target Power:</label>
         <select id="select-atomic-target-country" class="modal-select"></select>

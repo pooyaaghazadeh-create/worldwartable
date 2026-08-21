@@ -138,7 +138,10 @@ def initialize_database() -> None:
             CREATE TABLE IF NOT EXISTS round_state (
               id INTEGER PRIMARY KEY CHECK (id = 1),
               cards_dealt INTEGER NOT NULL DEFAULT 0,
-              event_drawn INTEGER NOT NULL DEFAULT 0
+              event_drawn INTEGER NOT NULL DEFAULT 0,
+              round_number INTEGER NOT NULL DEFAULT 1,
+              game_finished INTEGER NOT NULL DEFAULT 0,
+              final_placements TEXT
             );
             CREATE TABLE IF NOT EXISTS player_round_effects (
               player_id INTEGER PRIMARY KEY REFERENCES players(id) ON DELETE CASCADE,
@@ -208,6 +211,19 @@ def initialize_database() -> None:
             connection.execute(
                 "ALTER TABLE trade_proposals ADD COLUMN requested_field TEXT NOT NULL DEFAULT 'unallocated'"
             )
+        round_columns = {
+            row["name"] for row in connection.execute("PRAGMA table_info(round_state)")
+        }
+        if "round_number" not in round_columns:
+            connection.execute(
+                "ALTER TABLE round_state ADD COLUMN round_number INTEGER NOT NULL DEFAULT 1"
+            )
+        if "game_finished" not in round_columns:
+            connection.execute(
+                "ALTER TABLE round_state ADD COLUMN game_finished INTEGER NOT NULL DEFAULT 0"
+            )
+        if "final_placements" not in round_columns:
+            connection.execute("ALTER TABLE round_state ADD COLUMN final_placements TEXT")
         connection.execute("INSERT OR IGNORE INTO room_state (id, host_player_id) VALUES (1, NULL)")
         connection.execute("INSERT OR IGNORE INTO round_state (id) VALUES (1)")
         connection.execute(
@@ -378,7 +394,13 @@ class GameHandler(SimpleHTTPRequestHandler):
 
     def room_snapshot(self, connection: sqlite3.Connection) -> dict:
         room = connection.execute(
-            "SELECT active_condition FROM room_state WHERE id = 1"
+            """
+            SELECT room_state.active_condition, round_state.round_number,
+                   round_state.game_finished, round_state.final_placements
+            FROM room_state
+            JOIN round_state ON round_state.id = 1
+            WHERE room_state.id = 1
+            """
         ).fetchone()
         players = [
             {
@@ -449,6 +471,9 @@ class GameHandler(SimpleHTTPRequestHandler):
             "activeCondition": json.loads(room["active_condition"]) if room and room["active_condition"] else None,
             "alliances": alliances,
             "pendingTrades": pending_trades,
+            "roundNumber": room["round_number"] if room else 1,
+            "gameFinished": bool(room["game_finished"]) if room else False,
+            "finalPlacements": json.loads(room["final_placements"]) if room and room["final_placements"] else [],
         }
 
     def send_room_state(self) -> None:
@@ -464,6 +489,15 @@ class GameHandler(SimpleHTTPRequestHandler):
 
         with database() as connection:
             connection.execute("BEGIN IMMEDIATE")
+            game_state = connection.execute(
+                "SELECT game_finished FROM round_state WHERE id = 1"
+            ).fetchone()
+            if game_state and game_state["game_finished"]:
+                self.send_json(
+                    {"error": "This three-round game is finished. Wait for the host to restart the room before joining."},
+                    HTTPStatus.CONFLICT,
+                )
+                return
             if connection.execute("SELECT 1 FROM players WHERE handle_key = ?", (handle_key,)).fetchone():
                 self.send_json({"error": "That commander name is already seated in this room."}, HTTPStatus.CONFLICT)
                 return
@@ -613,6 +647,15 @@ class GameHandler(SimpleHTTPRequestHandler):
 
         with database() as connection:
             connection.execute("BEGIN IMMEDIATE")
+            game_state = connection.execute(
+                "SELECT game_finished FROM round_state WHERE id = 1"
+            ).fetchone()
+            if game_state and game_state["game_finished"]:
+                self.send_json(
+                    {"error": "The three-round game is finished. Restart the room to begin a new game."},
+                    HTTPStatus.CONFLICT,
+                )
+                return
             if event_type == "HOST_DRAW_EVENT":
                 state = connection.execute("SELECT cards_dealt, event_drawn FROM round_state WHERE id = 1").fetchone()
                 if not state["cards_dealt"] or state["event_drawn"]:
@@ -703,9 +746,17 @@ class GameHandler(SimpleHTTPRequestHandler):
                 player_count = connection.execute("SELECT COUNT(*) FROM players").fetchone()[0]
                 locked_count = connection.execute("SELECT COUNT(*) FROM player_round_resources").fetchone()[0]
                 ready_count = connection.execute("SELECT COUNT(*) FROM player_round_readiness").fetchone()[0]
-                state = connection.execute("SELECT cards_dealt, event_drawn FROM round_state WHERE id = 1").fetchone()
+                state = connection.execute(
+                    "SELECT cards_dealt, event_drawn, round_number, game_finished FROM round_state WHERE id = 1"
+                ).fetchone()
                 if not player_count or locked_count != player_count or ready_count != player_count or not state["cards_dealt"] or not state["event_drawn"]:
                     self.send_json({"error": "Every seated player must lock resources and mark ready after cards and a Global Condition are set."}, HTTPStatus.CONFLICT)
+                    return
+                if state["game_finished"] or state["round_number"] > 3:
+                    self.send_json(
+                        {"error": "The three-round game is finished. Restart the room to begin a new game."},
+                        HTTPStatus.CONFLICT,
+                    )
                     return
                 condition_row = connection.execute(
                     "SELECT active_condition FROM room_state WHERE id = 1"
@@ -757,7 +808,38 @@ class GameHandler(SimpleHTTPRequestHandler):
                         "grossProfit": gross_profit,
                         "repayment": repayment_collected,
                     }
-                event_payload = {"results": results}
+                completed_round = state["round_number"]
+                final_placements = []
+                if completed_round == 3:
+                    previous_coins = None
+                    placement = 0
+                    for index, ranked_player in enumerate(
+                        connection.execute(
+                            """
+                            SELECT players.country, player_wallets.coins
+                            FROM players
+                            JOIN player_wallets ON player_wallets.player_id = players.id
+                            ORDER BY player_wallets.coins DESC, players.country ASC
+                            """
+                        )
+                    ):
+                        if previous_coins != ranked_player["coins"]:
+                            placement = index + 1
+                            previous_coins = ranked_player["coins"]
+                        final_placements.append(
+                            {
+                                "placement": placement,
+                                "country": ranked_player["country"],
+                                "coins": ranked_player["coins"],
+                            }
+                        )
+                event_payload = {
+                    "results": results,
+                    "round": completed_round,
+                    "gameFinished": completed_round == 3,
+                    "nextRound": None if completed_round == 3 else completed_round + 1,
+                    "placements": final_placements,
+                }
                 connection.execute("DELETE FROM player_round_resources")
                 connection.execute("DELETE FROM solo_skirmish_state")
                 connection.execute("DELETE FROM player_round_cards")
@@ -767,7 +849,26 @@ class GameHandler(SimpleHTTPRequestHandler):
                 connection.execute("DELETE FROM trade_escrow")
                 connection.execute("DELETE FROM trade_proposals")
                 connection.execute("UPDATE room_state SET active_condition = NULL WHERE id = 1")
-                connection.execute("UPDATE round_state SET cards_dealt = 0, event_drawn = 0 WHERE id = 1")
+                if completed_round == 3:
+                    connection.execute(
+                        """
+                        UPDATE round_state
+                        SET cards_dealt = 0, event_drawn = 0, game_finished = 1,
+                            final_placements = ?
+                        WHERE id = 1
+                        """,
+                        (json.dumps(final_placements),),
+                    )
+                else:
+                    connection.execute(
+                        """
+                        UPDATE round_state
+                        SET cards_dealt = 0, event_drawn = 0, round_number = ?,
+                            game_finished = 0, final_placements = NULL
+                        WHERE id = 1
+                        """,
+                        (completed_round + 1,),
+                    )
             cursor = connection.execute(
                 "INSERT INTO host_events (event_type, payload, created_at) VALUES (?, ?, ?)",
                 (event_type, json.dumps(event_payload), int(time.time())),
@@ -783,6 +884,16 @@ class GameHandler(SimpleHTTPRequestHandler):
         player = self.session_player()
         if not player:
             self.send_json({"error": "Join the room before sending game events."}, HTTPStatus.UNAUTHORIZED)
+            return
+        with database() as connection:
+            game_state = connection.execute(
+                "SELECT game_finished FROM round_state WHERE id = 1"
+            ).fetchone()
+        if game_state and game_state["game_finished"]:
+            self.send_json(
+                {"error": "The three-round game is finished. Wait for the host to restart the room."},
+                HTTPStatus.CONFLICT,
+            )
             return
 
         event_type = payload.get("type")
@@ -891,6 +1002,15 @@ class GameHandler(SimpleHTTPRequestHandler):
             return
         with database() as connection:
             connection.execute("BEGIN IMMEDIATE")
+            attacker_resources = connection.execute(
+                "SELECT 1 FROM player_round_resources WHERE player_id = ?", (player["id"],)
+            ).fetchone()
+            if not attacker_resources:
+                self.send_json(
+                    {"error": "Lock your own investments before using an Atomic Bomb."},
+                    HTTPStatus.CONFLICT,
+                )
+                return
             target = connection.execute(
                 "SELECT id, country FROM players WHERE country = ?", (target_country,)
             ).fetchone()
@@ -903,13 +1023,15 @@ class GameHandler(SimpleHTTPRequestHandler):
             if not self.consume_card(connection, player["id"], "Atomic Bomb"):
                 self.send_json({"error": "You need an unplayed Atomic Bomb card."}, HTTPStatus.FORBIDDEN)
                 return
-            destroyed = resources[field]
+            destroyed = (resources[field] + 1) // 2
+            remaining = resources[field] - destroyed
             connection.execute(
-                f"UPDATE player_round_resources SET {field} = 0 WHERE player_id = ?", (target["id"],)
+                f"UPDATE player_round_resources SET {field} = ? WHERE player_id = ?",
+                (remaining, target["id"]),
             )
             event = self.publish_room_event(connection, "ATOMIC_STRIKE", {
                 "attackerCountry": player["country"], "targetCountry": target["country"],
-                "targetField": field, "destroyed": destroyed
+                "targetField": field, "destroyed": destroyed, "remaining": remaining
             })
         self.send_json({"event": event}, HTTPStatus.CREATED)
 
@@ -1933,7 +2055,14 @@ class GameHandler(SimpleHTTPRequestHandler):
                 connection.execute("DELETE FROM active_alliances")
                 connection.execute("DELETE FROM alliance_proposals")
                 connection.execute("UPDATE room_state SET host_player_id = NULL, active_condition = NULL WHERE id = 1")
-                connection.execute("UPDATE round_state SET cards_dealt = 0, event_drawn = 0 WHERE id = 1")
+                connection.execute(
+                    """
+                    UPDATE round_state
+                    SET cards_dealt = 0, event_drawn = 0, round_number = 1,
+                        game_finished = 0, final_placements = NULL
+                    WHERE id = 1
+                    """
+                )
             else:
                 self.publish_room_event(
                     connection,
@@ -1957,6 +2086,15 @@ class GameHandler(SimpleHTTPRequestHandler):
             return
         with database() as connection:
             connection.execute("BEGIN IMMEDIATE")
+            game_state = connection.execute(
+                "SELECT game_finished FROM round_state WHERE id = 1"
+            ).fetchone()
+            if not game_state or not game_state["game_finished"]:
+                self.send_json(
+                    {"error": "The host can restart the room only after the third round is complete."},
+                    HTTPStatus.CONFLICT,
+                )
+                return
             connection.execute("DELETE FROM sessions")
             connection.execute("DELETE FROM player_round_resources")
             connection.execute("DELETE FROM solo_skirmish_state")
@@ -1972,7 +2110,14 @@ class GameHandler(SimpleHTTPRequestHandler):
             connection.execute("DELETE FROM host_events")
             connection.execute("DELETE FROM alliance_proposals")
             connection.execute("UPDATE room_state SET host_player_id = NULL, active_condition = NULL WHERE id = 1")
-            connection.execute("UPDATE round_state SET cards_dealt = 0, event_drawn = 0 WHERE id = 1")
+            connection.execute(
+                """
+                UPDATE round_state
+                SET cards_dealt = 0, event_drawn = 0, round_number = 1,
+                    game_finished = 0, final_placements = NULL
+                WHERE id = 1
+                """
+            )
         self.send_json({"ok": True}, cookie="world_war_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0")
 
 

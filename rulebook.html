@@ -43,7 +43,7 @@
         <p class="section-number">01 — SETUP</p>
         <h2>Claim a country and build a fortune</h2>
         <div class="rulebook-callout">
-          <strong>Scoring convention:</strong> Many tables compare balances after three calculations and call the highest balance the winner. The current controller does not stop the session, prevent further round calculations, or declare a winner automatically—your table decides when to score and end play.
+          <strong>Scoring convention:</strong> After the third calculation, the game ends and the table displays ranked final balances. The app does not declare a winner automatically—your table chooses the winner, then the host can restart the room for a new game.
         </div>
         <ol class="rulebook-steps">
           <li>Enter a unique commander name. The game assigns you one available country.</li>
@@ -81,7 +81,7 @@
           <article><span>3</span><div><h3>Fund and invest</h3><p>Request coins, allocate them among your three fields, and leave any amount you may need for trades.</p></div></article>
           <article><span>4</span><div><h3>Negotiate or act</h3><p>Make trades, play cards, form alliances, or launch skirmishes when their requirements are met.</p></div></article>
           <article><span>5</span><div><h3>Lock and mark ready</h3><p>Lock field investments, then mark yourself ready. Locked investments cannot be edited for that round.</p></div></article>
-          <article><span>6</span><div><h3>Calculate</h3><p>Once every seated player has locked investments and marked ready, the host closes the round and payouts are calculated. The controller then opens another round; stop and score manually whenever your table has reached its agreed end point.</p></div></article>
+          <article><span>6</span><div><h3>Calculate</h3><p>Once every seated player has locked investments and marked ready, the host closes the round and payouts are calculated. After Round 3, the game ends and ranked placements appear for the table to choose a winner.</p></div></article>
         </div>
       </section>
 
@@ -122,7 +122,7 @@
           <article><span>🎖️</span><h3>General</h3><p>Gain two skirmish attacks this round instead of the normal one.</p></article>
           <article><span>🕵️</span><h3>Spy</h3><p>Publish a visible Spy operation against an agreement selected in the card dialog. In the current build, it does not reverse a live trade escrow. Cold War prevents this card from being used and does not consume it.</p></article>
           <article><span>💰</span><h3>Merchant</h3><p>Gain +10% trade income for the current round.</p></article>
-          <article><span>☢️</span><h3>Atomic Bomb</h3><p>After locking investments, destroy all investments in one selected field of another power.</p></article>
+          <article><span>☢️</span><h3>Atomic Bomb</h3><p>After locking investments, destroy half of one selected field’s current investment for another power.</p></article>
         </div>
 
         <h3>Alliances</h3>
@@ -144,7 +144,7 @@
           </article>
           <article class="rulebook-mini-card">
             <h3>☢️ Atomic strike</h3>
-            <p>Choose a rival and one field. The Atomic Bomb immediately wipes that target field’s investments. It is a precision disruption tool, not a coin transfer.</p>
+            <p>Choose a rival and one field. The Atomic Bomb immediately destroys half of that target field’s current investment, rounding up the amount destroyed. It is a precision disruption tool, not a coin transfer.</p>
           </article>
         </div>
       </section>

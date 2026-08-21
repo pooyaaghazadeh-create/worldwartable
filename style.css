@@ -1129,6 +1129,59 @@ input[type="range"]:focus-visible,
   margin-top: 7px;
 }
 
+.final-placements-panel {
+  background: linear-gradient(145deg, rgba(120, 53, 15, 0.45), rgba(15, 23, 42, 0.96));
+  border: 2px solid rgba(251, 191, 36, 0.78);
+  box-shadow: inset 4px 0 0 #fbbf24, 0 16px 32px rgba(2, 6, 23, 0.28);
+  text-align: center;
+}
+
+.final-placements-panel h2 {
+  color: #fef3c7;
+  margin: 3px 0 8px;
+}
+
+.final-placements-panel > p:not(.section-kicker) {
+  color: #dbeafe;
+  margin: 0 auto 14px;
+  max-width: 680px;
+}
+
+.final-placements-list {
+  display: grid;
+  gap: 7px;
+  list-style: none;
+  margin: 0 auto;
+  max-width: 560px;
+  padding: 0;
+}
+
+.final-placements-list li {
+  align-items: center;
+  background: rgba(2, 6, 23, 0.4);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 10px;
+  color: #f8fafc;
+  display: grid;
+  font-weight: 800;
+  gap: 10px;
+  grid-template-columns: 52px 1fr auto;
+  padding: 10px 13px;
+  text-align: left;
+}
+
+.final-placements-list li strong { color: #fbbf24; }
+.final-placements-list li span:last-child { color: #a7f3d0; }
+
+.tv-felt .final-placements-panel {
+  margin: 16px auto 0;
+  max-width: 440px;
+  padding: 12px;
+}
+
+.tv-felt .final-placements-panel h2 { font-size: 1.1rem; }
+.tv-felt .final-placements-list li { font-size: .82rem; padding: 7px 10px; }
+
 .investment-card {
   transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
 }
