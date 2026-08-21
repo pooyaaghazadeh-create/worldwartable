@@ -250,6 +250,36 @@ class TradeReversalServerTest(unittest.TestCase):
         )
         self.assertEqual(self.cards_for("Spy"), spy_cards_before)
 
+    def test_missing_pending_trade_escrow_preserves_acceptance_state(self):
+        self.propose_trade()
+        trade_before = dict(self.proposal("trade-1"))
+        proposer_before = self.assets_for("Proposer")
+        target_before = self.assets_for("Target")
+        spy_cards_before = self.cards_for("Spy")
+
+        with server.database() as connection:
+            connection.execute(
+                "DELETE FROM trade_escrow WHERE proposal_id = ?",
+                ("trade-1",),
+            )
+
+        status, response, _ = self.request(
+            "POST",
+            "/api/room/event",
+            {
+                "type": "RESPOND_TRADE",
+                "payload": {"proposalId": "trade-1", "approved": True},
+            },
+            self.players["Target"]["cookie"],
+        )
+
+        self.assertEqual(status, 409)
+        self.assertEqual(response["error"], "The proposal escrow is missing.")
+        self.assertEqual(dict(self.proposal("trade-1")), trade_before)
+        self.assertEqual(self.assets_for("Proposer"), proposer_before)
+        self.assertEqual(self.assets_for("Target"), target_before)
+        self.assertEqual(self.cards_for("Spy"), spy_cards_before)
+
     def test_spy_reversal_restores_exact_balances_with_merchant_and_recession(self):
         self.set_merchant("Proposer", "Target")
         self.set_condition({"id": "economic-recession"})
