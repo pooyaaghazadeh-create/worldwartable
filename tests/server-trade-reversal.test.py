@@ -265,6 +265,41 @@ class TradeReversalServerTest(unittest.TestCase):
         self.assertEqual(self.cards_for("Spy"), ["Spy"])
         self.assertEqual(self.proposal("trade-1")["status"], "accepted")
 
+    def test_legacy_accepted_trade_preserves_spy_and_state(self):
+        self.propose_trade()
+        self.accept_trade()
+        with server.database() as connection:
+            connection.execute(
+                """
+                UPDATE trade_proposals
+                SET proposer_receipt = 0, target_receipt = 0
+                WHERE proposal_id = ?
+                """,
+                ("trade-1",),
+            )
+
+        trade_before = dict(self.proposal("trade-1"))
+        proposer_before = self.assets_for("Proposer")
+        target_before = self.assets_for("Target")
+        spy_cards_before = self.cards_for("Spy")
+
+        status, response, _ = self.request(
+            "POST",
+            "/api/room/event",
+            {
+                "type": "SPY_INTERRUPT",
+                "payload": {"proposalId": "trade-1"},
+            },
+            self.players["Spy"]["cookie"],
+        )
+
+        self.assertEqual(status, 409)
+        self.assertIn("reversible settlement", response["error"])
+        self.assertEqual(dict(self.proposal("trade-1")), trade_before)
+        self.assertEqual(self.assets_for("Proposer"), proposer_before)
+        self.assertEqual(self.assets_for("Target"), target_before)
+        self.assertEqual(self.cards_for("Spy"), spy_cards_before)
+
     def test_prior_round_trade_preserves_spy_card(self):
         self.propose_trade()
         self.accept_trade()
