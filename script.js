@@ -645,6 +645,58 @@ function safeStorageGet(key, fallback = null) {
   }
 }
 
+function clearPlayerGameMemory() {
+  try {
+    const gameKeys = [];
+    for (let index = 0; index < localStorage.length; index += 1) {
+      const key = localStorage.key(index);
+      if (key?.startsWith("world_war_")) gameKeys.push(key);
+    }
+    gameKeys.forEach(key => localStorage.removeItem(key));
+    localStorage.removeItem("selected_lang");
+  } catch (e) {}
+
+  try {
+    sessionStorage.clear();
+  } catch (e) {}
+}
+
+window.exitGame = async function() {
+  const exitButton = document.getElementById("btn-exit-game");
+  const hostMessage = isRoomCreator
+    ? registeredPlayersCount > 1
+      ? " The next seated player will become the host."
+      : " The room will reset because you are its last player."
+    : "";
+
+  if (!window.confirm(`Exit this game? Your seat, reconnect access, and saved game data on this device will be cleared.${hostMessage}`)) {
+    return;
+  }
+
+  if (exitButton) exitButton.disabled = true;
+  try {
+    const response = await fetch("/api/room/leave", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: "{}"
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      window.alert(data.error || "Could not exit the game. Please try again.");
+      return;
+    }
+
+    clearPlayerGameMemory();
+    gameBroadcast?.close();
+    window.location.replace("index.html");
+  } catch (e) {
+    window.alert("Could not reach the game server. Please try again.");
+  } finally {
+    if (exitButton) exitButton.disabled = false;
+  }
+};
+
 function cleanStr(str) {
   return (str || "").toString().trim().toLowerCase();
 }
@@ -796,7 +848,7 @@ function applyHostEvent(event) {
     lastHostEventId = event.id;
   }
 
-  if (event.type === "PLAYER_JOINED") {
+  if (event.type === "PLAYER_JOINED" || event.type === "PLAYER_LEFT") {
     void refreshRoomSnapshot();
   } else if (event.type === "HOST_DEAL_CARDS") {
     if (cardsDealtThisRound) return;

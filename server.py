@@ -297,6 +297,9 @@ class GameHandler(SimpleHTTPRequestHandler):
         if parsed.path == "/api/room/reset":
             self.reset_room()
             return
+        if parsed.path == "/api/room/leave":
+            self.leave_room()
+            return
         self.send_error(HTTPStatus.NOT_FOUND, "Unknown API route")
 
     def read_json(self) -> dict | None:
@@ -1800,6 +1803,134 @@ class GameHandler(SimpleHTTPRequestHandler):
                 )
             ]
         self.send_json({"events": events})
+
+    def leave_room(self) -> None:
+        player = self.session_player()
+        if not player:
+            self.send_json({"error": "You are no longer seated in this room."}, HTTPStatus.UNAUTHORIZED)
+            return
+
+        player_id = player["id"]
+        player_country = player["country"]
+        player_handle = player["handle"]
+        was_host = bool(player["is_host"])
+
+        def includes_departing_country(serialized_countries: str) -> bool:
+            try:
+                return player_country in json.loads(serialized_countries)
+            except (TypeError, json.JSONDecodeError):
+                return False
+
+        with database() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+
+            alliance_ids = [
+                row["proposal_id"]
+                for row in connection.execute(
+                    "SELECT proposal_id, initiator_player_id, members FROM active_alliances"
+                )
+                if row["initiator_player_id"] == player_id or includes_departing_country(row["members"])
+            ]
+            if alliance_ids:
+                placeholders = ", ".join("?" for _ in alliance_ids)
+                connection.execute(
+                    f"DELETE FROM active_alliances WHERE proposal_id IN ({placeholders})",
+                    alliance_ids,
+                )
+
+            proposal_ids = [
+                row["proposal_id"]
+                for row in connection.execute(
+                    "SELECT proposal_id, initiator_player_id, members, targets FROM alliance_proposals"
+                )
+                if (
+                    row["initiator_player_id"] == player_id
+                    or includes_departing_country(row["members"])
+                    or includes_departing_country(row["targets"])
+                )
+            ]
+            if proposal_ids:
+                placeholders = ", ".join("?" for _ in proposal_ids)
+                connection.execute(
+                    f"DELETE FROM active_alliances WHERE proposal_id IN ({placeholders})",
+                    proposal_ids,
+                )
+                connection.execute(
+                    f"DELETE FROM alliance_proposals WHERE proposal_id IN ({placeholders})",
+                    proposal_ids,
+                )
+
+            trade_ids = [
+                row["proposal_id"]
+                for row in connection.execute(
+                    "SELECT proposal_id FROM trade_proposals WHERE proposer_id = ? OR target_id = ?",
+                    (player_id, player_id),
+                )
+            ]
+            if trade_ids:
+                placeholders = ", ".join("?" for _ in trade_ids)
+                connection.execute(
+                    f"DELETE FROM trade_escrow WHERE owner_id = ? OR proposal_id IN ({placeholders})",
+                    [player_id, *trade_ids],
+                )
+                connection.execute(
+                    f"DELETE FROM trade_proposals WHERE proposal_id IN ({placeholders})",
+                    trade_ids,
+                )
+            else:
+                connection.execute("DELETE FROM trade_escrow WHERE owner_id = ?", (player_id,))
+
+            if was_host:
+                connection.execute("UPDATE room_state SET host_player_id = NULL WHERE id = 1")
+                connection.execute("UPDATE players SET is_host = 0 WHERE id = ?", (player_id,))
+
+            for table in (
+                "sessions",
+                "player_round_resources",
+                "solo_skirmish_state",
+                "player_round_cards",
+                "player_round_readiness",
+                "coin_requests",
+                "player_round_effects",
+                "player_wallets",
+            ):
+                connection.execute(f"DELETE FROM {table} WHERE player_id = ?", (player_id,))
+            connection.execute("DELETE FROM players WHERE id = ?", (player_id,))
+
+            remaining_count = connection.execute("SELECT COUNT(*) FROM players").fetchone()[0]
+            new_host_country = None
+            if was_host and remaining_count:
+                replacement = connection.execute(
+                    "SELECT id, country FROM players ORDER BY created_at, id LIMIT 1"
+                ).fetchone()
+                connection.execute(
+                    "UPDATE room_state SET host_player_id = ? WHERE id = 1",
+                    (replacement["id"],),
+                )
+                connection.execute("UPDATE players SET is_host = 1 WHERE id = ?", (replacement["id"],))
+                new_host_country = replacement["country"]
+
+            if not remaining_count:
+                connection.execute("DELETE FROM host_events")
+                connection.execute("DELETE FROM active_alliances")
+                connection.execute("DELETE FROM alliance_proposals")
+                connection.execute("UPDATE room_state SET host_player_id = NULL, active_condition = NULL WHERE id = 1")
+                connection.execute("UPDATE round_state SET cards_dealt = 0, event_drawn = 0 WHERE id = 1")
+            else:
+                self.publish_room_event(
+                    connection,
+                    "PLAYER_LEFT",
+                    {
+                        "handle": player_handle,
+                        "country": player_country,
+                        "newHostCountry": new_host_country,
+                    },
+                )
+
+        self.send_json(
+            {"ok": True, "playerCount": remaining_count, "newHostCountry": new_host_country},
+            cookie="world_war_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0",
+        )
 
     def reset_room(self) -> None:
         player = self.session_player()
