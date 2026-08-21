@@ -1393,7 +1393,10 @@ window.openTradeModal = function() {
       opt.textContent = country;
       selectPartner.appendChild(opt);
     });
-    if (!selectPartner.options.length) logAction("⚠️ No other seated country is available to trade.", "TRADE");
+    if (!selectPartner.options.length) {
+      logAction("⚠️ No other seated country is available to trade.", "TRADE");
+      return;
+    }
   }
 
   updateOfferSliderCapacity();
@@ -1466,6 +1469,11 @@ window.sendBilateralTradeProposal = async function() {
   const offerAmount = parseInt(document.getElementById("slider-offer-amount")?.value, 10) || 0;
   const requestField = document.getElementById("select-request-field")?.value;
   const requestAmount = parseInt(document.getElementById("slider-request-amount")?.value, 10) || 0;
+
+  if (offerField !== "unallocated" && !investmentsLocked) {
+    logAction("🔒 Lock your investments before offering a field investment in a trade.", "TRADE");
+    return;
+  }
 
   if (!partner || offerAmount <= 0 || requestAmount <= 0) {
     logAction("⚠️ Enter valid offer/request fields and coin amounts.", "TRADE");
@@ -1724,6 +1732,14 @@ function updateUI() {
     setTxt(`val-${field}`, investments[field]);
   });
 
+  const tradeButton = document.getElementById("btn-open-trade");
+  if (tradeButton) {
+    tradeButton.disabled = false;
+    tradeButton.title = investmentsLocked
+      ? "Propose a trade with another seated player."
+      : "Cash trades are available now; lock investments before offering a field investment.";
+  }
+
   updateOfferSliderCapacity();
   updateAllianceUI();
 }
@@ -1783,6 +1799,7 @@ window.confirmInvestments = async function() {
 
   const myCountry = assignedCountry ? assignedCountry.name : "Player";
   lockedPlayersSet.add(cleanStr(myCountry));
+  updateUI();
   updateReadyConsensusUI();
   logAction(`✅ Locked field investments: Agri(${investments.agri}), Oil(${investments.oil}), Mines(${investments.mines}).`, "INVEST");
 };

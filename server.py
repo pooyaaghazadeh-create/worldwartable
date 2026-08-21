@@ -917,8 +917,25 @@ class GameHandler(SimpleHTTPRequestHandler):
         with database() as connection:
             connection.execute("BEGIN IMMEDIATE")
             target = connection.execute("SELECT id, country FROM players WHERE country = ?", (target_country,)).fetchone()
-            if not target or target["id"] == player["id"] or not self.asset_available(connection, player["id"], offered_field, offered):
-                self.send_json({"error": "The trade target or offered asset amount is invalid."}, HTTPStatus.CONFLICT)
+            if not target:
+                self.send_json({"error": "That trade partner is no longer seated in this room."}, HTTPStatus.CONFLICT)
+                return
+            if target["id"] == player["id"]:
+                self.send_json({"error": "Choose another player as your trade partner."}, HTTPStatus.BAD_REQUEST)
+                return
+            if offered_field != "unallocated" and not connection.execute(
+                "SELECT 1 FROM player_round_resources WHERE player_id = ?", (player["id"],)
+            ).fetchone():
+                self.send_json(
+                    {"error": "Lock your investments before offering a field investment in a trade."},
+                    HTTPStatus.CONFLICT,
+                )
+                return
+            if not self.asset_available(connection, player["id"], offered_field, offered):
+                self.send_json(
+                    {"error": "Your offered amount is no longer available. Adjust the offer and try again."},
+                    HTTPStatus.CONFLICT,
+                )
                 return
             self.change_asset(connection, player["id"], offered_field, -offered)
             connection.execute(
