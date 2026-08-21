@@ -1122,7 +1122,7 @@ function applyHostEvent(event) {
   } else if (event.type === "EXECUTE_ROUND_CALCULATION") {
     const result = assignedCountry ? event.payload?.results?.[assignedCountry.name] : null;
     calculateAndAdvanceRound(result || null, event.payload || {});
-    if (event.payload?.gameFinished) {
+    if (event.payload?.gameFinished && !document.body?.classList.contains("tv-body")) {
       publishGameResult({
         id: Number.isFinite(event.id) ? `final-placements-${event.id}` : "final-placements",
         icon: "🏆",

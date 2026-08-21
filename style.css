@@ -1173,14 +1173,21 @@ input[type="range"]:focus-visible,
 .final-placements-list li strong { color: #fbbf24; }
 .final-placements-list li span:last-child { color: #a7f3d0; }
 
-.tv-felt .final-placements-panel {
-  margin: 16px auto 0;
-  max-width: 440px;
-  padding: 12px;
+.tv-felt .tv-final-placements {
+  left: 50%;
+  margin: 0;
+  max-width: 540px;
+  padding: 20px;
+  pointer-events: auto;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(540px, 76%);
+  z-index: 12;
 }
 
-.tv-felt .final-placements-panel h2 { font-size: 1.1rem; }
-.tv-felt .final-placements-list li { font-size: .82rem; padding: 7px 10px; }
+.tv-felt .tv-final-placements h2 { font-size: 1.25rem; }
+.tv-felt .tv-final-placements .final-placements-list li { font-size: .9rem; padding: 9px 11px; }
 
 .investment-card {
   transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
