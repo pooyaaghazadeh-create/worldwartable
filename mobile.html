@@ -147,29 +147,8 @@
         <div id="round-announcements" class="announcement-feed" aria-live="polite"></div>
       </section>
 
-      <!-- RESOURCE MULTIPLIERS & FIELD INVESTMENTS -->
+      <!-- FIELD INVESTMENTS -->
       <section class="resource-workspace full-width">
-        <section class="card multiplier-card">
-          <h2 id="txt-mult-title">Resource Multipliers</h2>
-          <div class="multiplier-grid">
-            <div class="mult-box">
-              <span class="icon">🌾</span>
-              <span class="label" id="lbl-mult-agri">Agriculture</span>
-              <strong id="mult-agri">x1</strong>
-            </div>
-            <div class="mult-box">
-              <span class="icon">🛢️</span>
-              <span class="label" id="lbl-mult-oil">Oil</span>
-              <strong id="mult-oil">x1</strong>
-            </div>
-            <div class="mult-box">
-              <span class="icon">⛏️</span>
-              <span class="label" id="lbl-mult-mines">Mines</span>
-              <strong id="mult-mines">x1</strong>
-            </div>
-          </div>
-        </section>
-
         <section class="card investment-card">
           <div class="card-header-flex">
             <h2 id="txt-invest-title">Field Investments</h2>
@@ -180,18 +159,42 @@
 
           <div class="investment-grid">
             <div class="field-box resource-field">
-              <div class="field-title">🌾 Agriculture <strong><span id="val-agri">0</span> Coins</strong></div>
-              <input type="range" id="slider-agri" min="0" max="0" value="0" oninput="onSliderChange('agri')">
+              <div class="field-title">
+                <span class="field-name">🌾 Farm</span>
+                <span class="field-multiplier" title="Farm multiplier">×<strong id="mult-agri">1</strong></span>
+                <strong class="field-value"><span id="val-agri">0</span> Coins</strong>
+              </div>
+              <div class="investment-adjuster">
+                <button class="investment-stepper-button" type="button" data-field="agri" data-direction="decrease" onclick="adjustInvestment('agri', -1)" aria-label="Decrease Farm investment by one coin">−</button>
+                <input type="range" id="slider-agri" min="0" max="0" value="0" oninput="onSliderChange('agri')" aria-label="Farm investment">
+                <button class="investment-stepper-button" type="button" data-field="agri" data-direction="increase" onclick="adjustInvestment('agri', 1)" aria-label="Increase Farm investment by one coin">+</button>
+              </div>
             </div>
 
             <div class="field-box resource-field">
-              <div class="field-title">🛢️ Oil <strong><span id="val-oil">0</span> Coins</strong></div>
-              <input type="range" id="slider-oil" min="0" max="0" value="0" oninput="onSliderChange('oil')">
+              <div class="field-title">
+                <span class="field-name">🛢️ Oil</span>
+                <span class="field-multiplier" title="Oil multiplier">×<strong id="mult-oil">1</strong></span>
+                <strong class="field-value"><span id="val-oil">0</span> Coins</strong>
+              </div>
+              <div class="investment-adjuster">
+                <button class="investment-stepper-button" type="button" data-field="oil" data-direction="decrease" onclick="adjustInvestment('oil', -1)" aria-label="Decrease Oil investment by one coin">−</button>
+                <input type="range" id="slider-oil" min="0" max="0" value="0" oninput="onSliderChange('oil')" aria-label="Oil investment">
+                <button class="investment-stepper-button" type="button" data-field="oil" data-direction="increase" onclick="adjustInvestment('oil', 1)" aria-label="Increase Oil investment by one coin">+</button>
+              </div>
             </div>
 
             <div class="field-box resource-field">
-              <div class="field-title">⛏️ Mines <strong><span id="val-mines">0</span> Coins</strong></div>
-              <input type="range" id="slider-mines" min="0" max="0" value="0" oninput="onSliderChange('mines')">
+              <div class="field-title">
+                <span class="field-name">⛏️ Mines</span>
+                <span class="field-multiplier" title="Mines multiplier">×<strong id="mult-mines">1</strong></span>
+                <strong class="field-value"><span id="val-mines">0</span> Coins</strong>
+              </div>
+              <div class="investment-adjuster">
+                <button class="investment-stepper-button" type="button" data-field="mines" data-direction="decrease" onclick="adjustInvestment('mines', -1)" aria-label="Decrease Mines investment by one coin">−</button>
+                <input type="range" id="slider-mines" min="0" max="0" value="0" oninput="onSliderChange('mines')" aria-label="Mines investment">
+                <button class="investment-stepper-button" type="button" data-field="mines" data-direction="increase" onclick="adjustInvestment('mines', 1)" aria-label="Increase Mines investment by one coin">+</button>
+              </div>
             </div>
           </div>
 
@@ -482,7 +485,7 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260821-coin-request-cap-1"></script>
+  <script src="script.js?v=20260821-compact-investments-1"></script>
   <script>
     window.addEventListener("DOMContentLoaded", () => {
       initMobilePlayerSession();

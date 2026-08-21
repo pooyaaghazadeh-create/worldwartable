@@ -448,9 +448,7 @@ body {
 }
 
 .resource-workspace {
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.35fr);
-  gap: 15px;
+  display: block;
 }
 
 .resource-workspace .card {
@@ -463,6 +461,83 @@ body {
 
 .resource-workspace h2 {
   font-size: 1.1rem;
+}
+
+.field-title {
+  align-items: center;
+  display: grid;
+  gap: 4px 6px;
+  grid-template-columns: 1fr auto;
+  line-height: 1.15;
+  text-align: left;
+}
+
+.field-name {
+  color: #f8fafc;
+  font-weight: 800;
+  min-width: 0;
+}
+
+.field-multiplier {
+  background: rgba(245, 158, 11, 0.14);
+  border: 1px solid rgba(245, 158, 11, 0.42);
+  border-radius: 999px;
+  color: #fcd34d;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 3px 6px;
+  white-space: nowrap;
+}
+
+.field-multiplier strong {
+  color: inherit;
+}
+
+.field-value {
+  color: #fcd34d;
+  font-size: 0.78rem;
+  grid-column: 1 / -1;
+}
+
+.investment-adjuster {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.investment-adjuster input[type="range"] {
+  flex: 1;
+  margin: 0;
+  min-width: 0;
+}
+
+.investment-stepper-button {
+  align-items: center;
+  background: rgba(30, 58, 138, 0.62);
+  border: 1px solid rgba(96, 165, 250, 0.7);
+  border-radius: 7px;
+  color: #eff6ff;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 1.12rem;
+  font-weight: 900;
+  height: 28px;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+  width: 28px;
+}
+
+.investment-stepper-button:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.82);
+  border-color: #bfdbfe;
+}
+
+.investment-stepper-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
 }
 
 .announcement-card {
@@ -562,7 +637,7 @@ body {
   }
 
   .resource-workspace {
-    grid-template-columns: 1fr;
+    display: block;
   }
 }
 

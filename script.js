@@ -1616,9 +1616,9 @@ window.initController = initMobilePlayerSession;
 
 function updateCountryUI() {
   if (!assignedCountry) return;
-  setTxt("mult-agri", `x${getEffectiveResourceMultiplier("agri")}`);
-  setTxt("mult-oil", `x${getEffectiveResourceMultiplier("oil")}`);
-  setTxt("mult-mines", `x${getEffectiveResourceMultiplier("mines")}`);
+  setTxt("mult-agri", getEffectiveResourceMultiplier("agri"));
+  setTxt("mult-oil", getEffectiveResourceMultiplier("oil"));
+  setTxt("mult-mines", getEffectiveResourceMultiplier("mines"));
 }
 
 window.switchMode = function(mode) {
@@ -2144,6 +2144,7 @@ function updateUI() {
     }
     setTxt(`val-${field}`, investments[field]);
   });
+  syncInvestmentStepperControls(totalAllocated);
   renderInvestmentVisuals();
 
   const tradeButton = document.getElementById("btn-open-trade");
@@ -2203,9 +2204,32 @@ window.onSliderChange = function(changedField) {
   setTxt("val-oil", oilVal);
   setTxt("val-mines", minesVal);
   setTxt("unallocated-coins", coins - totalAllocated);
+  syncInvestmentStepperControls(totalAllocated);
   renderInvestmentVisuals();
   pulseVisual(document.getElementById(`slider-${changedField}`)?.closest(".resource-field"), "is-adjusted", 230);
   playSound("tick", { cooldown: 110 });
+};
+
+function syncInvestmentStepperControls(totalAllocated = investments.agri + investments.oil + investments.mines) {
+  ["agri", "oil", "mines"].forEach(field => {
+    const decrease = document.querySelector(`.investment-stepper-button[data-field="${field}"][data-direction="decrease"]`);
+    const increase = document.querySelector(`.investment-stepper-button[data-field="${field}"][data-direction="increase"]`);
+    if (decrease) decrease.disabled = investmentsLocked || investments[field] <= 0;
+    if (increase) increase.disabled = investmentsLocked || totalAllocated >= coins;
+  });
+}
+
+window.adjustInvestment = function(field, amount) {
+  if (
+    investmentsLocked ||
+    !["agri", "oil", "mines"].includes(field) ||
+    ![-1, 1].includes(amount)
+  ) return;
+  const slider = document.getElementById(`slider-${field}`);
+  if (!slider) return;
+
+  slider.value = Math.max(0, Math.min(coins, (Number(slider.value) || 0) + amount));
+  window.onSliderChange(field);
 };
 
 window.confirmInvestments = async function() {
