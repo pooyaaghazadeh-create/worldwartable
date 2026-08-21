@@ -106,10 +106,7 @@ const translations = {
     lblMultAgri: "Agriculture",
     lblMultOil: "Oil",
     lblMultMines: "Mines",
-    txtBankTitle: "Market, Trading & Actions",
     btnBuyCoins: "Buy 100 Coins (Max 500)",
-    btnOpenTrade: "🤝 Field Battle",
-    btnFieldBattle: "⚔️ Field Battle",
     txtInvestTitle: "Field Investments",
     lblUnallocated: "Unallocated:",
     btnLockInvest: "Lock In Investments",
@@ -119,17 +116,17 @@ const translations = {
     txtAnnouncements: "📣 Round Announcements",
     txtCommandBoardKicker: "LIVE STRATEGIC MAP",
     txtCommandBoardTitle: "Command Board",
-    txtCommandBoardDesc: "Select a seated country to inspect its resources and available actions.",
+    txtCommandBoardDesc: "Select an opposing country to inspect its multipliers, total investment, and available actions.",
     txtBoardConditionClear: "No active condition",
-    txtBoardEmpty: "Awaiting seated commanders…",
-    txtBoardDetailsEmpty: "Select a country territory to view its command profile.",
+    txtBoardEmpty: "Awaiting other seated commanders…",
+    txtBoardDetailsEmpty: "Select an opposing country to view its command profile.",
     txtBoardPlanning: "Planning",
     txtBoardLocked: "Investments locked",
     txtBoardReady: "Ready to close",
-    txtBoardMyCountry: "Your country",
     txtBoardTrade: "Open Field Trade",
     txtBoardBattle: "Open Field Battle",
-    txtBoardReview: "Review investments",
+    txtBoardTotalInvestment: "Total field investment: {total} coins",
+    txtBoardTotalPending: "Total field investment: pending",
     txtBoardAlliance: "Alliance",
     btnHostDealUsed: "✓ Cards Dealt This Round",
     btnHostEventLocked: "Deal Cards Before Drawing Event",
@@ -160,10 +157,7 @@ const translations = {
     lblMultAgri: "Tarım",
     lblMultOil: "Petrol",
     lblMultMines: "Madenler",
-    txtBankTitle: "Piyasa, Ticaret ve Eylemler",
     btnBuyCoins: "100 Coin Al (Maks 500)",
-    btnOpenTrade: "🤝 Saha Savaşı",
-    btnFieldBattle: "⚔️ Saha Savaşı",
     txtInvestTitle: "Saha Yatırımları",
     lblUnallocated: "Ayrılmamış:",
     btnLockInvest: "Yatırımları Kilitle",
@@ -173,17 +167,17 @@ const translations = {
     txtAnnouncements: "📣 Raund Duyuruları",
     txtCommandBoardKicker: "CANLI STRATEJİ HARİTASI",
     txtCommandBoardTitle: "Komuta Panosu",
-    txtCommandBoardDesc: "Kaynaklarını ve kullanılabilir eylemlerini incelemek için oturmuş bir ülkeyi seçin.",
+    txtCommandBoardDesc: "Çarpanlarını, toplam yatırımını ve kullanılabilir eylemlerini incelemek için rakip bir ülke seçin.",
     txtBoardConditionClear: "Aktif etkinlik yok",
-    txtBoardEmpty: "Komutanlar bekleniyor…",
-    txtBoardDetailsEmpty: "Komuta profilini görmek için bir ülke bölgesi seçin.",
+    txtBoardEmpty: "Diğer oturmuş komutanlar bekleniyor…",
+    txtBoardDetailsEmpty: "Komuta profilini görmek için rakip bir ülke seçin.",
     txtBoardPlanning: "Planlama",
     txtBoardLocked: "Yatırımlar kilitli",
     txtBoardReady: "Kapanışa hazır",
-    txtBoardMyCountry: "Sizin ülkeniz",
     txtBoardTrade: "Saha Ticaretini Aç",
     txtBoardBattle: "Saha Savaşını Aç",
-    txtBoardReview: "Yatırımları incele",
+    txtBoardTotalInvestment: "Toplam saha yatırımı: {total} coin",
+    txtBoardTotalPending: "Toplam saha yatırımı: bekliyor",
     txtBoardAlliance: "İttifak",
     btnHostDealUsed: "✓ Kartlar Bu Raund Dağıtıldı",
     btnHostEventLocked: "Önce Kartları Dağıtın",
@@ -214,10 +208,7 @@ const translations = {
     lblMultAgri: "کشاورزی",
     lblMultOil: "نفت",
     lblMultMines: "معادن",
-    txtBankTitle: "بازار، تجارت و اقدامات",
     btnBuyCoins: "خرید ۱۰۰ سکه (حداکثر ۵۰۰)",
-    btnOpenTrade: "🤝 نبرد میدانی",
-    btnFieldBattle: "⚔️ نبرد میدانی",
     txtInvestTitle: "سرمایه‌گذاری‌های زمینی",
     lblUnallocated: "تخصیص‌نیافته:",
     btnLockInvest: "قفل سرمایه‌گذاری‌ها",
@@ -227,17 +218,17 @@ const translations = {
     txtAnnouncements: "📣 اطلاعیه‌های دور",
     txtCommandBoardKicker: "نقشه زنده راهبردی",
     txtCommandBoardTitle: "برد فرماندهی",
-    txtCommandBoardDesc: "برای بررسی منابع و اقدامات در دسترس، یک کشور نشسته را انتخاب کنید.",
+    txtCommandBoardDesc: "برای بررسی ضریب‌ها، مجموع سرمایه‌گذاری و اقدامات در دسترس، یک کشور رقیب را انتخاب کنید.",
     txtBoardConditionClear: "رویداد فعالی نیست",
-    txtBoardEmpty: "در انتظار فرماندهان نشسته…",
-    txtBoardDetailsEmpty: "برای دیدن نمای فرماندهی، قلمرو یک کشور را انتخاب کنید.",
+    txtBoardEmpty: "در انتظار دیگر فرماندهان نشسته…",
+    txtBoardDetailsEmpty: "برای دیدن نمای فرماندهی، یک کشور رقیب را انتخاب کنید.",
     txtBoardPlanning: "در حال برنامه‌ریزی",
     txtBoardLocked: "سرمایه‌گذاری‌ها قفل شده‌اند",
     txtBoardReady: "آماده بستن دور",
-    txtBoardMyCountry: "کشور شما",
     txtBoardTrade: "باز کردن معامله میدانی",
     txtBoardBattle: "باز کردن نبرد میدانی",
-    txtBoardReview: "بررسی سرمایه‌گذاری‌ها",
+    txtBoardTotalInvestment: "مجموع سرمایه‌گذاری میدان: {total} سکه",
+    txtBoardTotalPending: "مجموع سرمایه‌گذاری میدان: در انتظار",
     txtBoardAlliance: "ائتلاف",
     btnHostDealUsed: "✓ کارت‌ها در این دور توزیع شدند",
     btnHostEventLocked: "ابتدا کارت‌ها را توزیع کنید",
@@ -557,8 +548,6 @@ function syncFinishedGameControls() {
   if (!gameFinished) return;
   [
     "btn-buy-coins",
-    "btn-open-trade",
-    "btn-field-battle",
     "btn-counter-union",
     "btn-alliance-skirmish",
     "btn-lock-invest",
@@ -1684,31 +1673,22 @@ function commandBoardAlliance(country) {
   ) || null;
 }
 
-function commandBoardInvestments(player) {
-  const isSelf = assignedCountry && cleanStr(player?.country) === cleanStr(assignedCountry.name);
-  if (isSelf) return { ...investments };
-  if (player?.investments && typeof player.investments === "object") {
-    return {
-      agri: Number(player.investments.agri) || 0,
-      oil: Number(player.investments.oil) || 0,
-      mines: Number(player.investments.mines) || 0
-    };
-  }
-  return null;
-}
-
 function commandBoardStatus(player, copy) {
   if (player.ready) return copy.txtBoardReady;
   if (player.locked) return copy.txtBoardLocked;
   return copy.txtBoardPlanning;
 }
 
-function renderCommandBoardResource(icon, label, amount, multiplier) {
+function commandBoardTotalInvestment(player) {
+  const total = Number(player?.totalInvestment);
+  return Number.isFinite(total) ? Math.max(0, total) : null;
+}
+
+function renderCommandBoardResource(icon, label, multiplier) {
   const resource = document.createElement("span");
   resource.className = "command-board-resource";
-  const knownAmount = amount != null;
-  resource.textContent = `${icon} ${knownAmount ? amount : "—"} · ×${multiplier}`;
-  resource.title = `${label}: ${knownAmount ? `${amount} coins` : "planning"} · multiplier ×${multiplier}`;
+  resource.textContent = `${icon} ×${multiplier}`;
+  resource.title = `${label} multiplier ×${multiplier}`;
   return resource;
 }
 
@@ -1725,10 +1705,9 @@ function renderCommandBoardDetails(player) {
     return;
   }
 
-  const isSelf = assignedCountry && cleanStr(player.country) === cleanStr(assignedCountry.name);
   const card = activeCountryCard(player.country);
   const multipliers = getCountryRoundMultipliers(player.country, card);
-  const values = commandBoardInvestments(player);
+  const totalInvestment = commandBoardTotalInvestment(player);
   const alliance = commandBoardAlliance(player.country);
   const title = document.createElement("div");
   title.className = "command-board-detail-heading";
@@ -1741,7 +1720,7 @@ function renderCommandBoardDetails(player) {
 
   const commander = document.createElement("p");
   commander.className = "command-board-commander";
-  commander.textContent = `${player.handle}${player.isHost ? " · Host" : ""}${isSelf ? ` · ${copy.txtBoardMyCountry}` : ""}`;
+  commander.textContent = `${player.handle}${player.isHost ? " · Host" : ""}`;
 
   const resources = document.createElement("div");
   resources.className = "command-board-detail-resources";
@@ -1754,7 +1733,6 @@ function renderCommandBoardDetails(player) {
       renderCommandBoardResource(
         icon,
         label,
-        values ? values[field] : null,
         getEffectiveResourceMultiplier(field, multipliers[field])
       )
     );
@@ -1762,9 +1740,10 @@ function renderCommandBoardDetails(player) {
 
   const context = document.createElement("p");
   context.className = "command-board-context";
-  const total = values ? values.agri + values.oil + values.mines : null;
   const contextParts = [
-    total == null ? "Investment profile pending" : `Total field investment: ${total} coins`
+    totalInvestment == null
+      ? copy.txtBoardTotalPending
+      : copy.txtBoardTotalInvestment.replace("{total}", totalInvestment)
   ];
   if (alliance) contextParts.push(`${copy.txtBoardAlliance}: ${alliance.allianceType}`);
   if (activeGlobalCondition) contextParts.push(activeGlobalCondition.title.replace(/^[^\s]+\s/, ""));
@@ -1772,32 +1751,23 @@ function renderCommandBoardDetails(player) {
 
   const actions = document.createElement("div");
   actions.className = "command-board-actions";
-  if (isSelf) {
-    const review = document.createElement("button");
-    review.type = "button";
-    review.className = "btn btn-secondary btn-small";
-    review.textContent = copy.txtBoardReview;
-    review.onclick = window.reviewCommandBoardInvestments;
-    actions.appendChild(review);
-  } else {
-    const trade = document.createElement("button");
-    trade.type = "button";
-    trade.className = "btn btn-secondary btn-small";
-    trade.textContent = copy.txtBoardTrade;
-    trade.disabled = gameFinished;
-    trade.onclick = window.openCommandBoardTrade;
+  const trade = document.createElement("button");
+  trade.type = "button";
+  trade.className = "btn btn-secondary btn-small";
+  trade.textContent = copy.txtBoardTrade;
+  trade.disabled = gameFinished;
+  trade.onclick = window.openCommandBoardTrade;
 
-    const battle = document.createElement("button");
-    battle.type = "button";
-    battle.className = "btn btn-danger btn-small";
-    battle.textContent = copy.txtBoardBattle;
-    battle.disabled = gameFinished || !investmentsLocked || !player.locked;
-    battle.title = battle.disabled
-      ? "Both countries must lock investments before a field battle."
-      : "Open a Field Battle against this country.";
-    battle.onclick = window.openCommandBoardBattle;
-    actions.append(trade, battle);
-  }
+  const battle = document.createElement("button");
+  battle.type = "button";
+  battle.className = "btn btn-danger btn-small";
+  battle.textContent = copy.txtBoardBattle;
+  battle.disabled = gameFinished || !investmentsLocked || !player.locked;
+  battle.title = battle.disabled
+    ? "Both countries must lock investments before a field battle."
+    : "Open a Field Battle against this country.";
+  battle.onclick = window.openCommandBoardBattle;
+  actions.append(trade, battle);
 
   details.append(title, commander, resources, context, actions);
 }
@@ -1807,7 +1777,10 @@ function renderCommandBoard() {
   const condition = document.getElementById("command-board-condition");
   if (!surface) return;
   const copy = commandBoardCopy();
-  const seatedPlayers = activeRoomPlayers.filter(player => player?.country);
+  const selfCountry = cleanStr(assignedCountry?.name || "");
+  const opponentPlayers = activeRoomPlayers.filter(player =>
+    player?.country && cleanStr(player.country) !== selfCountry
+  );
 
   if (condition) {
     condition.textContent = activeGlobalCondition
@@ -1816,21 +1789,19 @@ function renderCommandBoard() {
     condition.classList.toggle("is-active", Boolean(activeGlobalCondition));
   }
 
-  if (!seatedPlayers.some(player => cleanStr(player.country) === cleanStr(selectedBoardCountry))) {
-    selectedBoardCountry = assignedCountry
-      ? assignedCountry.name
-      : seatedPlayers[0]?.country || "";
+  if (!opponentPlayers.some(player => cleanStr(player.country) === cleanStr(selectedBoardCountry))) {
+    selectedBoardCountry = opponentPlayers[0]?.country || "";
   }
 
   const signature = JSON.stringify({
     condition: activeGlobalCondition?.id || "",
     selected: selectedBoardCountry,
-    players: seatedPlayers.map(player => ({
+    players: opponentPlayers.map(player => ({
       country: player.country,
       locked: player.locked,
       ready: player.ready,
-      investments: player.investments,
       total: player.totalInvestment,
+      multipliers: getCountryRoundMultipliers(player.country, activeCountryCard(player.country)),
       alliance: commandBoardAlliance(player.country)?.allianceType || ""
     }))
   });
@@ -1839,7 +1810,7 @@ function renderCommandBoard() {
 
   surface.replaceChildren();
   surface.classList.toggle("has-global-condition", Boolean(activeGlobalCondition));
-  if (!seatedPlayers.length) {
+  if (!opponentPlayers.length) {
     const empty = document.createElement("p");
     empty.className = "command-board-empty";
     empty.textContent = copy.txtBoardEmpty;
@@ -1848,23 +1819,22 @@ function renderCommandBoard() {
     return;
   }
 
-  seatedPlayers.forEach((player, index) => {
+  opponentPlayers.forEach((player, index) => {
     const card = activeCountryCard(player.country);
     const multipliers = getCountryRoundMultipliers(player.country, card);
-    const values = commandBoardInvestments(player);
+    const totalInvestment = commandBoardTotalInvestment(player);
     const alliance = commandBoardAlliance(player.country);
-    const isSelf = assignedCountry && cleanStr(player.country) === cleanStr(assignedCountry.name);
     const isSelected = cleanStr(player.country) === cleanStr(selectedBoardCountry);
     const territory = document.createElement("button");
     territory.type = "button";
-    territory.className = `command-territory ${player.ready ? "is-ready" : player.locked ? "is-locked" : "is-planning"}${isSelf ? " is-self" : ""}${isSelected ? " is-selected" : ""}${alliance ? " is-allied" : ""}`;
+    territory.className = `command-territory ${player.ready ? "is-ready" : player.locked ? "is-locked" : "is-planning"}${isSelected ? " is-selected" : ""}${alliance ? " is-allied" : ""}`;
     territory.style.setProperty("--territory-index", String(index));
     territory.style.setProperty("--territory-y", index % 2 ? "5px" : "0px");
     territory.dataset.country = player.country;
     territory.setAttribute("aria-pressed", String(isSelected));
     territory.setAttribute(
       "aria-label",
-      `${player.country}, ${commandBoardStatus(player, copy)}${isSelf ? `, ${copy.txtBoardMyCountry}` : ""}`
+      `${player.country}, ${commandBoardStatus(player, copy)}`
     );
     territory.onclick = () => {
       selectedBoardCountry = player.country;
@@ -1880,7 +1850,7 @@ function renderCommandBoard() {
     name.textContent = player.country;
     const commander = document.createElement("span");
     commander.className = "command-territory-commander";
-    commander.textContent = `${player.handle}${isSelf ? " · YOU" : ""}`;
+    commander.textContent = `${player.handle}${player.isHost ? " · Host" : ""}`;
     const resources = document.createElement("span");
     resources.className = "command-territory-resources";
     [
@@ -1892,30 +1862,29 @@ function renderCommandBoard() {
         renderCommandBoardResource(
           icon,
           label,
-          values ? values[field] : null,
           getEffectiveResourceMultiplier(field, multipliers[field])
         )
       );
     });
+    const total = document.createElement("span");
+    total.className = "command-territory-total";
+    total.textContent = totalInvestment == null
+      ? copy.txtBoardTotalPending
+      : copy.txtBoardTotalInvestment.replace("{total}", totalInvestment);
     if (alliance) {
       const allianceBadge = document.createElement("span");
       allianceBadge.className = "command-territory-alliance";
       allianceBadge.textContent = alliance.allianceType === "Mega-Merger" ? "MEGA" : "UNION";
       territory.appendChild(allianceBadge);
     }
-    territory.append(state, name, commander, resources);
+    territory.append(state, name, commander, resources, total);
     surface.appendChild(territory);
   });
 
-  const selectedPlayer = seatedPlayers.find(player => cleanStr(player.country) === cleanStr(selectedBoardCountry));
+  const selectedPlayer = opponentPlayers.find(player => cleanStr(player.country) === cleanStr(selectedBoardCountry));
   renderCommandBoardDetails(selectedPlayer);
   if (stateChanged) pulseVisual(surface, "is-state-updated", 680);
 }
-
-window.reviewCommandBoardInvestments = function() {
-  document.querySelector(".investment-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  window.setTimeout(() => document.getElementById("slider-agri")?.focus(), 260);
-};
 
 function setCommandBoardTarget(selectId) {
   const select = document.getElementById(selectId);
@@ -2459,14 +2428,6 @@ function updateUI() {
   });
   syncInvestmentStepperControls(totalAllocated);
   renderInvestmentVisuals();
-
-  const tradeButton = document.getElementById("btn-open-trade");
-  if (tradeButton) {
-    tradeButton.disabled = false;
-    tradeButton.title = investmentsLocked
-      ? "Propose a trade with another seated player."
-      : "Cash trades are available now; lock investments before offering a field investment.";
-  }
 
   updateOfferSliderCapacity();
   updateAllianceUI();

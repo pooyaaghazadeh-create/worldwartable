@@ -164,10 +164,6 @@ body {
   order: 30;
 }
 
-.dashboard-container > .action-card {
-  order: 20;
-}
-
 .dashboard-container > .hand-card {
   order: 50;
 }
@@ -205,9 +201,6 @@ body {
     grid-column: 1;
   }
 
-  .dashboard-container > .action-card {
-    grid-column: 2;
-  }
 }
 
 .card {
@@ -365,13 +358,6 @@ body {
   z-index: 1;
 }
 
-.command-territory.is-self {
-  background:
-    linear-gradient(145deg, rgba(16, 185, 129, 0.34), rgba(15, 23, 42, 0.95)),
-    #102d2b;
-  border-color: rgba(110, 231, 183, 0.72);
-}
-
 .command-territory.is-ready {
   border-color: rgba(74, 222, 128, 0.82);
 }
@@ -423,6 +409,12 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.command-territory-total {
+  color: #f8e0a0;
+  font-size: 0.66rem;
+  font-weight: 800;
 }
 
 .command-territory-resources {
@@ -576,6 +568,16 @@ body {
 .info-row.highlight {
   color: var(--gold-color);
   font-size: 1.1rem;
+}
+
+.player-overview-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 12px;
+}
+
+.player-overview-actions .btn {
+  width: 100%;
 }
 
 .multiplier-grid, .investment-grid {

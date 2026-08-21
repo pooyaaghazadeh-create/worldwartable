@@ -92,15 +92,15 @@
           <div>
             <p class="section-kicker" id="txt-command-board-kicker">LIVE STRATEGIC MAP</p>
             <h2 id="txt-command-board-title">Command Board</h2>
-            <p id="txt-command-board-desc">Select a seated country to inspect its resources and available actions.</p>
+            <p id="txt-command-board-desc">Select an opposing country to inspect its multipliers, total investment, and available actions.</p>
           </div>
           <span id="command-board-condition" class="command-board-condition">No active condition</span>
         </div>
         <div id="command-board-surface" class="command-board-surface" role="region" aria-label="Interactive country command board">
-          <p id="command-board-empty" class="command-board-empty">Awaiting seated commanders…</p>
+          <p id="command-board-empty" class="command-board-empty">Awaiting other seated commanders…</p>
         </div>
         <aside id="command-board-details" class="command-board-details" aria-live="polite">
-          <p id="command-board-details-empty">Select a country territory to view its command profile.</p>
+          <p id="command-board-details-empty">Select an opposing country to view its command profile.</p>
         </aside>
       </section>
 
@@ -122,6 +122,9 @@
         <div class="info-row">
           <span id="lbl-merchant-bonus">Merchant Bonus Active:</span>
           <strong id="merchant-status" style="color: var(--gold-color);">No ❌</strong>
+        </div>
+        <div class="player-overview-actions">
+          <button id="btn-buy-coins" class="btn btn-primary" onclick="requestBuyCoins()">Buy 100 Coins (Max 500)</button>
         </div>
       </section>
 
@@ -263,16 +266,6 @@
         <h2 id="txt-counter-union-title" style="color: var(--danger-color); margin-bottom: 5px;">⚠️ Superpower Mega-Merger Formed!</h2>
         <p id="txt-counter-union-desc" style="color: var(--text-muted); margin-bottom: 15px;">Up to 3 unaligned powers can propose a Counter-Union to pool resources and defend against the Merger.</p>
         <button id="btn-counter-union" class="btn btn-danger btn-large" onclick="openCounterUnionModal()">🛡️ Propose Defensive Counter-Union</button>
-      </section>
-
-      <!-- BANK, BUY & TRADING ACTIONS -->
-      <section class="card action-card">
-        <h2 id="txt-bank-title">Market, Trading & Actions</h2>
-        <div class="button-group">
-          <button id="btn-buy-coins" class="btn btn-primary" onclick="requestBuyCoins()">Buy 100 Coins (Max 500)</button>
-          <button id="btn-open-trade" class="btn btn-secondary" onclick="openTradeModal()" title="Open a field trade">🤝 Field Battle</button>
-          <button id="btn-field-battle" class="btn btn-danger" onclick="openSkirmishModal()" title="Open a skirmish field battle">⚔️ Field Battle</button>
-        </div>
       </section>
 
       <!-- PROFICIENCY CARDS HAND -->
@@ -503,7 +496,7 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260821-command-board-1"></script>
+  <script src="script.js?v=20260821-command-board-2"></script>
   <script>
     window.addEventListener("DOMContentLoaded", () => {
       initMobilePlayerSession();
