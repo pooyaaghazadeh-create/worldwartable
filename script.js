@@ -2561,9 +2561,9 @@ function calculateAndAdvanceRound(canonicalResult = null) {
     earnedOilYield = Math.floor(poolOilTotal * playerShareRatio);
     earnedMinesYield = Math.floor(poolMinesTotal * playerShareRatio);
   } else {
-    earnedAgriYield = Math.floor(investments.agri * agriMultiplier * 1.5);
-    earnedOilYield = Math.floor(investments.oil * oilMultiplier * 1.5);
-    earnedMinesYield = Math.floor(investments.mines * minesMultiplier * 1.5);
+    earnedAgriYield = Math.floor(investments.agri * agriMultiplier);
+    earnedOilYield = Math.floor(investments.oil * oilMultiplier);
+    earnedMinesYield = Math.floor(investments.mines * minesMultiplier);
   }
 
   if (isGlobalConditionActive("global-warming")) {

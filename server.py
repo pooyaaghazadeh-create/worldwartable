@@ -732,7 +732,7 @@ class GameHandler(SimpleHTTPRequestHandler):
                         )
                     else:
                         gross_profit = sum(
-                            int(resources[field] * self.field_multiplier(seated["country"], field, condition) * 1.5)
+                            int(resources[field] * self.field_multiplier(seated["country"], field, condition))
                             for field in ("agri", "oil", "mines")
                         )
                     repayment_due = int(seated["loans"] * 1.20)
