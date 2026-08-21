@@ -1083,6 +1083,7 @@ function applyHostEvent(event) {
     if (event.payload?.country) {
       lockedPlayersSet.add(cleanStr(event.payload.country));
       updateReadyConsensusUI();
+      syncHostButtonsUI();
       void refreshRoomSnapshot();
       window.setTimeout(() => pulseTvSeat(event.payload.country, "is-locked-highlight"), 260);
     }
@@ -1291,7 +1292,9 @@ function syncHostButtonsUI() {
   }
 
   if (eventBtn) {
-    const eventLocked = !cardsDealtThisRound;
+    const seatedPlayers = activeRoomPlayers.length || registeredPlayersCount;
+    const allInvestmentsLocked = seatedPlayers > 0 && lockedPlayersSet.size >= seatedPlayers;
+    const eventLocked = !cardsDealtThisRound || !allInvestmentsLocked;
     const eventUsed = eventDrawnThisRound;
     eventBtn.disabled = !isRoomCreator || eventLocked || eventUsed;
     eventBtn.classList.toggle("round-action-locked", eventLocked);
@@ -1299,9 +1302,14 @@ function syncHostButtonsUI() {
     eventBtn.textContent = eventUsed
       ? labels.btnHostEventUsed
       : eventLocked
-        ? labels.btnHostEventLocked
+        ? !cardsDealtThisRound
+          ? labels.btnHostEventLocked
+          : "Awaiting Investment Locks"
         : labels.btnHostEvent;
     eventBtn.setAttribute("aria-label", eventBtn.textContent);
+    eventBtn.title = eventLocked && cardsDealtThisRound
+      ? "Every seated player must lock investments before drawing the Global Condition."
+      : "";
   }
 }
 
@@ -1885,9 +1893,13 @@ window.hostDealCards = async function() {
 window.drawGlobalCondition = async function() {
   if (!requireRoomCreator("draw the Global Event")) return;
   if (!cardsDealtThisRound || eventDrawnThisRound) return;
+  const seatedPlayers = activeRoomPlayers.length || registeredPlayersCount;
+  if (!seatedPlayers || lockedPlayersSet.size < seatedPlayers) {
+    logAction("⚠️ Every seated player must lock investments before the Global Condition is drawn.", "EVENT");
+    return;
+  }
 
-  const event = GLOBAL_CONDITION_CARDS[Math.floor(Math.random() * GLOBAL_CONDITION_CARDS.length)];
-  await submitHostCommand("HOST_DRAW_EVENT", event);
+  await submitHostCommand("HOST_DRAW_EVENT", {});
 };
 
 // ==========================================

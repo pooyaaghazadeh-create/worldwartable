@@ -618,6 +618,14 @@ class GameHandler(SimpleHTTPRequestHandler):
                 if not state["cards_dealt"] or state["event_drawn"]:
                     self.send_json({"error": "Deal cards first, then draw exactly one Global Condition."}, HTTPStatus.CONFLICT)
                     return
+                player_count = connection.execute("SELECT COUNT(*) FROM players").fetchone()[0]
+                locked_count = connection.execute("SELECT COUNT(*) FROM player_round_resources").fetchone()[0]
+                if not player_count or locked_count != player_count:
+                    self.send_json(
+                        {"error": "Every seated player must lock investments before the Global Condition is drawn."},
+                        HTTPStatus.CONFLICT,
+                    )
+                    return
                 event_payload = secrets.choice(GLOBAL_CONDITIONS)
                 connection.execute(
                     "UPDATE room_state SET active_condition = ? WHERE id = 1",
