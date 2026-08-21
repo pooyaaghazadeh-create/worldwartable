@@ -161,7 +161,7 @@ body {
 }
 
 .dashboard-container > .action-card {
-  order: 40;
+  order: 20;
 }
 
 .dashboard-container > .hand-card {
@@ -184,6 +184,26 @@ body {
 
 .dashboard-container > .ready-consensus-card {
   order: 100;
+}
+
+@media (min-width: 620px) {
+  .dashboard-container {
+    align-items: start;
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  }
+
+  .dashboard-container > * {
+    grid-column: 1 / -1;
+  }
+
+  .dashboard-container > .player-card {
+    grid-column: 1;
+  }
+
+  .dashboard-container > .action-card {
+    grid-column: 2;
+  }
 }
 
 .card {

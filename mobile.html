@@ -252,8 +252,8 @@
         <h2 id="txt-bank-title">Market, Trading & Actions</h2>
         <div class="button-group">
           <button id="btn-buy-coins" class="btn btn-primary" onclick="requestBuyCoins()">Buy 100 Coins (Max 500)</button>
-          <button id="btn-open-trade" class="btn btn-secondary" onclick="openTradeModal()">🤝 Asymmetric Field Trade</button>
-          <button id="btn-field-battle" class="btn btn-danger" onclick="openSkirmishModal()">⚔️ Skirmish Field Battle</button>
+          <button id="btn-open-trade" class="btn btn-secondary" onclick="openTradeModal()" title="Open a field trade">🤝 Field Battle</button>
+          <button id="btn-field-battle" class="btn btn-danger" onclick="openSkirmishModal()" title="Open a skirmish field battle">⚔️ Field Battle</button>
         </div>
       </section>
 
@@ -346,7 +346,7 @@
   <!-- OTHER MODALS -->
   <div id="skirmish-modal" class="modal-overlay hidden">
     <div class="modal-card alert-card">
-      <h2 style="color: var(--danger-color);">⚔️ Skirmish Field Battle</h2>
+      <h2 style="color: var(--danger-color);">⚔️ Field Battle</h2>
       <p>Target a rival country's resource field. Defeating them seizes 100% of their targeted field resources!</p>
       <div class="field-box modal-input-box">
         <label class="modal-label">Target Enemy Nation:</label>
@@ -485,7 +485,7 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260821-compact-investments-1"></script>
+  <script src="script.js?v=20260821-profile-actions-row-1"></script>
   <script>
     window.addEventListener("DOMContentLoaded", () => {
       initMobilePlayerSession();
