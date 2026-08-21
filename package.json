@@ -2,6 +2,7 @@
   "name": "world-war-table",
   "private": true,
   "scripts": {
-    "test": "node --test && python3 tests/server-auth.test.py"
+    "test": "node --test && python3 tests/server-auth.test.py",
+    "test:trade-reversal": "python3 tests/server-trade-reversal.test.py"
   }
 }
