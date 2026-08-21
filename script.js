@@ -809,7 +809,8 @@ function applyHostEvent(event) {
     eventDrawnThisRound = true;
     activateGlobalCondition(event.payload);
     syncHostButtonsUI();
-    logAction(`🎲 Host drawn Global Event Card: ${event.payload.title}!`, "EVENT");
+    const eventTitle = activeGlobalCondition?.title || event.payload?.id || "Unknown Event";
+    logAction(`🎲 Host drawn Global Event Card: ${eventTitle}!`, "EVENT");
   } else if (event.type === "EXECUTE_ROUND_CALCULATION") {
     const result = assignedCountry ? event.payload?.results?.[assignedCountry.name] : null;
     calculateAndAdvanceRound(result || null);
