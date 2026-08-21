@@ -1,0 +1,1 @@
+- [Reversible trade settlements](reversible-trade-settlements.md) — Trade reversals must restore persisted settlement receipts, not recalculate live modifiers.

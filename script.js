@@ -1320,7 +1320,13 @@ function applyHostEvent(event) {
     const myAssets = assignedCountry ? event.payload?.assets?.[assignedCountry.name] : null;
     if (myAssets) {
       coins = Number(myAssets.coins) || 0;
-      if (myAssets.investments) investments = { ...myAssets.investments };
+      if (myAssets.investments) {
+        investments = { ...myAssets.investments };
+        ["agri", "oil", "mines"].forEach(field => {
+          const slider = document.getElementById(`slider-${field}`);
+          if (slider) slider.value = investments[field];
+        });
+      }
       updateUI();
     }
     void refreshCurrentHand();
@@ -1336,8 +1342,12 @@ function applyHostEvent(event) {
       category: "SPY CARD RESULT",
       tone: "danger",
       title: "Spy Operation Successful",
-      summary: `${event.payload.country} interrupted a pending server trade.`,
-      details: "The targeted trade proposal was cancelled."
+      summary: event.payload.resolution === "reversed"
+        ? `${event.payload.country} broke the finalized trade between ${event.payload.proposerCountry} and ${event.payload.targetCountry}.`
+        : `${event.payload.country} cancelled the pending trade between ${event.payload.proposerCountry} and ${event.payload.targetCountry}.`,
+      details: event.payload.resolution === "reversed"
+        ? "Both countries' trade assets were restored to their pre-trade state."
+        : "The proposer’s escrowed asset was returned."
     });
     void refreshRoomSnapshot();
   } else if (event.type === "SOLO_SKIRMISH") {
@@ -3295,13 +3305,14 @@ window.openSpyModal = function(cardIndex) {
   if (pendingServerTrades.length === 0) {
     const opt = document.createElement("option");
     opt.value = "";
-    opt.textContent = "No pending server trades";
+    opt.textContent = "No current-round trades available";
     select.appendChild(opt);
   }
   pendingServerTrades.forEach(deal => {
     const opt = document.createElement("option");
     opt.value = deal.id;
-    opt.textContent = `${deal.proposerCountry} → ${deal.targetCountry} (${deal.offeredAmount} for ${deal.requestedAmount})`;
+    const status = deal.status === "accepted" ? "Finalized — reverse" : "Pending — cancel";
+    opt.textContent = `${status}: ${deal.proposerCountry} → ${deal.targetCountry} (${deal.offeredAmount} for ${deal.requestedAmount})`;
     select.appendChild(opt);
   });
 
@@ -3319,7 +3330,7 @@ window.confirmSpyInterruption = async function() {
   const select = document.getElementById("select-spy-target-deal");
   const proposalId = String(select?.value || "");
   if (!proposalId) {
-    logAction("🕵️ No pending server trade is available to interrupt.", "SPY");
+    logAction("🕵️ No current-round trade is available to break.", "SPY");
     return;
   }
   const completed = await submitRoomEvent("SPY_INTERRUPT", { proposalId });

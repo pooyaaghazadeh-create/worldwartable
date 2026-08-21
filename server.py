@@ -188,7 +188,13 @@ def initialize_database() -> None:
               offered_amount INTEGER NOT NULL,
               requested_amount INTEGER NOT NULL,
               status TEXT NOT NULL CHECK (status IN ('pending', 'accepted', 'rejected')),
-              created_at INTEGER NOT NULL
+              created_at INTEGER NOT NULL,
+              offered_field TEXT NOT NULL DEFAULT 'unallocated',
+              requested_field TEXT NOT NULL DEFAULT 'unallocated',
+              round_number INTEGER NOT NULL DEFAULT 0,
+              proposer_receipt INTEGER NOT NULL DEFAULT 0,
+              target_receipt INTEGER NOT NULL DEFAULT 0,
+              broken_at INTEGER
             );
             CREATE TABLE IF NOT EXISTS trade_escrow (
               proposal_id TEXT PRIMARY KEY REFERENCES trade_proposals(proposal_id) ON DELETE CASCADE,
@@ -245,6 +251,26 @@ def initialize_database() -> None:
             connection.execute(
                 "ALTER TABLE trade_proposals ADD COLUMN requested_field TEXT NOT NULL DEFAULT 'unallocated'"
             )
+        if "round_number" not in proposal_columns:
+            connection.execute(
+                "ALTER TABLE trade_proposals ADD COLUMN round_number INTEGER NOT NULL DEFAULT 0"
+            )
+        if "proposer_receipt" not in proposal_columns:
+            connection.execute(
+                "ALTER TABLE trade_proposals ADD COLUMN proposer_receipt INTEGER NOT NULL DEFAULT 0"
+            )
+        if "target_receipt" not in proposal_columns:
+            connection.execute(
+                "ALTER TABLE trade_proposals ADD COLUMN target_receipt INTEGER NOT NULL DEFAULT 0"
+            )
+        if "broken_at" not in proposal_columns:
+            connection.execute("ALTER TABLE trade_proposals ADD COLUMN broken_at INTEGER")
+        connection.execute(
+            """
+            CREATE INDEX IF NOT EXISTS eligible_spy_trades
+            ON trade_proposals (round_number, status, broken_at, created_at)
+            """
+        )
         round_columns = {
             row["name"] for row in connection.execute("PRAGMA table_info(round_state)")
         }
@@ -496,6 +522,7 @@ class GameHandler(SimpleHTTPRequestHandler):
                 "SELECT * FROM active_alliances ORDER BY created_at"
             )
         ]
+        current_round = room["round_number"] if room else 1
         pending_trades = [
             {
                 "id": row["proposal_id"],
@@ -505,18 +532,29 @@ class GameHandler(SimpleHTTPRequestHandler):
                 "requestedAmount": row["requested_amount"],
                 "offeredField": row["offered_field"],
                 "requestedField": row["requested_field"],
+                "status": row["status"],
             }
             for row in connection.execute(
                 """
                 SELECT trades.proposal_id, trades.offered_amount, trades.requested_amount,
-                       trades.offered_field, trades.requested_field,
+                       trades.offered_field, trades.requested_field, trades.status,
                        proposer.country AS proposer_country, target.country AS target_country
                 FROM trade_proposals AS trades
                 JOIN players AS proposer ON proposer.id = trades.proposer_id
                 JOIN players AS target ON target.id = trades.target_id
-                WHERE trades.status = 'pending'
+                WHERE trades.round_number = ?
+                  AND trades.broken_at IS NULL
+                  AND (
+                    trades.status = 'pending'
+                    OR (
+                      trades.status = 'accepted'
+                      AND trades.proposer_receipt > 0
+                      AND trades.target_receipt > 0
+                    )
+                  )
                 ORDER BY trades.created_at
-                """
+                """,
+                (current_round,),
             )
         ]
         return {
@@ -524,7 +562,7 @@ class GameHandler(SimpleHTTPRequestHandler):
             "activeCondition": json.loads(room["active_condition"]) if room and room["active_condition"] else None,
             "alliances": alliances,
             "pendingTrades": pending_trades,
-            "roundNumber": room["round_number"] if room else 1,
+            "roundNumber": current_round,
             "gameFinished": bool(room["game_finished"]) if room else False,
             "finalPlacements": json.loads(room["final_placements"]) if room and room["final_placements"] else [],
             "resourceMultipliers": (
@@ -1139,6 +1177,10 @@ class GameHandler(SimpleHTTPRequestHandler):
             return
         with database() as connection:
             connection.execute("BEGIN IMMEDIATE")
+            round_state = connection.execute(
+                "SELECT round_number FROM round_state WHERE id = 1"
+            ).fetchone()
+            current_round = round_state["round_number"] if round_state else 1
             target = connection.execute("SELECT id, country FROM players WHERE country = ?", (target_country,)).fetchone()
             if not target:
                 self.send_json({"error": "That trade partner is no longer seated in this room."}, HTTPStatus.CONFLICT)
@@ -1164,10 +1206,14 @@ class GameHandler(SimpleHTTPRequestHandler):
             connection.execute(
                 """
                 INSERT INTO trade_proposals
-                  (proposal_id, proposer_id, target_id, offered_amount, requested_amount, status, created_at, offered_field, requested_field)
-                VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?)
+                  (proposal_id, proposer_id, target_id, offered_amount, requested_amount, status, created_at,
+                   offered_field, requested_field, round_number)
+                VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?)
                 """,
-                (proposal_id, player["id"], target["id"], offered, requested, int(time.time()), offered_field, requested_field),
+                (
+                    proposal_id, player["id"], target["id"], offered, requested, int(time.time()),
+                    offered_field, requested_field, current_round,
+                ),
             )
             connection.execute(
                 "INSERT INTO trade_escrow (proposal_id, owner_id, field, amount) VALUES (?, ?, ?, ?)",
@@ -1248,7 +1294,6 @@ class GameHandler(SimpleHTTPRequestHandler):
                 return
             if approved and not self.asset_available(connection, player["id"], proposal["requested_field"], proposal["requested_amount"]):
                 approved = False
-            connection.execute("UPDATE trade_proposals SET status = ? WHERE proposal_id = ?", ("accepted" if approved else "rejected", proposal_id))
             rows = connection.execute("SELECT id, country FROM players WHERE id IN (?, ?)", (proposal["proposer_id"], player["id"])).fetchall()
             countries = {row["id"]: row["country"] for row in rows}
             if approved:
@@ -1257,8 +1302,20 @@ class GameHandler(SimpleHTTPRequestHandler):
                 self.change_asset(connection, player["id"], proposal["requested_field"], -proposal["requested_amount"])
                 self.change_asset(connection, proposal["proposer_id"], proposal["requested_field"], proposer_receipt)
                 self.change_asset(connection, player["id"], escrow["field"], target_receipt)
+                connection.execute(
+                    """
+                    UPDATE trade_proposals
+                    SET status = 'accepted', proposer_receipt = ?, target_receipt = ?
+                    WHERE proposal_id = ?
+                    """,
+                    (proposer_receipt, target_receipt, proposal_id),
+                )
             else:
                 self.change_asset(connection, proposal["proposer_id"], escrow["field"], escrow["amount"])
+                connection.execute(
+                    "UPDATE trade_proposals SET status = 'rejected' WHERE proposal_id = ?",
+                    (proposal_id,),
+                )
             connection.execute("DELETE FROM trade_escrow WHERE proposal_id = ?", (proposal_id,))
             assets = {
                 row["country"]: self.player_assets(connection, row["id"])
@@ -1275,7 +1332,7 @@ class GameHandler(SimpleHTTPRequestHandler):
     def spy_interrupt(self, player: sqlite3.Row, payload: dict) -> None:
         proposal_id = payload.get("proposalId")
         if not isinstance(proposal_id, str):
-            self.send_json({"error": "Choose a pending server trade to interrupt."}, HTTPStatus.BAD_REQUEST)
+            self.send_json({"error": "Choose a current-round trade to break."}, HTTPStatus.BAD_REQUEST)
             return
         with database() as connection:
             connection.execute("BEGIN IMMEDIATE")
@@ -1284,24 +1341,99 @@ class GameHandler(SimpleHTTPRequestHandler):
             if isinstance(condition, dict) and condition.get("id") == "cold-war":
                 self.send_json({"error": "Cold War blocks Spy cards this round."}, HTTPStatus.CONFLICT)
                 return
-            proposal = connection.execute("SELECT * FROM trade_proposals WHERE proposal_id = ?", (proposal_id,)).fetchone()
-            if not proposal or proposal["status"] != "pending":
-                self.send_json({"error": "That server trade is no longer pending."}, HTTPStatus.CONFLICT)
+            proposal = connection.execute(
+                "SELECT * FROM trade_proposals WHERE proposal_id = ?", (proposal_id,)
+            ).fetchone()
+            round_state = connection.execute(
+                "SELECT round_number FROM round_state WHERE id = 1"
+            ).fetchone()
+            current_round = round_state["round_number"] if round_state else 1
+            if (
+                not proposal
+                or proposal["round_number"] != current_round
+                or proposal["broken_at"] is not None
+                or proposal["status"] not in {"pending", "accepted"}
+            ):
+                self.send_json(
+                    {"error": "That trade is no longer eligible for a Spy operation."},
+                    HTTPStatus.CONFLICT,
+                )
                 return
+
+            rows = connection.execute(
+                "SELECT id, country FROM players WHERE id IN (?, ?)",
+                (proposal["proposer_id"], proposal["target_id"]),
+            ).fetchall()
+            countries = {row["id"]: row["country"] for row in rows}
+            resolution = "cancelled"
+            if proposal["status"] == "pending":
+                escrow = connection.execute(
+                    "SELECT * FROM trade_escrow WHERE proposal_id = ?", (proposal_id,)
+                ).fetchone()
+                if not escrow:
+                    self.send_json({"error": "The proposal escrow is missing."}, HTTPStatus.CONFLICT)
+                    return
+            else:
+                proposer_receipt = proposal["proposer_receipt"]
+                target_receipt = proposal["target_receipt"]
+                if proposer_receipt <= 0 or target_receipt <= 0:
+                    self.send_json(
+                        {"error": "This trade does not have reversible settlement details."},
+                        HTTPStatus.CONFLICT,
+                    )
+                    return
+                if not self.asset_available(
+                    connection, proposal["proposer_id"], proposal["requested_field"], proposer_receipt
+                ) or not self.asset_available(
+                    connection, proposal["target_id"], proposal["offered_field"], target_receipt
+                ):
+                    self.send_json(
+                        {
+                            "error": (
+                                "This trade cannot be broken because one of the transferred "
+                                "assets has already been spent."
+                            )
+                        },
+                        HTTPStatus.CONFLICT,
+                    )
+                    return
+
             if not self.consume_card(connection, player["id"], "Spy"):
                 self.send_json({"error": "You need an unplayed Spy card."}, HTTPStatus.FORBIDDEN)
                 return
-            escrow = connection.execute("SELECT * FROM trade_escrow WHERE proposal_id = ?", (proposal_id,)).fetchone()
-            if not escrow:
-                self.send_json({"error": "The proposal escrow is missing."}, HTTPStatus.CONFLICT)
-                return
-            self.change_asset(connection, escrow["owner_id"], escrow["field"], escrow["amount"])
-            connection.execute("UPDATE trade_proposals SET status = 'rejected' WHERE proposal_id = ?", (proposal_id,))
-            connection.execute("DELETE FROM trade_escrow WHERE proposal_id = ?", (proposal_id,))
-            owner = connection.execute("SELECT country FROM players WHERE id = ?", (escrow["owner_id"],)).fetchone()
+
+            if proposal["status"] == "pending":
+                self.change_asset(connection, escrow["owner_id"], escrow["field"], escrow["amount"])
+                connection.execute("DELETE FROM trade_escrow WHERE proposal_id = ?", (proposal_id,))
+            else:
+                self.change_asset(
+                    connection, proposal["proposer_id"], proposal["requested_field"], -proposal["proposer_receipt"]
+                )
+                self.change_asset(
+                    connection, proposal["target_id"], proposal["offered_field"], -proposal["target_receipt"]
+                )
+                self.change_asset(
+                    connection, proposal["proposer_id"], proposal["offered_field"], proposal["offered_amount"]
+                )
+                self.change_asset(
+                    connection, proposal["target_id"], proposal["requested_field"], proposal["requested_amount"]
+                )
+                resolution = "reversed"
+            connection.execute(
+                "UPDATE trade_proposals SET status = 'rejected', broken_at = ? WHERE proposal_id = ?",
+                (int(time.time()), proposal_id),
+            )
+            assets = {
+                row["country"]: self.player_assets(connection, row["id"])
+                for row in rows
+            }
             event = self.publish_room_event(connection, "SPY_INTERRUPT", {
-                "country": player["country"], "proposalId": proposal_id,
-                "assets": {owner["country"]: self.player_assets(connection, escrow["owner_id"])}
+                "country": player["country"],
+                "proposalId": proposal_id,
+                "resolution": resolution,
+                "proposerCountry": countries.get(proposal["proposer_id"]),
+                "targetCountry": countries.get(proposal["target_id"]),
+                "assets": assets,
             })
         self.send_json({"event": event}, HTTPStatus.CREATED)
 
