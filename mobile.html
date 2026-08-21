@@ -86,6 +86,24 @@
         <p id="global-event-desc" style="color: var(--text-muted); margin-top: 5px;"></p>
       </section>
 
+      <!-- 2.5D COMMAND BOARD -->
+      <section class="card full-width command-board-card" aria-labelledby="txt-command-board-title">
+        <div class="command-board-header">
+          <div>
+            <p class="section-kicker" id="txt-command-board-kicker">LIVE STRATEGIC MAP</p>
+            <h2 id="txt-command-board-title">Command Board</h2>
+            <p id="txt-command-board-desc">Select a seated country to inspect its resources and available actions.</p>
+          </div>
+          <span id="command-board-condition" class="command-board-condition">No active condition</span>
+        </div>
+        <div id="command-board-surface" class="command-board-surface" role="region" aria-label="Interactive country command board">
+          <p id="command-board-empty" class="command-board-empty">Awaiting seated commanders…</p>
+        </div>
+        <aside id="command-board-details" class="command-board-details" aria-live="polite">
+          <p id="command-board-details-empty">Select a country territory to view its command profile.</p>
+        </aside>
+      </section>
+
       <!-- PLAYER OVERVIEW -->
       <section class="card player-card">
         <h2 id="txt-overview-title">Player Overview</h2>
@@ -485,7 +503,7 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260821-profile-actions-row-1"></script>
+  <script src="script.js?v=20260821-command-board-1"></script>
   <script>
     window.addEventListener("DOMContentLoaded", () => {
       initMobilePlayerSession();

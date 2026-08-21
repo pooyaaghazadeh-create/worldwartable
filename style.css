@@ -152,6 +152,10 @@ body {
   order: 10;
 }
 
+.dashboard-container > .command-board-card {
+  order: 15;
+}
+
 .dashboard-container > .player-card {
   order: 20;
 }
@@ -212,6 +216,347 @@ body {
   border-radius: 12px;
   padding: 15px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+/* Interactive 2.5D command board */
+.command-board-card {
+  background:
+    linear-gradient(135deg, rgba(30, 58, 138, 0.28), rgba(15, 23, 42, 0.97) 56%),
+    var(--card-bg);
+  border-color: rgba(96, 165, 250, 0.5);
+  overflow: hidden;
+  padding: clamp(13px, 3vw, 20px);
+}
+
+.command-board-header {
+  align-items: flex-start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.command-board-header h2 {
+  color: #f8fafc;
+  font-size: clamp(1.12rem, 3vw, 1.4rem);
+  margin-top: 3px;
+}
+
+.command-board-header > div > p:last-child {
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  line-height: 1.42;
+  margin-top: 5px;
+  max-width: 520px;
+}
+
+.command-board-condition {
+  background: rgba(30, 41, 59, 0.86);
+  border: 1px solid rgba(148, 163, 184, 0.42);
+  border-radius: 999px;
+  color: #cbd5e1;
+  flex: 0 0 auto;
+  font-size: 0.69rem;
+  font-weight: 800;
+  line-height: 1.2;
+  max-width: 190px;
+  padding: 6px 8px;
+  text-align: center;
+}
+
+.command-board-condition.is-active {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(251, 191, 36, 0.7);
+  color: #fde68a;
+}
+
+.command-board-surface {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  isolation: isolate;
+  min-height: 190px;
+  padding: 20px 12px 28px;
+  perspective: 960px;
+  position: relative;
+}
+
+.command-board-surface::before {
+  background:
+    linear-gradient(122deg, transparent 0 48%, rgba(45, 212, 191, 0.08) 48.4% 49.1%, transparent 49.5% 100%),
+    linear-gradient(55deg, transparent 0 57%, rgba(96, 165, 250, 0.08) 57.2% 57.8%, transparent 58% 100%),
+    repeating-linear-gradient(0deg, rgba(148, 163, 184, 0.08) 0 1px, transparent 1px 27px),
+    repeating-linear-gradient(90deg, rgba(148, 163, 184, 0.07) 0 1px, transparent 1px 27px),
+    radial-gradient(ellipse at 28% 30%, rgba(45, 212, 191, 0.18), transparent 28%),
+    radial-gradient(ellipse at 75% 68%, rgba(59, 130, 246, 0.2), transparent 32%),
+    linear-gradient(160deg, #102d3a 0%, #0a2133 52%, #061524 100%);
+  border: 1px solid rgba(125, 211, 252, 0.25);
+  border-radius: 16px;
+  box-shadow: inset 0 0 38px rgba(2, 6, 23, 0.68), 0 18px 30px rgba(2, 6, 23, 0.42);
+  content: "";
+  inset: 0;
+  position: absolute;
+  transform: rotateX(3deg);
+  transform-origin: center bottom;
+  z-index: -1;
+}
+
+.command-board-surface.has-global-condition::before {
+  border-color: rgba(251, 191, 36, 0.48);
+  box-shadow: inset 0 0 46px rgba(245, 158, 11, 0.15), 0 18px 30px rgba(2, 6, 23, 0.42);
+}
+
+.command-board-empty {
+  align-self: center;
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  grid-column: 1 / -1;
+  justify-self: center;
+  padding: 30px 14px;
+  text-align: center;
+}
+
+.command-territory {
+  appearance: none;
+  background:
+    linear-gradient(145deg, rgba(59, 130, 246, 0.31), rgba(15, 23, 42, 0.95)),
+    #122237;
+  border: 1px solid rgba(147, 197, 253, 0.46);
+  border-radius: 12px;
+  box-shadow:
+    0 7px 0 rgba(3, 14, 27, 0.82),
+    0 12px 16px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  color: #f8fafc;
+  cursor: pointer;
+  display: grid;
+  gap: 5px;
+  min-height: 129px;
+  padding: 10px;
+  position: relative;
+  text-align: left;
+  transform: translateZ(4px) translateY(var(--territory-y));
+  transition: border-color 170ms ease, box-shadow 170ms ease, filter 170ms ease, transform 170ms ease;
+}
+
+.command-territory::after {
+  background: linear-gradient(90deg, rgba(125, 211, 252, 0.32), transparent 58%);
+  border-radius: inherit;
+  content: "";
+  height: 1px;
+  left: 9px;
+  position: absolute;
+  right: 9px;
+  top: 8px;
+}
+
+.command-territory:hover,
+.command-territory:focus-visible,
+.command-territory.is-selected {
+  border-color: #fcd34d;
+  filter: brightness(1.16);
+  outline: none;
+  transform: translateZ(25px) translateY(calc(var(--territory-y) - 4px)) scale(1.025);
+  box-shadow:
+    0 11px 0 rgba(3, 14, 27, 0.84),
+    0 20px 24px rgba(0, 0, 0, 0.38),
+    0 0 0 2px rgba(251, 191, 36, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  z-index: 1;
+}
+
+.command-territory.is-self {
+  background:
+    linear-gradient(145deg, rgba(16, 185, 129, 0.34), rgba(15, 23, 42, 0.95)),
+    #102d2b;
+  border-color: rgba(110, 231, 183, 0.72);
+}
+
+.command-territory.is-ready {
+  border-color: rgba(74, 222, 128, 0.82);
+}
+
+.command-territory.is-allied {
+  background:
+    linear-gradient(145deg, rgba(168, 85, 247, 0.31), rgba(15, 23, 42, 0.95)),
+    #221735;
+  border-color: rgba(196, 181, 253, 0.72);
+}
+
+.command-territory-state,
+.command-territory-alliance {
+  align-self: start;
+  background: rgba(2, 6, 23, 0.62);
+  border: 1px solid rgba(148, 163, 184, 0.38);
+  border-radius: 999px;
+  color: #cbd5e1;
+  font-size: 0.59rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  line-height: 1;
+  padding: 4px 5px;
+  width: max-content;
+}
+
+.command-territory.is-locked .command-territory-state { color: #fde68a; }
+.command-territory.is-ready .command-territory-state { color: #86efac; }
+
+.command-territory-alliance {
+  border-color: rgba(196, 181, 253, 0.6);
+  color: #ddd6fe;
+  position: absolute;
+  right: 8px;
+  top: 8px;
+}
+
+.command-territory-name {
+  color: #f8fafc;
+  font-size: clamp(0.75rem, 2.5vw, 0.9rem);
+  line-height: 1.18;
+  overflow-wrap: anywhere;
+  padding-right: 4px;
+}
+
+.command-territory-commander {
+  color: #bfdbfe;
+  font-size: 0.68rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.command-territory-resources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.command-board-resource {
+  background: rgba(2, 6, 23, 0.42);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 6px;
+  color: #e2e8f0;
+  font-size: 0.62rem;
+  font-weight: 750;
+  line-height: 1;
+  padding: 4px;
+  white-space: nowrap;
+}
+
+.command-board-details {
+  align-items: center;
+  background: rgba(2, 6, 23, 0.35);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px 14px;
+  margin-top: 13px;
+  min-height: 62px;
+  padding: 10px 11px;
+}
+
+.command-board-details > p:only-child {
+  color: var(--text-muted);
+  font-size: 0.83rem;
+}
+
+.command-board-detail-heading {
+  align-items: center;
+  display: flex;
+  gap: 7px;
+}
+
+.command-board-detail-heading strong {
+  color: #fef3c7;
+  font-size: 0.92rem;
+}
+
+.command-board-state {
+  color: #cbd5e1;
+  font-size: 0.69rem;
+  font-weight: 800;
+}
+
+.command-board-state.is-locked { color: #fde68a; }
+.command-board-state.is-ready { color: #86efac; }
+
+.command-board-commander,
+.command-board-context {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.command-board-detail-resources,
+.command-board-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.command-board-actions {
+  margin-left: auto;
+}
+
+.command-board-actions .btn {
+  white-space: normal;
+}
+
+.command-board-surface.is-state-updated::before {
+  animation: command-board-update 680ms ease-out;
+}
+
+@keyframes command-board-update {
+  0% { box-shadow: inset 0 0 10px rgba(96, 165, 250, 0.1), 0 18px 30px rgba(2, 6, 23, 0.42); }
+  40% { box-shadow: inset 0 0 54px rgba(96, 165, 250, 0.4), 0 18px 30px rgba(2, 6, 23, 0.42); }
+  100% { box-shadow: inset 0 0 38px rgba(2, 6, 23, 0.68), 0 18px 30px rgba(2, 6, 23, 0.42); }
+}
+
+@media (min-width: 620px) {
+  .command-board-surface {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding: 24px 18px 31px;
+  }
+}
+
+@media (min-width: 760px) {
+  .command-board-surface {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 440px) {
+  .command-board-header {
+    flex-direction: column;
+  }
+
+  .command-board-condition {
+    max-width: none;
+  }
+
+  .command-board-actions {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .command-board-actions .btn {
+    flex: 1 1 140px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .command-territory,
+  .command-territory:hover,
+  .command-territory:focus-visible,
+  .command-territory.is-selected {
+    transform: none;
+    transition: none;
+  }
+
+  .command-board-surface.is-state-updated::before {
+    animation: none;
+  }
 }
 
 .card-header-flex {

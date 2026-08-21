@@ -436,7 +436,11 @@ class GameHandler(SimpleHTTPRequestHandler):
             }
         )
 
-    def room_snapshot(self, connection: sqlite3.Connection) -> dict:
+    def room_snapshot(
+        self,
+        connection: sqlite3.Connection,
+        include_investments: bool = True,
+    ) -> dict:
         room = connection.execute(
             """
             SELECT room_state.active_condition, round_state.round_number,
@@ -454,6 +458,10 @@ class GameHandler(SimpleHTTPRequestHandler):
                 "isHost": bool(row["is_host"]),
                 "locked": bool(row["locked"]),
                 "ready": bool(row["ready"]),
+                "investments": (
+                    {field: row[field] or 0 for field in RESOURCE_FIELDS}
+                    if include_investments and row["locked"] else None
+                ),
                 "totalInvestment": (
                     (row["agri"] or 0) + (row["oil"] or 0) + (row["mines"] or 0)
                     if row["agri"] is not None else None
@@ -525,8 +533,16 @@ class GameHandler(SimpleHTTPRequestHandler):
         }
 
     def send_room_state(self) -> None:
+        player = self.session_player()
         with database() as connection:
-            self.send_json({"room": self.room_snapshot(connection)})
+            self.send_json(
+                {
+                    "room": self.room_snapshot(
+                        connection,
+                        include_investments=player is not None,
+                    )
+                }
+            )
 
     def join_room(self, payload: dict) -> None:
         handle = str(payload.get("handle", "")).strip()
