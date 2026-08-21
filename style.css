@@ -144,6 +144,48 @@ body {
   gap: 15px;
 }
 
+.dashboard-container > * {
+  order: 0;
+}
+
+.dashboard-container > .global-event-card {
+  order: 10;
+}
+
+.dashboard-container > .player-card {
+  order: 20;
+}
+
+.dashboard-container > .resource-workspace {
+  order: 30;
+}
+
+.dashboard-container > .action-card {
+  order: 40;
+}
+
+.dashboard-container > .hand-card {
+  order: 50;
+}
+
+.dashboard-container > .announcement-card {
+  order: 60;
+}
+
+.dashboard-container > #pending-proposal-banner,
+.dashboard-container > #coalition-panel,
+.dashboard-container > #counter-union-banner {
+  order: 70;
+}
+
+.dashboard-container > #final-placements-panel {
+  order: 90;
+}
+
+.dashboard-container > .ready-consensus-card {
+  order: 100;
+}
+
 .card {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
