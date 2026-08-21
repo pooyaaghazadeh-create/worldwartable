@@ -284,6 +284,7 @@ if (gameBroadcast) {
     } else if (data.type === "REQUEST_COINS") {
       pendingCoinRequests.push(data.payload);
       renderHostCoinRequests();
+      syncCoinPurchaseControl();
     } else if (data.type === "SKIRMISH_DEFEAT") {
       if (assignedCountry && cleanStr(data.payload.targetCountry) === cleanStr(assignedCountry.name)) {
         const fieldName = data.payload.targetField;
@@ -1173,6 +1174,7 @@ function applyHostEvent(event) {
     );
     if (matchingRequest >= 0) pendingCoinRequests.splice(matchingRequest, 1);
     renderHostCoinRequests();
+    syncCoinPurchaseControl();
   } else if (event.type === "LOCK_RESOURCES") {
     if (event.payload?.country) {
       lockedPlayersSet.add(cleanStr(event.payload.country));
@@ -1193,6 +1195,7 @@ function applyHostEvent(event) {
   } else if (event.type === "REQUEST_COINS") {
     pendingCoinRequests.push(event.payload);
     renderHostCoinRequests();
+    syncCoinPurchaseControl();
   } else if (event.type === "ACTIVATE_GENERAL") {
     applyGeneralAllowance(event.payload);
   } else if (event.type === "TAKE_BANKER_LOAN") {
@@ -2030,8 +2033,12 @@ window.drawGlobalCondition = async function() {
 // COIN PURCHASE REQUEST ENGINE
 // ==========================================
 window.requestBuyCoins = async function() {
-  if (coins + 100 > MAX_PURCHASE_CAP) {
-    logAction(`🛑 Purchase Capped: You already hold the maximum limit of 500 coins.`, "BANK");
+  const reservedCoins = getPendingCoinPurchaseAmount();
+  if (coins + reservedCoins + 100 > MAX_PURCHASE_CAP) {
+    logAction(
+      `🛑 Purchase Capped: Approved coins and pending requests cannot exceed ${MAX_PURCHASE_CAP} coins.`,
+      "BANK"
+    );
     return;
   }
 
@@ -2040,6 +2047,27 @@ window.requestBuyCoins = async function() {
 
   logAction(`⏳ Coin Purchase Request submitted! Waiting for Host Approval (+100 Coins)...`, "BANK");
 };
+
+function getPendingCoinPurchaseAmount() {
+  if (!assignedCountry) return 0;
+  return pendingCoinRequests.reduce((total, request) => (
+    cleanStr(request.country) === cleanStr(assignedCountry.name)
+      ? total + (Number(request.amount) || 0)
+      : total
+  ), 0);
+}
+
+function syncCoinPurchaseControl() {
+  const button = document.getElementById("btn-buy-coins");
+  if (!button) return;
+
+  const reservedCoins = getPendingCoinPurchaseAmount();
+  const capped = coins + reservedCoins + 100 > MAX_PURCHASE_CAP;
+  button.disabled = capped;
+  button.title = capped
+    ? `Approved coins plus pending purchase requests cannot exceed ${MAX_PURCHASE_CAP} coins.`
+    : "Request 100 coins from the host.";
+}
 
 function renderHostCoinRequests() {
   const container = document.getElementById("host-requests-container");
@@ -2101,6 +2129,7 @@ function updateUI() {
   setTxt("player-loan", loans);
   setTxt("total-budget", coins);
   setTxt("merchant-status", isMerchantActive ? "Yes (+10%) ✅" : "No ❌");
+  syncCoinPurchaseControl();
 
   // Read state to text fields and calculate unallocated without overwriting sliders yet
   let totalAllocated = investments.agri + investments.oil + investments.mines;

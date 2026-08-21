@@ -38,6 +38,8 @@ COUNTRIES = [
 CARD_TITLES = ("Banker", "President", "General", "Spy", "Merchant", "Atomic Bomb")
 RESOURCE_FIELDS = ("agri", "oil", "mines")
 ROUND_MULTIPLIER_VALUES = (1, 2, 3)
+COIN_PURCHASE_AMOUNT = 100
+MAX_PURCHASE_CAP = 500
 GLOBAL_CONDITIONS = (
     {"id": "economic-recession"},
     {"id": "global-warming"},
@@ -766,8 +768,11 @@ class GameHandler(SimpleHTTPRequestHandler):
                 if not request or request["status"] != "pending":
                     self.send_json({"error": "That coin request is no longer pending."}, HTTPStatus.CONFLICT)
                     return
-                if approved and request["coins"] + request["amount"] > 500:
-                    self.send_json({"error": "Approving this request would exceed the 500 coin wallet cap."}, HTTPStatus.CONFLICT)
+                if approved and request["coins"] + request["amount"] > MAX_PURCHASE_CAP:
+                    self.send_json(
+                        {"error": f"Approving this request would exceed the {MAX_PURCHASE_CAP} coin wallet cap."},
+                        HTTPStatus.CONFLICT,
+                    )
                     return
                 connection.execute(
                     "UPDATE coin_requests SET status = ? WHERE id = ?",
@@ -1327,17 +1332,37 @@ class GameHandler(SimpleHTTPRequestHandler):
             wallet = connection.execute(
                 "SELECT coins FROM player_wallets WHERE player_id = ?", (player["id"],)
             ).fetchone()
-            if not wallet or wallet["coins"] + 100 > 500:
-                self.send_json({"error": "Your server-approved wallet is already at the purchase cap."}, HTTPStatus.CONFLICT)
+            pending_amount = connection.execute(
+                """
+                SELECT COALESCE(SUM(amount), 0)
+                FROM coin_requests
+                WHERE player_id = ? AND status = 'pending'
+                """,
+                (player["id"],),
+            ).fetchone()[0]
+            if not wallet or wallet["coins"] + pending_amount + COIN_PURCHASE_AMOUNT > MAX_PURCHASE_CAP:
+                self.send_json(
+                    {
+                        "error": (
+                            f"Your approved coins and pending requests already reach the "
+                            f"{MAX_PURCHASE_CAP} coin purchase cap."
+                        )
+                    },
+                    HTTPStatus.CONFLICT,
+                )
                 return
             cursor = connection.execute(
-                "INSERT INTO coin_requests (player_id, amount, status, created_at) VALUES (?, 100, 'pending', ?)",
-                (player["id"], int(time.time())),
+                "INSERT INTO coin_requests (player_id, amount, status, created_at) VALUES (?, ?, 'pending', ?)",
+                (player["id"], COIN_PURCHASE_AMOUNT, int(time.time())),
             )
             event = self.publish_room_event(
                 connection,
                 "REQUEST_COINS",
-                {"requestId": cursor.lastrowid, "country": player["country"], "amount": 100},
+                {
+                    "requestId": cursor.lastrowid,
+                    "country": player["country"],
+                    "amount": COIN_PURCHASE_AMOUNT,
+                },
             )
         self.send_json({"event": event}, HTTPStatus.CREATED)
 
