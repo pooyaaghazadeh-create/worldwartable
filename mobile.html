@@ -41,6 +41,7 @@
           <label id="lbl-view-mode">View Mode:</label>
           <button id="btn-mode-player" class="btn btn-small active" onclick="switchMode('player')">Mobile Player 📱</button>
           <button id="btn-mode-host" class="btn btn-small" onclick="switchMode('host')">Host Console 👑</button>
+           <button class="btn btn-small sound-toggle" type="button" data-sound-toggle aria-pressed="false" onclick="toggleGameSound()">Sound: Off</button>
           <a class="btn btn-small rulebook-link" href="rulebook.html" target="_blank" rel="noopener">📖 Rulebook</a>
           <button id="btn-exit-game" class="btn btn-small btn-danger" type="button" onclick="exitGame()">⏻ Exit Game</button>
         </div>
@@ -78,7 +79,7 @@
       </section>
 
       <!-- GLOBAL EVENT BANNER -->
-      <section id="global-event-banner" class="card full-width hidden" style="border: 2px solid var(--secondary-color); background: rgba(59, 130, 246, 0.1); text-align: center; display: none;">
+      <section id="global-event-banner" class="card full-width global-event-card hidden" style="display: none;">
         <h2 id="txt-global-event-title" style="color: var(--secondary-color); margin-bottom: 5px;">🌍 Active Global Event</h2>
         <strong id="global-event-name" style="font-size: 1.1rem; color: white;"></strong>
         <p id="global-event-desc" style="color: var(--text-muted); margin-top: 5px;"></p>
@@ -120,6 +121,10 @@
             <button id="btn-player-ready" class="btn btn-success" onclick="togglePlayerReadyToClose()">🏁 Ready for Next Round</button>
           </div>
         </div>
+        <div id="round-readiness-meter" class="round-readiness-meter" role="progressbar" aria-label="Round readiness" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0">
+          <span id="round-readiness-fill"></span>
+        </div>
+        <p id="round-readiness-label" class="round-readiness-label">0 of 1 commanders ready</p>
       </section>
 
       <!-- ROUND ANNOUNCEMENTS -->
@@ -166,17 +171,17 @@
           </div>
 
           <div class="investment-grid">
-            <div class="field-box">
+            <div class="field-box resource-field">
               <div class="field-title">🌾 Agriculture <strong><span id="val-agri">0</span> Coins</strong></div>
               <input type="range" id="slider-agri" min="0" max="0" value="0" oninput="onSliderChange('agri')">
             </div>
 
-            <div class="field-box">
+            <div class="field-box resource-field">
               <div class="field-title">🛢️ Oil <strong><span id="val-oil">0</span> Coins</strong></div>
               <input type="range" id="slider-oil" min="0" max="0" value="0" oninput="onSliderChange('oil')">
             </div>
 
-            <div class="field-box">
+            <div class="field-box resource-field">
               <div class="field-title">⛏️ Mines <strong><span id="val-mines">0</span> Coins</strong></div>
               <input type="range" id="slider-mines" min="0" max="0" value="0" oninput="onSliderChange('mines')">
             </div>
@@ -469,7 +474,7 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260820-15"></script>
+  <script src="script.js?v=20260821-visual-audio"></script>
   <script>
     window.addEventListener("DOMContentLoaded", () => {
       initMobilePlayerSession();

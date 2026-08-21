@@ -44,6 +44,8 @@ let isRoomCreator = false;
 let lastHostEventId = 0;
 let hostEventPollingStarted = false;
 const seenGameResultAlertIds = new Set();
+const soundPreferenceKey = "world_war_sound_enabled";
+const visualPulseTimers = new WeakMap();
 
 const GLOBAL_CONDITION_CARDS = [
   {
@@ -356,6 +358,7 @@ function applyRoomSnapshot(room) {
   updateReadyConsensusUI();
   updateAllianceUI();
   renderTvRoster();
+  updateTvRoundStatus();
 }
 
 async function refreshRoomSnapshot() {
@@ -374,8 +377,18 @@ function renderTvRoster() {
   wrapper.replaceChildren();
   activeRoomPlayers.forEach(player => {
     const country = activeCountryCard(player.country);
+    const alliance = [activePresidentCoalition, activeCounterUnion].find(item =>
+      Array.isArray(item?.members) && item.members.some(member => cleanStr(member) === cleanStr(player.country))
+    );
     const seat = document.createElement("article");
-    seat.className = "poker-seat";
+    seat.className = `poker-seat ${player.locked ? "is-locked" : "is-planning"}${player.ready ? " is-ready" : ""}${alliance ? " is-allied" : ""}`;
+    const stateLabel = document.createElement("span");
+    stateLabel.className = "tv-seat-state";
+    stateLabel.textContent = player.ready
+      ? "READY"
+      : alliance
+        ? alliance.allianceType === "Mega-Merger" ? "MEGA-MERGER" : "COUNTER-UNION"
+        : player.locked ? "LOCKED" : "PLANNING";
     const countryLabel = document.createElement("strong");
     countryLabel.textContent = player.country;
     const handleLabel = document.createElement("span");
@@ -399,10 +412,39 @@ function renderTvRoster() {
     investmentLabel.textContent = player.totalInvestment == null
       ? "💰 Total investment: Not locked"
       : `💰 Total investment: ${player.totalInvestment} coins`;
-    seat.append(countryLabel, handleLabel, resources, investmentLabel, statusLabel);
+    if (player.totalInvestment != null) {
+      const meter = document.createElement("div");
+      meter.className = "tv-seat-meter";
+      const fill = document.createElement("span");
+      fill.style.width = `${Math.min(100, Math.max(0, Number(player.totalInvestment) / MAX_PURCHASE_CAP * 100))}%`;
+      meter.appendChild(fill);
+      seat.append(stateLabel, countryLabel, handleLabel, resources, investmentLabel, meter, statusLabel);
+    } else {
+      seat.append(stateLabel, countryLabel, handleLabel, resources, investmentLabel, statusLabel);
+    }
     if (country) seat.dataset.country = country.name;
     wrapper.appendChild(seat);
   });
+}
+
+function updateTvRoundStatus() {
+  const status = document.getElementById("tv-round-status");
+  if (!status) return;
+  if (activeRoomPlayers.length === 0 && !assignedCountry) {
+    status.textContent = "AWAITING COMMANDERS";
+    return;
+  }
+  const readyCount = readyPlayersSet.size;
+  const total = registeredPlayersCount || activeRoomPlayers.length || 1;
+  status.textContent = `ROUND ${currentRound} / 3 · ${readyCount} OF ${total} COMMANDERS READY`;
+}
+
+function pulseTvSeat(country, className = "is-broadcast-highlight") {
+  const seat = Array.from(document.querySelectorAll(".poker-seat")).find(item =>
+    cleanStr(item.dataset.country) === cleanStr(country)
+  );
+  pulseVisual(seat, className, 680);
+  pulseVisual(document.querySelector(".table-center-pot"), "is-broadcast-highlight", 680);
 }
 
 const roomSeatsState = [
@@ -445,6 +487,138 @@ function setTxt(id, text) {
   if (el) el.textContent = text;
 }
 
+function pulseVisual(element, className = "is-event-updated", duration = 420) {
+  if (!element) return;
+  const existing = visualPulseTimers.get(element);
+  if (existing) window.clearTimeout(existing);
+  element.classList.remove(className);
+  void element.offsetWidth;
+  element.classList.add(className);
+  visualPulseTimers.set(element, window.setTimeout(() => {
+    element.classList.remove(className);
+    visualPulseTimers.delete(element);
+  }, duration));
+}
+
+const soundManager = {
+  enabled: false,
+  context: null,
+  lastPlayed: new Map(),
+  gestureUnlockBound: false,
+
+  init() {
+    try {
+      this.enabled = localStorage.getItem(soundPreferenceKey) === "on";
+    } catch (e) {
+      this.enabled = false;
+    }
+    this.bindGestureUnlock();
+    this.updateControls();
+  },
+
+  bindGestureUnlock() {
+    if (this.gestureUnlockBound || typeof document === "undefined") return;
+    this.gestureUnlockBound = true;
+    const unlockFromGesture = () => {
+      if (this.enabled && (!this.context || this.context.state !== "running")) {
+        void this.unlock();
+      }
+    };
+    ["pointerdown", "keydown", "touchstart"].forEach(eventName => {
+      document.addEventListener(eventName, unlockFromGesture, {
+        capture: true,
+        passive: eventName !== "keydown"
+      });
+    });
+  },
+
+  updateControls() {
+    document.querySelectorAll("[data-sound-toggle]").forEach(button => {
+      button.textContent = this.enabled ? "Sound: On" : "Sound: Off";
+      button.setAttribute("aria-pressed", String(this.enabled));
+      button.title = this.enabled
+        ? "Game sound effects are on. Your next interaction enables audio if the browser requires it."
+        : "Turn on game sound effects.";
+    });
+  },
+
+  async setEnabled(enabled) {
+    this.enabled = Boolean(enabled);
+    try {
+      localStorage.setItem(soundPreferenceKey, this.enabled ? "on" : "off");
+    } catch (e) {}
+    this.updateControls();
+    if (this.enabled) {
+      await this.unlock();
+      this.play("ui", { force: true });
+    }
+  },
+
+  async unlock() {
+    if (!this.enabled || typeof window === "undefined") return false;
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return false;
+    if (!this.context) this.context = new AudioContextClass();
+    if (this.context.state === "suspended") {
+      try {
+        await this.context.resume();
+      } catch (e) {
+        return false;
+      }
+    }
+    return this.context.state === "running";
+  },
+
+  tone(frequency, start, duration, volume = 0.035, type = "sine") {
+    if (!this.context || this.context.state !== "running") return;
+    const oscillator = this.context.createOscillator();
+    const gain = this.context.createGain();
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(frequency, start);
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(volume, start + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+    oscillator.connect(gain).connect(this.context.destination);
+    oscillator.start(start);
+    oscillator.stop(start + duration + 0.02);
+  },
+
+  play(category, options = {}) {
+    if (!this.enabled || !this.context || this.context.state !== "running") return;
+    const nowMs = Date.now();
+    const cooldown = options.cooldown ?? 170;
+    if (!options.force && nowMs - (this.lastPlayed.get(category) || 0) < cooldown) return;
+    this.lastPlayed.set(category, nowMs);
+
+    const now = this.context.currentTime + 0.01;
+    const cues = {
+      ui: [[520, 0, 0.05, 0.018]],
+      tick: [[210, 0, 0.035, 0.012]],
+      lock: [[440, 0, 0.09, 0.03], [660, 0.1, 0.12, 0.034]],
+      ready: [[523, 0, 0.08, 0.028], [784, 0.09, 0.13, 0.032]],
+      trade: [[392, 0, 0.06, 0.024], [587, 0.08, 0.08, 0.028]],
+      alliance: [[330, 0, 0.09, 0.027], [494, 0.1, 0.1, 0.03], [659, 0.21, 0.13, 0.032]],
+      event: [[262, 0, 0.08, 0.024], [392, 0.1, 0.09, 0.028], [523, 0.2, 0.12, 0.03]],
+      battle: [[130, 0, 0.11, 0.04, "triangle"], [98, 0.1, 0.13, 0.028, "sawtooth"]],
+      victory: [[523, 0, 0.08, 0.03], [659, 0.09, 0.09, 0.033], [784, 0.19, 0.14, 0.035]],
+      defeat: [[260, 0, 0.1, 0.027, "triangle"], [196, 0.11, 0.14, 0.03, "triangle"]],
+      warning: [[196, 0, 0.08, 0.025, "triangle"], [196, 0.12, 0.08, 0.025, "triangle"]],
+      round: [[392, 0, 0.08, 0.026], [523, 0.1, 0.1, 0.03], [659, 0.21, 0.16, 0.032]]
+    };
+    (cues[category] || cues.ui).forEach(([frequency, offset, duration, volume, type]) => {
+      this.tone(frequency, now + offset, duration, volume, type);
+    });
+  }
+};
+
+window.toggleGameSound = function() {
+  void soundManager.setEnabled(!soundManager.enabled);
+};
+
+function playSound(category, options) {
+  soundManager.play(category, options);
+}
+
 function createGameResultId() {
   gameResultAlertSequence += 1;
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
@@ -479,7 +653,7 @@ function showNextGameResultAlert() {
   if (document.activeElement && document.activeElement !== dismissButton) {
     previouslyFocusedGameResultElement = document.activeElement;
   }
-  overlay.className = `modal-overlay result-alert-overlay result-alert-${result.tone || "neutral"}`;
+  overlay.className = `modal-overlay result-alert-overlay result-alert-${result.tone || "neutral"} result-alert-enter`;
 
   setTxt("game-result-icon", result.icon || "📣");
   setTxt("game-result-eyebrow", result.category || "GAME RESULT");
@@ -511,6 +685,21 @@ function queueGameResultAlert(result) {
 
   if (seenGameResultAlertIds.has(normalized.id)) return;
   seenGameResultAlertIds.add(normalized.id);
+  const category = cleanStr(normalized.category);
+  const cue = category.includes("skirmish")
+    ? (normalized.tone === "success" ? "victory" : normalized.tone === "danger" ? "defeat" : "battle")
+    : category.includes("atomic")
+      ? "battle"
+      : category.includes("alliance")
+        ? "alliance"
+        : category.includes("round")
+          ? "round"
+          : normalized.tone === "success"
+            ? "victory"
+            : normalized.tone === "danger"
+              ? "defeat"
+              : "event";
+  playSound(cue);
 
   if (seenGameResultAlertIds.size > 100) {
     const oldestId = seenGameResultAlertIds.values().next().value;
@@ -608,7 +797,8 @@ function renderRoundAnnouncements() {
 
   gameActivityLedger.forEach(item => {
     const row = document.createElement("div");
-    row.className = "announcement-entry";
+    const tagClass = cleanStr(item.tag).replace(/[^a-z0-9]+/g, "-") || "info";
+    row.className = `announcement-entry announcement-${tagClass}${item === gameActivityLedger[0] ? " is-new" : ""}`;
 
     const copy = document.createElement("div");
     copy.className = "announcement-copy";
@@ -788,6 +978,8 @@ function applyAllianceSkirmishResult(result) {
     `⚔️ Alliance skirmish: ${result.attacker.initiator} vs ${result.defender.country} on ${fieldLabel}. ${result.outcome.toUpperCase()}${result.transfer ? ` — ${result.transfer} Coins transferred.` : "."}`,
     "ALLIANCE"
   );
+  pulseTvSeat(result.attacker.initiator, "is-combat-highlight");
+  pulseTvSeat(result.defender.country, "is-combat-highlight");
   updateAllianceUI();
 }
 
@@ -850,12 +1042,14 @@ function applyHostEvent(event) {
 
   if (event.type === "PLAYER_JOINED" || event.type === "PLAYER_LEFT") {
     void refreshRoomSnapshot();
+    pulseVisual(document.querySelector(".table-center-pot"), "is-broadcast-highlight", 500);
   } else if (event.type === "HOST_DEAL_CARDS") {
     if (cardsDealtThisRound) return;
     cardsDealtThisRound = true;
     void refreshCurrentHand();
     syncHostButtonsUI();
     logAction(`👑 Host dealt and locked 2 proficiency cards for Round ${currentRound}!`, "HOST");
+    pulseVisual(document.querySelector(".table-center-pot"), "is-broadcast-highlight", 500);
   } else if (event.type === "HOST_DRAW_EVENT") {
     if (eventDrawnThisRound) return;
     eventDrawnThisRound = true;
@@ -863,6 +1057,9 @@ function applyHostEvent(event) {
     syncHostButtonsUI();
     const eventTitle = activeGlobalCondition?.title || event.payload?.id || "Unknown Event";
     logAction(`🎲 Host drawn Global Event Card: ${eventTitle}!`, "EVENT");
+    playSound("event");
+    pulseVisual(document.getElementById("global-event-banner"), "is-event-updated", 620);
+    pulseVisual(document.querySelector(".table-center-pot"), "is-global-highlight", 620);
   } else if (event.type === "EXECUTE_ROUND_CALCULATION") {
     const result = assignedCountry ? event.payload?.results?.[assignedCountry.name] : null;
     calculateAndAdvanceRound(result || null);
@@ -887,6 +1084,7 @@ function applyHostEvent(event) {
       lockedPlayersSet.add(cleanStr(event.payload.country));
       updateReadyConsensusUI();
       void refreshRoomSnapshot();
+      window.setTimeout(() => pulseTvSeat(event.payload.country, "is-locked-highlight"), 260);
     }
   } else if (event.type === "SET_READY") {
     const country = cleanStr(event.payload?.country || "");
@@ -896,6 +1094,7 @@ function applyHostEvent(event) {
       isLocalPlayerReadyToClose = Boolean(event.payload?.ready);
     }
     updateReadyConsensusUI();
+    window.setTimeout(() => pulseTvSeat(event.payload?.country, "is-ready-highlight"), 120);
   } else if (event.type === "REQUEST_COINS") {
     pendingCoinRequests.push(event.payload);
     renderHostCoinRequests();
@@ -922,6 +1121,9 @@ function applyHostEvent(event) {
     }
     void refreshRoomSnapshot();
     publishGameResult({
+      id: Number.isFinite(event.id)
+        ? `atomic-strike-${event.id}`
+        : `atomic-strike-${event.payload.attackerCountry}-${event.payload.targetCountry}-${event.payload.targetField}`,
       icon: "☢️",
       category: "ATOMIC BOMB RESULT",
       tone: "danger",
@@ -929,6 +1131,7 @@ function applyHostEvent(event) {
       summary: `${event.payload.attackerCountry} launched an Atomic Bomb against ${event.payload.targetCountry}.`,
       details: `${event.payload.targetField} investments destroyed: ${event.payload.destroyed}.`
     });
+    pulseTvSeat(event.payload.targetCountry, "is-combat-highlight");
   } else if (event.type === "PROPOSE_TRADE") {
     const myAssets = assignedCountry ? event.payload?.assets?.[assignedCountry.name] : null;
     if (myAssets) {
@@ -940,6 +1143,8 @@ function applyHostEvent(event) {
       pendingTradeProposal = event.payload;
       updateAllianceUI();
     }
+    pulseTvSeat(event.payload?.proposerCountry, "is-trade-highlight");
+    pulseTvSeat(event.payload?.targetCountry, "is-trade-highlight");
   } else if (event.type === "RESPOND_TRADE") {
     const myAssets = assignedCountry ? event.payload?.assets?.[assignedCountry.name] : null;
     if (myAssets) {
@@ -957,6 +1162,9 @@ function applyHostEvent(event) {
     pendingOutgoingTrade = null;
     updateAllianceUI();
     publishGameResult({
+      id: Number.isFinite(event.id)
+        ? `trade-response-${event.id}`
+        : `trade-response-${event.payload.proposalId}`,
       icon: event.payload.approved ? "🤝" : "❌",
       category: "TRADE RESULT",
       tone: event.payload.approved ? "success" : "danger",
@@ -966,6 +1174,8 @@ function applyHostEvent(event) {
         : `${event.payload.targetCountry} declined the trade from ${event.payload.proposerCountry}.`,
       details: event.payload.approved ? "Server wallet balances have been updated." : "No server wallet balances changed."
     });
+    pulseTvSeat(event.payload.proposerCountry, "is-trade-highlight");
+    pulseTvSeat(event.payload.targetCountry, "is-trade-highlight");
   } else if (event.type === "SPY_INTERRUPT") {
     const myAssets = assignedCountry ? event.payload?.assets?.[assignedCountry.name] : null;
     if (myAssets) {
@@ -979,6 +1189,9 @@ function applyHostEvent(event) {
       updateAllianceUI();
     }
     publishGameResult({
+      id: Number.isFinite(event.id)
+        ? `spy-interrupt-${event.id}`
+        : `spy-interrupt-${event.payload.proposalId}`,
       icon: "🕵️",
       category: "SPY CARD RESULT",
       tone: "danger",
@@ -1006,6 +1219,7 @@ async function submitHostCommand(type, payload) {
     const data = await response.json();
     if (!response.ok) {
       logAction(`⛔ ${data.error || "The server rejected this host action."}`, "HOST");
+      playSound("warning");
       syncHostAccessUI();
       return false;
     }
@@ -1013,6 +1227,7 @@ async function submitHostCommand(type, payload) {
     return true;
   } catch (e) {
     logAction("⛔ Could not contact the game server for this host action.", "HOST");
+    playSound("warning");
     return false;
   }
 }
@@ -1030,12 +1245,14 @@ async function submitRoomEvent(type, payload) {
     const data = await response.json();
     if (!response.ok) {
       logAction(`⛔ ${data.error || "The server rejected this room event."}`, "ALLIANCE");
+      playSound("warning");
       return false;
     }
     applyHostEvent(data.event);
     return true;
   } catch (e) {
     logAction("⛔ Could not contact the game server for this alliance action.", "ALLIANCE");
+    playSound("warning");
     return false;
   }
 }
@@ -1132,14 +1349,20 @@ function getEffectiveResourceMultiplier(field, baseMultiplier = countryMultiplie
 function renderActiveGlobalCondition() {
   const banner = document.getElementById("global-event-banner");
   const tvTicker = document.getElementById("tv-status-ticker");
+  const tableCenter = document.querySelector(".table-center-pot");
 
   if (!activeGlobalCondition) {
-    if (banner) banner.style.display = "none";
+    if (banner) {
+      banner.style.display = "none";
+      banner.classList.add("hidden");
+    }
     if (tvTicker) tvTicker.textContent = "No active Global Condition this round.";
+    tableCenter?.classList.remove("has-global-condition");
     return;
   }
 
   if (banner) {
+    banner.classList.remove("hidden");
     banner.style.display = "block";
     setTxt("global-event-name", activeGlobalCondition.title);
     setTxt("global-event-desc", activeGlobalCondition.desc);
@@ -1148,6 +1371,7 @@ function renderActiveGlobalCondition() {
   if (tvTicker) {
     tvTicker.textContent = `GLOBAL CONDITION: ${activeGlobalCondition.title} — ${activeGlobalCondition.desc}`;
   }
+  tableCenter?.classList.add("has-global-condition");
 }
 
 function activateGlobalCondition(condition) {
@@ -1233,6 +1457,7 @@ async function initMobilePlayerSession() {
   }
 
   gameActivityLedger = safeStorageGet("world_war_round_announcements", []);
+  soundManager.init();
   renderRoundAnnouncements();
 
   const savedLang = safeStorageGet("selected_lang", "en");
@@ -1294,6 +1519,8 @@ window.togglePlayerReadyToClose = async function() {
       btn.className = "btn btn-secondary btn-large";
     }
     logAction(`🏁 You marked yourself READY to close Round ${currentRound}.`, "ROUND");
+    playSound("ready");
+    pulseVisual(document.querySelector(".ready-consensus-card"), "is-event-updated", 460);
   } else {
     readyPlayersSet.delete(cleanStr(myCountry));
     if (btn) {
@@ -1327,6 +1554,25 @@ function updateReadyConsensusUI() {
       ? "Mark yourself ready after completing this round."
       : "Lock field investments before marking ready.";
   }
+  const total = Math.max(1, registeredPlayersCount || 1);
+  const progress = Math.min(100, Math.round(readyPlayersSet.size / total * 100));
+  const meter = document.getElementById("round-readiness-meter");
+  const fill = document.getElementById("round-readiness-fill");
+  if (fill) fill.style.width = `${progress}%`;
+  if (meter) {
+    meter.setAttribute("aria-valuemax", String(total));
+    meter.setAttribute("aria-valuenow", String(readyPlayersSet.size));
+    meter.classList.toggle("is-complete", readyPlayersSet.size >= total);
+  }
+  setTxt(
+    "round-readiness-label",
+    readyPlayersSet.size >= total
+      ? "All commanders are ready for the host to close the round."
+      : `${readyPlayersSet.size} of ${total} commanders ready`
+  );
+  document.querySelector(".ready-consensus-card")?.classList.toggle("is-complete", readyPlayersSet.size >= total);
+  document.querySelector(".phase-badge")?.classList.toggle("is-ready", isLocalPlayerReadyToClose);
+  updateTvRoundStatus();
 }
 
 // ==========================================
@@ -1402,6 +1648,7 @@ window.openTradeModal = function() {
   updateOfferSliderCapacity();
   updateTradePreview();
   document.getElementById("trade-modal")?.classList.remove("hidden");
+  playSound("ui");
 };
 
 window.closeTradeModal = function() {
@@ -1494,6 +1741,7 @@ window.sendBilateralTradeProposal = async function() {
   pendingOutgoingTrade = { proposalId: proposal.id };
   closeTradeModal();
   logAction(`🤝 Sent a server-validated trade proposal to ${partner}.`, "TRADE");
+  playSound("trade");
 };
 
 function applyTradeTransfer(deductField, addField, deductAmount, addAmount) {
@@ -1731,6 +1979,7 @@ function updateUI() {
     }
     setTxt(`val-${field}`, investments[field]);
   });
+  renderInvestmentVisuals();
 
   const tradeButton = document.getElementById("btn-open-trade");
   if (tradeButton) {
@@ -1742,6 +1991,21 @@ function updateUI() {
 
   updateOfferSliderCapacity();
   updateAllianceUI();
+}
+
+function renderInvestmentVisuals() {
+  ["agri", "oil", "mines"].forEach(field => {
+    const slider = document.getElementById(`slider-${field}`);
+    const fieldBox = slider?.closest(".resource-field");
+    if (!slider || !fieldBox) return;
+    const maximum = Math.max(1, Number(slider.max) || coins || 1);
+    const progress = Math.min(100, Math.max(0, Number(investments[field]) / maximum * 100));
+    slider.style.setProperty("--range-progress", `${progress}%`);
+    fieldBox.classList.toggle("is-allocated", Number(investments[field]) > 0);
+    fieldBox.classList.toggle("is-locked", investmentsLocked);
+  });
+  const card = document.querySelector(".investment-card");
+  card?.classList.toggle("is-locked", investmentsLocked);
 }
 
 window.onSliderChange = function(changedField) {
@@ -1774,6 +2038,9 @@ window.onSliderChange = function(changedField) {
   setTxt("val-oil", oilVal);
   setTxt("val-mines", minesVal);
   setTxt("unallocated-coins", coins - totalAllocated);
+  renderInvestmentVisuals();
+  pulseVisual(document.getElementById(`slider-${changedField}`)?.closest(".resource-field"), "is-adjusted", 230);
+  playSound("tick", { cooldown: 110 });
 };
 
 window.confirmInvestments = async function() {
@@ -1802,6 +2069,8 @@ window.confirmInvestments = async function() {
   updateUI();
   updateReadyConsensusUI();
   logAction(`✅ Locked field investments: Agri(${investments.agri}), Oil(${investments.oil}), Mines(${investments.mines}).`, "INVEST");
+  pulseVisual(document.querySelector(".investment-card"), "is-confirmed", 620);
+  playSound("lock");
 };
 
 // ==========================================
@@ -2606,6 +2875,7 @@ window.closeAtomicModal = function() {
 };
 
 window.initTvView = function() {
+  soundManager.init();
   void refreshRoomSnapshot();
   renderActiveGlobalCondition();
   startHostEventPolling();
