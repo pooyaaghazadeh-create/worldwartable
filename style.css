@@ -165,7 +165,7 @@ body {
 }
 
 .dashboard-container > .hand-card {
-  order: 50;
+  order: 20;
 }
 
 .dashboard-container > .announcement-card {
@@ -199,6 +199,10 @@ body {
 
   .dashboard-container > .player-card {
     grid-column: 1;
+  }
+
+  .dashboard-container > .hand-card {
+    grid-column: 2;
   }
 
 }
