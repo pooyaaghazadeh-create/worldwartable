@@ -1128,13 +1128,6 @@ class GameHandler(SimpleHTTPRequestHandler):
             if not wallet or wallet["coins"] + 100 > 500:
                 self.send_json({"error": "Your server-approved wallet is already at the purchase cap."}, HTTPStatus.CONFLICT)
                 return
-            existing = connection.execute(
-                "SELECT 1 FROM coin_requests WHERE player_id = ? AND status = 'pending'",
-                (player["id"],),
-            ).fetchone()
-            if existing:
-                self.send_json({"error": "You already have a pending coin request."}, HTTPStatus.CONFLICT)
-                return
             cursor = connection.execute(
                 "INSERT INTO coin_requests (player_id, amount, status, created_at) VALUES (?, 100, 'pending', ?)",
                 (player["id"], int(time.time())),

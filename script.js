@@ -1075,7 +1075,7 @@ function applyHostEvent(event) {
       }
     }
     const matchingRequest = pendingCoinRequests.findIndex(item =>
-      cleanStr(item.country) === cleanStr(request.country) && item.amount === request.amount
+      item.requestId === request.requestId
     );
     if (matchingRequest >= 0) pendingCoinRequests.splice(matchingRequest, 1);
     renderHostCoinRequests();
@@ -1933,12 +1933,12 @@ function renderHostCoinRequests() {
     const approveBtn = document.createElement("button");
     approveBtn.className = "btn btn-small btn-success";
     approveBtn.textContent = "✅ Approve";
-    approveBtn.onclick = () => resolveCoinRequest(idx, true);
+    approveBtn.onclick = () => resolveCoinRequest(req.requestId, true);
 
     const rejectBtn = document.createElement("button");
     rejectBtn.className = "btn btn-small btn-danger";
     rejectBtn.textContent = "❌ Reject";
-    rejectBtn.onclick = () => resolveCoinRequest(idx, false);
+    rejectBtn.onclick = () => resolveCoinRequest(req.requestId, false);
 
     btnGroup.appendChild(approveBtn);
     btnGroup.appendChild(rejectBtn);
@@ -1949,13 +1949,13 @@ function renderHostCoinRequests() {
   });
 }
 
-async function resolveCoinRequest(index, approved) {
+async function resolveCoinRequest(requestId, approved) {
   if (!requireRoomCreator("resolve coin requests")) return;
-  const req = pendingCoinRequests[index];
+  const req = pendingCoinRequests.find(item => item.requestId === requestId);
   if (!req) return;
 
   await submitHostCommand("RESOLVE_COIN_REQUEST", {
-    requestId: req.requestId,
+    requestId,
     approved: approved
   });
 }
