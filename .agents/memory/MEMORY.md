@@ -1,1 +1,2 @@
 - [Reversible trade settlements](reversible-trade-settlements.md) — Trade reversals must restore persisted settlement receipts, not recalculate live modifiers.
+- [Banker loan policy](banker-loan-policy.md) — Banker loans are fixed at 20% of currently unallocated cash, then settled at principal plus 20% interest.

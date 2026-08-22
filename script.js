@@ -100,6 +100,11 @@ const translations = {
     lblCoins: "Total Coins Balance:",
     lblLoan: "Active Loan:",
     txtLoanCalculatorTitle: "Banker Loan Calculator",
+    txtLoanModalTitle: "Banker Loan",
+    txtLoanModalDesc: "The loan amount is automatically fixed at 20% of your available unallocated cash. Principal plus 20% interest is repaid when you settle the loan.",
+    txtLoanAmountLabel: "Fixed loan amount:",
+    btnConfirmLoan: "Take Loan",
+    btnCancelLoan: "Cancel",
     lblLoanPrincipal: "Principal:",
     lblLoanInterest: "Interest (20%):",
     lblLoanTotal: "Total repayment:",
@@ -164,6 +169,11 @@ const translations = {
     lblCoins: "Toplam Coin Bakiyesi:",
     lblLoan: "Aktif Kredi:",
     txtLoanCalculatorTitle: "Banker Kredi Hesaplayıcısı",
+    txtLoanModalTitle: "Banker Kredisi",
+    txtLoanModalDesc: "Kredi tutarı, kullanılabilir ayrılmamış nakdinizin %20'si olarak otomatik belirlenir. Krediyi kapatırken ana para ve %20 faiz ödenir.",
+    txtLoanAmountLabel: "Sabit kredi tutarı:",
+    btnConfirmLoan: "Krediyi Al",
+    btnCancelLoan: "İptal",
     lblLoanPrincipal: "Ana para:",
     lblLoanInterest: "Faiz (%20):",
     lblLoanTotal: "Toplam ödeme:",
@@ -228,6 +238,11 @@ const translations = {
     lblCoins: "موجودی کل سکه:",
     lblLoan: "وام فعال:",
     txtLoanCalculatorTitle: "محاسبه‌گر تسویه وام Banker",
+    txtLoanModalTitle: "وام Banker",
+    txtLoanModalDesc: "مبلغ وام به‌طور خودکار برابر با ۲۰٪ نقدی تخصیص‌نیافته شماست. هنگام تسویه، اصل وام به‌علاوه ۲۰٪ بهره پرداخت می‌شود.",
+    txtLoanAmountLabel: "مبلغ ثابت وام:",
+    btnConfirmLoan: "دریافت وام",
+    btnCancelLoan: "لغو",
     lblLoanPrincipal: "اصل وام:",
     lblLoanInterest: "بهره (۲۰٪):",
     lblLoanTotal: "مبلغ کل بازپرداخت:",
@@ -634,7 +649,7 @@ const countryCards = [
 ];
 
 const cardDeck = [
-  { title: "Banker", icon: "🏦", desc: "Allows taking loans up to 250 coins." },
+  { title: "Banker", icon: "🏦", desc: "Automatically loans 20% of your available unallocated cash." },
   { title: "President", icon: "🏛️", desc: "Initiate strategic alliance mergers." },
   { title: "General", icon: "🎖️", desc: "Grants 2 skirmish attacks per round." },
   { title: "Spy", icon: "🕵️", desc: "Interrupt rival deal agreements." },
@@ -2501,6 +2516,10 @@ function bankerRepaymentDue(principal = loans) {
   return Math.floor(Math.max(0, Number(principal) || 0) * 1.20);
 }
 
+function bankerLoanAmount(availableCoins) {
+  return Math.floor(Math.max(0, Number(availableCoins) || 0) * 0.20);
+}
+
 function updateLoanCalculator() {
   const copy = translations[currentLang] || translations.en;
   const principal = Math.max(0, Number(loans) || 0);
@@ -3409,25 +3428,24 @@ window.openLoanModal = function() {
     return;
   }
 
-  const modal = document.getElementById("loan-modal");
-  const slider = document.getElementById("slider-loan");
-  if (slider) {
-    slider.max = "250";
-    slider.value = "250";
-    setTxt("val-loan-input", "250");
+  const amount = bankerLoanAmount(getAvailableTradeAmount("unallocated"));
+  if (amount <= 0) {
+    logAction("⚠️ You need at least 5 unallocated coins to take a Banker loan.", "BANK");
+    return;
   }
+  const modal = document.getElementById("loan-modal");
+  setTxt("val-loan-input", amount);
   modal?.classList.remove("hidden");
 };
 
 window.confirmLoan = async function() {
-  const slider = document.getElementById("slider-loan");
-  const amount = Math.max(0, parseInt(slider?.value, 10) || 0);
+  const amount = bankerLoanAmount(getAvailableTradeAmount("unallocated"));
   if (amount === 0) {
-    logAction("⚠️ Choose a loan amount first.", "BANK");
+    logAction("⚠️ You need at least 5 unallocated coins to take a Banker loan.", "BANK");
     return;
   }
 
-  const approved = await submitRoomEvent("TAKE_BANKER_LOAN", { amount });
+  const approved = await submitRoomEvent("TAKE_BANKER_LOAN", {});
   if (!approved) return;
   document.getElementById("loan-modal")?.classList.add("hidden");
   logAction(`🏦 Banker Loan approved by the server. Principal plus 20% interest is repaid at round end.`, "BANK");

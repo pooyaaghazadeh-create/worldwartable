@@ -1096,6 +1096,10 @@ class GameHandler(SimpleHTTPRequestHandler):
         return int(loan * 1.20)
 
     @staticmethod
+    def banker_loan_amount(available_coins: int) -> int:
+        return int(max(0, available_coins) * 0.20)
+
+    @staticmethod
     def unallocated_wallet_coins(
         connection: sqlite3.Connection,
         player_id: int,
@@ -1112,12 +1116,24 @@ class GameHandler(SimpleHTTPRequestHandler):
         return max(0, wallet_coins - (locked["allocated"] if locked else 0))
 
     def take_banker_loan(self, player: sqlite3.Row, payload: dict) -> None:
-        amount = payload.get("amount")
-        if isinstance(amount, bool) or not isinstance(amount, int) or not 1 <= amount <= 250:
-            self.send_json({"error": "Choose a Banker loan between 1 and 250 coins."}, HTTPStatus.BAD_REQUEST)
+        if payload:
+            self.send_json({"error": "The Banker loan amount is calculated automatically."}, HTTPStatus.BAD_REQUEST)
             return
         with database() as connection:
             connection.execute("BEGIN IMMEDIATE")
+            wallet = connection.execute(
+                "SELECT coins, loans FROM player_wallets WHERE player_id = ?", (player["id"],)
+            ).fetchone()
+            available_coins = self.unallocated_wallet_coins(
+                connection, player["id"], wallet["coins"] if wallet else 0
+            )
+            amount = self.banker_loan_amount(available_coins)
+            if amount <= 0:
+                self.send_json(
+                    {"error": "You need at least 5 unallocated coins to take a Banker loan."},
+                    HTTPStatus.CONFLICT,
+                )
+                return
             if not self.consume_card(connection, player["id"], "Banker"):
                 self.send_json({"error": "You need an unplayed Banker card."}, HTTPStatus.FORBIDDEN)
                 return
@@ -1129,7 +1145,11 @@ class GameHandler(SimpleHTTPRequestHandler):
                 "SELECT coins, loans FROM player_wallets WHERE player_id = ?", (player["id"],)
             ).fetchone()
             event = self.publish_room_event(connection, "TAKE_BANKER_LOAN", {
-                "country": player["country"], "amount": amount, "coins": wallet["coins"], "loans": wallet["loans"]
+                "country": player["country"],
+                "amount": amount,
+                "availableCoins": available_coins,
+                "coins": wallet["coins"],
+                "loans": wallet["loans"],
             })
         self.send_json({"event": event}, HTTPStatus.CREATED)
 

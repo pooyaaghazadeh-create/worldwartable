@@ -454,15 +454,14 @@
 
   <div id="loan-modal" class="modal-overlay hidden">
     <div class="modal-card">
-      <h2>🏦 Banker Loan Terminal</h2>
-      <p>Select loan amount (Max 250 coins). Principal plus 20% interest is repaid at round end; any unpaid balance carries forward.</p>
+      <h2 id="txt-loan-modal-title">🏦 Banker Loan</h2>
+      <p id="txt-loan-modal-desc">The loan amount is automatically fixed at 20% of your available unallocated cash. Principal plus 20% interest is repaid when you settle the loan.</p>
       <div class="field-box">
-        <input type="range" id="slider-loan" min="0" max="250" value="0" oninput="setTxt('val-loan-input', this.value)">
-        <p>Selected: <strong id="val-loan-input">0</strong> Coins</p>
+        <p><span id="txt-loan-amount-label">Fixed loan amount:</span> <strong id="val-loan-input">0</strong></p>
       </div>
       <div class="button-group modal-btn-group">
-        <button class="btn btn-success" onclick="confirmLoan()">Confirm Loan</button>
-        <button class="btn btn-small cancel-btn" onclick="document.getElementById('loan-modal').classList.add('hidden')">Cancel</button>
+        <button id="btn-confirm-loan" class="btn btn-success" onclick="confirmLoan()">Take Loan</button>
+        <button id="btn-cancel-loan" class="btn btn-small cancel-btn" onclick="document.getElementById('loan-modal').classList.add('hidden')">Cancel</button>
       </div>
     </div>
   </div>
