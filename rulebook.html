@@ -1,159 +1,487 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Global Domination & Fortune — Rulebook</title>
+  <meta id="rulebook-description" name="description" content="Complete rules for Global Domination & Fortune.">
+  <title id="rulebook-document-title">Global Domination &amp; Fortune — Rulebook</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="rulebook-page">
   <header class="rulebook-hero">
     <div>
-      <p class="rulebook-kicker">OFFICIAL TABLE GUIDE</p>
-      <h1>🌍 Global Domination <span>&amp; Fortune</span></h1>
-      <p class="rulebook-lead">Build the strongest resource economy, outmaneuver rival powers, and agree with your table when to stop and compare fortunes.</p>
+      <p id="rulebook-kicker" class="rulebook-kicker">OFFICIAL TABLE GUIDE</p>
+      <h1 id="rulebook-title">🌍 Global Domination <span>&amp; Fortune</span></h1>
+      <p id="rulebook-lead" class="rulebook-lead">Build the strongest resource economy, outmaneuver rival powers, and agree with your table when to stop and compare fortunes.</p>
     </div>
-    <a class="btn btn-primary rulebook-back" href="index.html">← Back to game</a>
+    <div class="rulebook-hero-actions">
+      <div class="rulebook-language">
+        <label id="rulebook-language-label" for="rulebook-language-select">🌐 Language</label>
+        <select id="rulebook-language-select" aria-describedby="rulebook-language-label">
+          <option value="en">English</option>
+          <option value="tr">Türkçe</option>
+          <option value="fa">فارسی</option>
+        </select>
+      </div>
+      <a id="rulebook-back" class="btn btn-primary rulebook-back" href="index.html">← Back to game</a>
+    </div>
   </header>
 
-  <nav class="rulebook-nav" aria-label="Rulebook sections">
-    <a href="#quick-start">Quick start</a>
-    <a href="#round">Round flow</a>
-    <a href="#economy">Economy</a>
-    <a href="#cards">Cards</a>
-    <a href="#conflict">Conflict</a>
-    <a href="#events">Events</a>
+  <nav id="rulebook-nav" class="rulebook-nav" aria-label="Rulebook sections">
+    <a data-nav-key="quickStart" href="#quick-start">Quick start</a>
+    <a data-nav-key="round" href="#round">Round flow</a>
+    <a data-nav-key="economy" href="#economy">Economy</a>
+    <a data-nav-key="trades" href="#trades">Trades</a>
+    <a data-nav-key="cards" href="#cards">Cards</a>
+    <a data-nav-key="alliances" href="#alliances">Alliances</a>
+    <a data-nav-key="conflict" href="#conflict">Conflict</a>
+    <a data-nav-key="events" href="#events">Conditions</a>
+    <a data-nav-key="hosting" href="#hosting">Hosting</a>
+    <a data-nav-key="finish" href="#finish">Finish &amp; FAQ</a>
   </nav>
 
   <main class="rulebook-layout">
     <aside class="rulebook-summary">
-      <div class="rulebook-summary-title">At a glance</div>
+      <div id="rulebook-summary-title" class="rulebook-summary-title">AT A GLANCE</div>
       <dl>
-        <div><dt>Players</dt><dd>1–10 powers</dd></div>
-        <div><dt>Suggested scoring</dt><dd>After 3 calculations</dd></div>
-        <div><dt>Starting coins</dt><dd>0</dd></div>
-        <div><dt>Coin purchases</dt><dd>100 at a time, up to 500</dd></div>
-        <div><dt>Leader</dt><dd>Most coins at the table’s scoring point</dd></div>
+        <div><dt id="summary-players-label">Players</dt><dd id="summary-players">1–10 powers</dd></div>
+        <div><dt id="summary-rounds-label">Game length</dt><dd id="summary-rounds">3 rounds</dd></div>
+        <div><dt id="summary-start-label">Starting balance</dt><dd id="summary-start">0 coins</dd></div>
+        <div><dt id="summary-purchase-label">Coin requests</dt><dd id="summary-purchase">100 each, 500 cap</dd></div>
+        <div><dt id="summary-cards-label">Cards</dt><dd id="summary-cards">2 per round</dd></div>
+        <div><dt id="summary-leader-label">Ranking</dt><dd id="summary-leader">Most coins</dd></div>
       </dl>
-      <p class="rulebook-note">The room creator is the host. The host can run round controls, but never decides a player’s private strategy.</p>
+      <p id="rulebook-summary-note" class="rulebook-note">The room creator is the host. The host runs shared controls, but never decides a player’s private strategy.</p>
     </aside>
 
-    <div class="rulebook-content">
-      <section id="quick-start" class="rulebook-section">
-        <p class="section-number">01 — SETUP</p>
-        <h2>Claim a country and build a fortune</h2>
-        <div class="rulebook-callout">
-          <strong>Scoring convention:</strong> After the third calculation, the game ends and the table displays ranked final balances. The app does not declare a winner automatically—your table chooses the winner, then the host can restart the room for a new game.
-        </div>
-        <ol class="rulebook-steps">
-          <li>Enter a unique commander name. The game assigns you one available country.</li>
-          <li>Each country has Agriculture, Oil, and Mines multipliers. Lean into your strongest resources.</li>
-          <li>Players begin with <strong>0 coins</strong>. The purchase control requests 100 coins at a time. Approved coins plus pending requests may never exceed 500 coins.</li>
-          <li>The first authenticated player to join the room is its host. Only that player can access host controls.</li>
-        </ol>
-
-        <h3>Random round multipliers</h3>
-        <div class="rulebook-callout">
-          <strong>Fresh economic conditions every round:</strong> At the start of each round, every country receives a new random allocation of <strong>×1, ×2, and ×3</strong> across Agriculture, Oil, and Mines. Check the live multiplier panel before investing; the server uses those same values for payouts and skirmishes.
-        </div>
-      </section>
-
-      <section id="round" class="rulebook-section">
-        <p class="section-number">02 — ROUND FLOW</p>
-        <h2>Every calculation follows the same six steps</h2>
-        <div class="rulebook-timeline">
-          <article><span>1</span><div><h3>Deal proficiency cards</h3><p>The host deals exactly two cards to every player. Cards can create an economic advantage, an alliance, or a conflict.</p></div></article>
-          <article><span>2</span><div><h3>Draw a Global Condition</h3><p>After cards are dealt, the host draws one condition. Its effect lasts until this round is calculated.</p></div></article>
-          <article><span>3</span><div><h3>Fund and invest</h3><p>Request coins, allocate them among your three fields, and leave any amount you may need for trades.</p></div></article>
-          <article><span>4</span><div><h3>Negotiate or act</h3><p>Make trades, play cards, form alliances, or launch skirmishes when their requirements are met.</p></div></article>
-          <article><span>5</span><div><h3>Lock and mark ready</h3><p>Lock field investments, then mark yourself ready. Locked investments cannot be edited for that round.</p></div></article>
-          <article><span>6</span><div><h3>Calculate</h3><p>Once every seated player has locked investments and marked ready, the host closes the round and payouts are calculated. After Round 3, the game ends and ranked placements appear for the table to choose a winner.</p></div></article>
-        </div>
-      </section>
-
-      <section id="economy" class="rulebook-section">
-        <p class="section-number">03 — ECONOMY &amp; INVESTMENTS</p>
-        <h2>Turn investments into round income</h2>
-        <div class="rulebook-formula">
-          <span>Field payout</span>
-           <strong>⌊ investment × country multiplier ⌋</strong>
-        </div>
-        <p>Calculate Agriculture, Oil, and Mines separately, then add them together. Unallocated coins stay in your wallet, but do not generate field income. After the round payout, field allocations reset and you allocate again next round.</p>
-        <div class="rulebook-two-column">
-          <article class="rulebook-mini-card">
-            <h3>🏦 Coin purchases</h3>
-            <p>Use <strong>Buy 100 Coins</strong> to submit a request. The host approves or rejects each one separately. Pending requests count toward the 500-coin purchase cap, so you can have at most five 100-coin requests approved or awaiting a decision at once. A rejected request frees 100 coins of that allowance. Payouts, loans, and transfers can still take a balance higher.</p>
-          </article>
-          <article class="rulebook-mini-card">
-            <h3>🏦 Banker loans</h3>
-            <p>The Banker card lets you borrow up to 250 coins and is consumed when used. At round end, the full repayment is collected from your available balance and current-round income: original principal plus 20% interest. A 100-coin loan therefore requires 120 coins. If you cannot cover the full amount, all available coins are collected and the unpaid balance remains as an active loan for the next round.</p>
-          </article>
-        </div>
-
-        <h3>Trades</h3>
-        <p>A bilateral trade exchanges coins from unallocated cash or a selected field for coins in the other player’s selected field or wallet. Sending an offer reserves your adjusted offer in escrow immediately. If it is rejected, cannot settle, or remains unresolved at round calculation, escrow is returned.</p>
-        <ul class="rulebook-list">
-          <li><strong>Pandemic:</strong> all Agriculture, Oil, and Mines multipliers are overridden to ×1 for the round.</li>
-          <li><strong>Economic Recession:</strong> received trade income is rounded down after a 20% reduction.</li>
-          <li><strong>Merchant:</strong> adds 10% to trade income before any Recession reduction.</li>
-        </ul>
-      </section>
-
-      <section id="cards" class="rulebook-section">
-        <p class="section-number">04 — PROFICIENCY CARDS</p>
-        <h2>Use each card at the right moment</h2>
-        <div class="rulebook-card-grid">
-          <article><span>🏦</span><h3>Banker</h3><p>Borrow up to 250 coins. The card is consumed.</p></article>
-          <article><span>🏛️</span><h3>President</h3><p>After locking investments, invite one or two powers into a Mega-Merger. Every invited power must approve.</p></article>
-          <article><span>🎖️</span><h3>General</h3><p>Gain two skirmish attacks this round instead of the normal one.</p></article>
-          <article><span>🕵️</span><h3>Spy</h3><p>Publish a visible Spy operation against an agreement selected in the card dialog. In the current build, it does not reverse a live trade escrow. Cold War prevents this card from being used and does not consume it.</p></article>
-          <article><span>💰</span><h3>Merchant</h3><p>Gain +10% trade income for the current round.</p></article>
-          <article><span>☢️</span><h3>Atomic Bomb</h3><p>After locking investments, destroy half of one selected field’s current investment for another power.</p></article>
-        </div>
-
-        <h3>Alliances</h3>
-        <p>A President Mega-Merger joins two or three consenting powers for the current round. For each resource, the shared pool is calculated from the initiator’s locked investment: <strong>max(150, initiator investment × member count + 150)</strong>. Each member then applies their own country multiplier to that shared pool and receives an equal rounded-down share. This is not a sum of every member’s investments. When a Mega-Merger forms, unaligned powers can invite one or two partners into a mutually approved Counter-Union using the same formula. Alliances clear after the round calculation.</p>
-      </section>
-
-      <section id="conflict" class="rulebook-section">
-        <p class="section-number">05 — CONFLICT</p>
-        <h2>Locked investments can become battle power</h2>
-        <p>You must lock your investments before a skirmish or an Atomic Bomb can be used. Each player may launch one skirmish per round; a General increases that limit to two.</p>
-        <div class="rulebook-two-column">
-          <article class="rulebook-mini-card">
-            <h3>⚔️ Skirmish</h3>
-            <p>Choose a rival and field. Your attack power is your investment in that field multiplied by your country’s multiplier. A higher attack wins seized coins; a tie changes nothing. If you lose, your investment in the attacked field is wiped out.</p>
-          </article>
-          <article class="rulebook-mini-card">
-            <h3>🏛️ Alliance skirmish</h3>
-            <p>Only the country that initiated a confirmed Mega-Merger or Counter-Union may launch one coalition skirmish each round. It may target a locked, unaligned country or the opposing confirmed alliance. Both sides use their live contested resource, country multiplier, and any active Global Condition. The higher power takes the other side’s entire current resource into its own pool or field; a tie transfers nothing.</p>
-          </article>
-          <article class="rulebook-mini-card">
-            <h3>☢️ Atomic strike</h3>
-            <p>Choose a rival and one field. The Atomic Bomb immediately destroys half of that target field’s current investment, rounding up the amount destroyed. It is a precision disruption tool, not a coin transfer.</p>
-          </article>
-        </div>
-      </section>
-
-      <section id="events" class="rulebook-section">
-        <p class="section-number">06 — GLOBAL CONDITIONS</p>
-        <h2>Adapt to the world state</h2>
-        <div class="rulebook-event-grid">
-          <article><span>📉</span><h3>Economic Recession</h3><p>Trade income is reduced by 20% this round.</p></article>
-          <article><span>🌡️</span><h3>Global Warming</h3><p>Agriculture and Oil payouts are each reduced by 10% this round.</p></article>
-          <article><span>🦠</span><h3>Pandemic</h3><p>All Agriculture, Oil, and Mines multipliers become ×1 this round.</p></article>
-          <article><span>🕊️</span><h3>Cold War</h3><p>Spy cards cannot be played this round.</p></article>
-        </div>
-        <div class="rulebook-callout rulebook-finish">
-          <strong>Final reminder:</strong> Watch the round announcements and result popups. They confirm trade settlements, battle results, alliances, global conditions, and the final payout details.
-        </div>
-      </section>
-    </div>
+    <div id="rulebook-content" class="rulebook-content" aria-live="polite"></div>
   </main>
 
   <footer class="rulebook-footer">
-    <span>Global Domination &amp; Fortune</span>
-    <a href="mobile.html">Open player controller →</a>
+    <span id="rulebook-footer-name">Global Domination &amp; Fortune</span>
+    <a id="rulebook-controller-link" href="mobile.html">Open player controller →</a>
   </footer>
+
+  <template id="rulebook-template-en">
+    <section id="quick-start" class="rulebook-section">
+      <p class="section-number">01 — SETUP</p>
+      <h2>Start as a commander</h2>
+      <p>This is a shared strategy game for 1–10 seated powers. Each commander controls one country, a coin balance, three resource fields, and a private hand of proficiency cards. Your goal is to finish with the strongest balance after the third round.</p>
+      <div class="rulebook-callout"><strong>The most important idea:</strong> invest coins to create income, keep enough unallocated cash for deals and surprises, and read the live multiplier panel before committing.</div>
+      <ol class="rulebook-steps">
+        <li><strong>Join the room.</strong> Enter a unique commander name. The server assigns the first available country. A country can only have one seated commander.</li>
+        <li><strong>Save your reconnect code.</strong> It is shown after joining and is needed to reclaim your country after a disconnect. A successful reconnect creates a new code and invalidates the old one.</li>
+        <li><strong>Know your starting position.</strong> Every player begins with 0 coins. The room creator becomes host; later players are regular commanders.</li>
+        <li><strong>Watch the board.</strong> Your own balance, exact field allocations, cards, and loan are private to you. Opponent countries, readiness, multipliers, and total field investment are visible, but individual opponent allocations are not.</li>
+      </ol>
+      <h3>Countries and multipliers</h3>
+      <p>There are ten available countries. At the start of every round, every country receives a fresh random assignment of ×1, ×2, and ×3—one value each for Agriculture, Oil, and Mines. The same assignment is used for income and battle power during that round.</p>
+      <div class="rulebook-callout"><strong>Example:</strong> if your country shows Agriculture ×3 and you lock 40 Agriculture, that field contributes 120 coins before any Global Condition adjustment. The next round can give your country different multipliers.</div>
+    </section>
+
+    <section id="round" class="rulebook-section">
+      <p class="section-number">02 — ROUND FLOW</p>
+      <h2>How one round works</h2>
+      <p>The server controls the round state. A host cannot skip the required setup, and the calculation cannot run until every seated commander has completed the shared checklist.</p>
+      <div class="rulebook-timeline">
+        <article><span>1</span><div><h3>Deal two proficiency cards</h3><p>The host deals exactly two cards to every seated player. Cards are private until you choose to reveal an action. Cards are discarded or reset at the end of the round according to the game state.</p></div></article>
+        <article><span>2</span><div><h3>Request and plan your coins</h3><p>Request 100-coin purchases one at a time, ask the host to approve them, take a Banker loan if you have that card, and decide how much cash to invest versus reserve.</p></div></article>
+        <article><span>3</span><div><h3>Lock your investments</h3><p>Allocate whole coins among Agriculture, Oil, and Mines. The total cannot exceed your server-approved wallet balance. Locking is permanent for the round and is required before battles, Atomic Bombs, and readiness.</p></div></article>
+        <article><span>4</span><div><h3>Draw one Global Condition</h3><p>After cards are dealt and every seated player has locked investments, the host draws exactly one condition. Its effect applies to this round’s trades, payouts, card restrictions, and battle multipliers as described below.</p></div></article>
+        <article><span>5</span><div><h3>Negotiate and act</h3><p>Make bilateral trades, activate cards, propose or approve alliances, and launch eligible Field Battles. You can still keep unallocated coins for a deal. The command board shows opponents and shared status without exposing private field breakdowns.</p></div></article>
+        <article><span>6</span><div><h3>Mark ready</h3><p>After locking investments and finishing the actions you want to take, mark yourself ready. You may withdraw readiness if you need to review the round before calculation, but you cannot edit locked investments.</p></div></article>
+        <article><span>7</span><div><h3>Close and calculate</h3><p>When every seated player is locked and ready, the host closes the round. Pending trade escrow is refunded, field income is calculated, loans are collected, temporary cards/effects/alliances are cleared, and the next round begins. The third calculation ends the game.</p></div></article>
+      </div>
+      <div class="rulebook-callout"><strong>Shared timing:</strong> the Global Condition is not drawn before all seated players lock investments. A player who leaves the room is removed from the seated count, so the remaining table can still reach consensus.</div>
+    </section>
+
+    <section id="economy" class="rulebook-section">
+      <p class="section-number">03 — ECONOMY &amp; INVESTMENTS</p>
+      <h2>Build income without running out of cash</h2>
+      <p>Coins are your only currency. At the beginning of a round you can hold coins in your wallet, allocate them to fields, request more through the host, or borrow with a Banker card.</p>
+      <div class="rulebook-formula"><span>Field payout</span><strong>⌊ locked investment × effective multiplier ⌋</strong></div>
+      <p>Each field is calculated separately, then the three results are added to your available balance. Unallocated coins remain coins but do not earn field income. After calculation, field allocations reset to zero for the next round.</p>
+      <div class="rulebook-table-wrap">
+        <table class="rulebook-table">
+          <thead><tr><th>Resource</th><th>What it does</th><th>Multiplier source</th></tr></thead>
+          <tbody>
+            <tr><td>🌾 Agriculture</td><td>Generates income from its locked allocation</td><td>Your country’s round value; Warming reduces it by 10%</td></tr>
+            <tr><td>🛢️ Oil</td><td>Generates income from its locked allocation</td><td>Your country’s round value; Warming reduces it by 10%</td></tr>
+            <tr><td>⛏️ Mines</td><td>Generates income from its locked allocation</td><td>Your country’s round value; Pandemic overrides it to ×1</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="rulebook-two-column">
+        <article class="rulebook-mini-card"><h3>🪙 Buy 100 Coins</h3><p>Each click creates a 100-coin request for the host. Approved purchases and pending requests together cannot exceed 500 purchased coins for that player. A rejected request frees that allowance. Payouts, loans, and trade transfers can still change the balance beyond 500.</p></article>
+        <article class="rulebook-mini-card"><h3>🏦 Banker loan</h3><p>The Banker card lets you borrow any whole amount from 1 to 250 coins and is consumed immediately. At calculation, the server owes 120% of the principal. A 100-coin loan therefore requires 120 coins. Available wallet coins plus current income are collected first; any unpaid amount remains as the active loan for the next round.</p></article>
+      </div>
+      <h3>Worked income example</h3>
+      <p>You lock 30 Agriculture, 20 Oil, and 10 Mines. Your multipliers are ×2, ×1, and ×3. Your gross income is (30×2) + (20×1) + (10×3) = <strong>100 coins</strong>. If Global Warming is active, Agriculture and Oil use 90% of their normal multiplier, so the server rounds each field result down separately before adding them.</p>
+    </section>
+
+    <section id="trades" class="rulebook-section">
+      <p class="section-number">04 — TRADES &amp; AGREEMENTS</p>
+      <h2>Negotiate safely</h2>
+      <p>A Field Trade is a bilateral exchange between two countries. An offer names the field or wallet amount you are offering and the field or wallet amount you request. Only the proposer’s offered asset is reserved when the offer is sent; the target’s requested asset is checked again when they approve.</p>
+      <ol class="rulebook-steps">
+        <li><strong>Propose.</strong> Choose a seated opponent, select the offered and requested assets, and send the offer. The server validates that your offered amount exists and places it in escrow.</li>
+        <li><strong>Respond.</strong> The target may approve or reject. If they cannot provide the requested amount at approval time, the trade is rejected safely and your escrow is returned.</li>
+        <li><strong>Settle.</strong> On approval, each side receives the actual server-calculated receipt. Merchant and Recession adjustments are applied to the received amount, not to the asset reserved in escrow.</li>
+        <li><strong>Break with Spy.</strong> A Spy can target an eligible pending or accepted trade from the current round. A pending offer is canceled and refunded. An accepted trade is reversed using its persisted settlement receipts, but only if both transferred assets are still available.</li>
+      </ol>
+      <div class="rulebook-two-column">
+        <article class="rulebook-mini-card"><h3>💰 Merchant adjustment</h3><p>After activation, the Merchant adds 10% to that player’s received trade income for the current round. The server rounds down to a whole coin where necessary. During Recession, the Merchant adjustment happens before the 20% reduction.</p></article>
+        <article class="rulebook-mini-card"><h3>🕵️ Spy limits</h3><p>A Spy is consumed only after all eligibility checks succeed. Cold War blocks Spy operations without consuming the card. A trade can be broken only once and only during its originating round. If either received asset was already spent, the reversal fails and the card remains available.</p></article>
+      </div>
+      <div class="rulebook-callout"><strong>Trust the announcement feed:</strong> trade offers, approvals, refunds, Spy cancellations, and reversals publish visible results. The server—not the browser—decides balances and eligibility.</div>
+    </section>
+
+    <section id="cards" class="rulebook-section">
+      <p class="section-number">05 — PROFICIENCY CARDS</p>
+      <h2>Six cards, six strategic tools</h2>
+      <p>You receive two cards at the beginning of each round. A card is private until you use it, and most cards are consumed when activated. Read the action dialog before confirming: the server validates every card and round requirement.</p>
+      <div class="rulebook-card-grid">
+        <article><span>🏦</span><h3>Banker</h3><p>Borrow 1–250 coins immediately. The card is consumed. Repayment is principal plus 20% interest at calculation, with unpaid debt carried forward.</p></article>
+        <article><span>🏛️</span><h3>President</h3><p>Start a Mega-Merger proposal with yourself plus one or two invited seated countries. After every invited country approves, the alliance becomes confirmed. The President card is consumed when the proposal is created.</p></article>
+        <article><span>🎖️</span><h3>General</h3><p>Activate to increase your solo Field Battle allowance from one attack to two for the round. It is consumed when activated.</p></article>
+        <article><span>🕵️</span><h3>Spy</h3><p>Interrupt a current-round pending or accepted trade. Pending trades are refunded; accepted trades are reversed only when the original received assets can be returned. Cold War blocks the operation.</p></article>
+        <article><span>💰</span><h3>Merchant</h3><p>Activate for +10% received trade income this round. The bonus is applied before an Economic Recession reduction and is consumed when activated.</p></article>
+        <article><span>☢️</span><h3>Atomic Bomb</h3><p>After locking investments, select a rival and field. The strike destroys half of that field’s current investment, rounding the destroyed amount up. It transfers no coins.</p></article>
+      </div>
+    </section>
+
+    <section id="alliances" class="rulebook-section">
+      <p class="section-number">06 — ALLIANCES</p>
+      <h2>Coordinate a Mega-Merger or Counter-Union</h2>
+      <p>Alliances are temporary, consent-based coalitions for the current round. An alliance proposal lists two or three seated countries, with the initiator first. Every invited country must approve; one rejection stops the proposal.</p>
+      <div class="rulebook-two-column">
+        <article class="rulebook-mini-card"><h3>🏛️ Mega-Merger</h3><p>A President starts this coalition. It joins the initiator and one or two consenting partners. The President is used when the proposal is created, and confirmed members cannot join another alliance during the round.</p></article>
+        <article class="rulebook-mini-card"><h3>🛡️ Counter-Union</h3><p>After a Mega-Merger proposal or confirmed coalition appears, eligible unaligned countries can form a Counter-Union with one or two consenting partners. It uses the same approval and shared-pool rules but does not require a President card.</p></article>
+      </div>
+      <h3>Shared resource pools</h3>
+      <p>For each field, the initiator’s locked investment is used to build the alliance pool:</p>
+      <div class="rulebook-formula"><span>Alliance pool</span><strong>max(150, initiator’s locked field × member count + 150)</strong></div>
+      <p>Each member applies their own country multiplier to that pool and receives an equal whole-coin share, rounded down. The pool is not the sum of every member’s original allocation. Alliances disappear after round calculation.</p>
+      <h3>Alliance agreements</h3>
+      <p>An alliance may launch one coalition Field Battle per round, and only its initiator can launch it. Confirmed members use the alliance’s shared pool rather than solo battle rules. An alliance cannot target one of its own members, and members of a confirmed alliance must use coalition battles instead of solo battles.</p>
+    </section>
+
+    <section id="conflict" class="rulebook-section">
+      <p class="section-number">07 — FIELD BATTLES</p>
+      <h2>Use locked resources as power</h2>
+      <p>The app calls both attack buttons <strong>Field Battle</strong>. You and the opponent must have locked resources, and both sides must hold more than zero in the selected field. The live Global Condition and round multipliers affect battle power just as they affect income.</p>
+      <div class="rulebook-two-column">
+        <article class="rulebook-mini-card"><h3>⚔️ Solo Field Battle</h3><p>Choose an unaligned rival and one field. Power equals your current contested resource multiplied by your country’s effective multiplier. You may attack once per round, or twice after activating General. A victory transfers the defender’s entire current field resource to you and sets the defender’s field to zero. A defeat transfers your entire current field resource to the defender. A tie transfers nothing.</p></article>
+        <article class="rulebook-mini-card"><h3>🏛️ Alliance Field Battle</h3><p>Only a confirmed alliance initiator may attack, once per round. Target a locked, unaligned country or another confirmed alliance. Compare the two sides’ contested pool × effective multiplier. The higher side takes the losing side’s contested resource into its own pool; a tie is a stalemate.</p></article>
+        <article class="rulebook-mini-card"><h3>☢️ Atomic strike</h3><p>After you lock, choose a rival and field. The target loses half of its current field allocation, rounded up. The lost amount is destroyed rather than transferred, and the target’s wallet is unaffected.</p></article>
+      </div>
+      <div class="rulebook-callout"><strong>Battle example:</strong> 40 Oil at ×2 has 80 power. It defeats 50 Oil at ×1 (50 power), so the winner takes the defender’s 50 Oil. Under Pandemic, both sides use ×1, which can change the result.</div>
+    </section>
+
+    <section id="events" class="rulebook-section">
+      <p class="section-number">08 — GLOBAL CONDITIONS</p>
+      <h2>One world state changes the round</h2>
+      <p>The host draws one condition after every player locks. It stays active through trades, actions, battles, and calculation, then clears when the round closes.</p>
+      <div class="rulebook-event-grid">
+        <article><span>📉</span><h3>Economic Recession</h3><p>Received trade income is reduced by 20% and rounded down. Trades are still permitted. Merchant’s +10% adjustment is applied before this reduction.</p></article>
+        <article><span>🌡️</span><h3>Global Warming</h3><p>Agriculture and Oil use an effective multiplier reduced by 10% for income and Field Battles. Mines are unaffected.</p></article>
+        <article><span>🦠</span><h3>Pandemic</h3><p>All Agriculture, Oil, and Mines multipliers are overridden to ×1 for the round, affecting both income and battle power.</p></article>
+        <article><span>🕊️</span><h3>Cold War</h3><p>Spy cards cannot be played. A blocked Spy is not consumed, so it may remain in the player’s hand for the round’s normal cleanup.</p></article>
+      </div>
+      <div class="rulebook-callout rulebook-finish"><strong>Important:</strong> Global Conditions do not change the country’s displayed base assignment; they change the effective result used by the server for this round.</div>
+    </section>
+
+    <section id="hosting" class="rulebook-section">
+      <p class="section-number">09 — HOSTING &amp; VISIBILITY</p>
+      <h2>What the host controls</h2>
+      <p>The host is the room’s shared referee, not a player with access to private strategy. Host controls are server-checked and are available only to the current host.</p>
+      <div class="rulebook-table-wrap">
+        <table class="rulebook-table">
+          <thead><tr><th>Host control</th><th>When it works</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td>Deal Cards</td><td>Once per round</td><td>Deals two private proficiency cards to every seated commander</td></tr>
+            <tr><td>Draw Global Condition</td><td>After cards and every investment lock</td><td>Sets one condition for the round</td></tr>
+            <tr><td>Resolve Coin Request</td><td>While a request is pending</td><td>Approves or rejects one 100-coin request</td></tr>
+            <tr><td>Close &amp; Calculate</td><td>After every player locks and marks ready</td><td>Settles income, loans, temporary effects, and the round state</td></tr>
+            <tr><td>Restart Room</td><td>After the game ends</td><td>Resets the three-round game for a new table; it does not choose the winner</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>What other players can see</h3>
+      <p>The command board intentionally shows country names, country multipliers, total field investment when available, alliance status, and readiness. It does not reveal the opponent’s Agriculture, Oil, and Mines breakdown before the round resolves. Your own detailed investments remain visible to you.</p>
+      <h3>Leaving and reconnecting</h3>
+      <p>Use Exit Game to cleanly release your seat and session. If the host leaves, the room transfers host responsibility to an eligible remaining player. If your connection drops without exiting, use the saved reconnect code and commander name to reclaim your original country before the code expires.</p>
+    </section>
+
+    <section id="finish" class="rulebook-section">
+      <p class="section-number">10 — END OF GAME &amp; FAQ</p>
+      <h2>Finish after Round 3</h2>
+      <p>After the third calculation, the server marks the game finished, preserves the final balances, and displays ranked placements. Equal balances share the same placement; ties are ordered consistently by country name. The app shows the ranking but does not automatically declare a winner—the table decides how to celebrate or score the result.</p>
+      <div class="rulebook-two-column">
+        <article class="rulebook-mini-card"><h3>Can I change a locked investment?</h3><p>No. Locking is permanent for that round. You can still perform eligible actions, trade unallocated assets, and mark yourself ready.</p></article>
+        <article class="rulebook-mini-card"><h3>What happens to an unresolved trade?</h3><p>It is refunded during calculation. The proposer’s escrow returns, and the trade does not transfer any assets.</p></article>
+        <article class="rulebook-mini-card"><h3>Can Spy reverse any old trade?</h3><p>No. Spy only targets pending or accepted trades from the current round, once. Accepted trades also require both received assets to still be available.</p></article>
+        <article class="rulebook-mini-card"><h3>Do payouts count as purchased coins?</h3><p>No. The 500-coin limit covers approved and pending Buy 100 Coins requests. Payouts, loans, and transfers are separate.</p></article>
+        <article class="rulebook-mini-card"><h3>What if I cannot repay a loan?</h3><p>The server collects every coin available from your balance plus current income, then keeps the unpaid amount as an active loan for the next round.</p></article>
+        <article class="rulebook-mini-card"><h3>Who can restart the room?</h3><p>Only the host can restart after Round 3. Restarting clears the finished state and begins a new three-round game with fresh round multipliers.</p></article>
+      </div>
+      <div class="rulebook-callout"><strong>Play the server state:</strong> when an announcement, balance, card, or button appears different from a local assumption, refresh the room snapshot and follow the latest server-confirmed state.</div>
+    </section>
+  </template>
+
+  <template id="rulebook-template-tr">
+    <section id="quick-start" class="rulebook-section">
+      <p class="section-number">01 — KURULUM</p>
+      <h2>Komutan olarak başlayın</h2>
+      <p>Bu oyun 1–10 kişilik ortak bir strateji oyunudur. Her komutan bir ülkeyi, coin bakiyesini, üç kaynak sahasını ve gizli uzmanlık kartlarını yönetir. Amaç, üçüncü raundun sonunda en yüksek bakiyeye sahip olmaktır.</p>
+      <div class="rulebook-callout"><strong>En önemli fikir:</strong> gelir oluşturmak için yatırım yapın, anlaşmalar ve sürprizler için yeterli ayrılmamış nakit bırakın ve karar vermeden önce canlı çarpan panelini kontrol edin.</div>
+      <ol class="rulebook-steps">
+        <li><strong>Odaya katılın.</strong> Benzersiz bir komutan adı girin. Sunucu ilk boş ülkeyi size atar. Bir ülkeye yalnızca bir komutan oturabilir.</li>
+        <li><strong>Yeniden bağlanma kodunuzu kaydedin.</strong> Bağlantı koparsa ülkenizi geri almak için bu kod ve komutan adınız gerekir. Başarılı bir yeniden bağlanma yeni kod oluşturur ve eskisini geçersiz kılar.</li>
+        <li><strong>Başlangıç durumunuzu bilin.</strong> Her oyuncu 0 coin ile başlar. Odayı oluşturan oyuncu yönetici olur; diğerleri komutandır.</li>
+        <li><strong>Panoyu okuyun.</strong> Kendi bakiyeniz, kesin saha yatırımlarınız, kartlarınız ve krediniz size özeldir. Rakip ülkeler, hazır olma durumu, çarpanlar ve toplam saha yatırımı görünür; rakibin tek tek saha dağılımı görünmez.</li>
+      </ol>
+      <h3>Ülkeler ve çarpanlar</h3>
+      <p>On adet ülke bulunur. Her raundun başında her ülkeye Tarım, Petrol ve Madenler için ×1, ×2 ve ×3 değerleri rastgele ve her biri bir kez olacak şekilde atanır. Aynı değerler o raundaki gelir ve savaş gücü için kullanılır.</p>
+      <div class="rulebook-callout"><strong>Örnek:</strong> ülkenizde Tarım ×3 görünüyorsa ve 40 Tarım kilitlerseniz, koşul düzeltmesinden önce bu saha 120 coin üretir. Sonraki raundda ülkenizin çarpanları değişebilir.</div>
+    </section>
+    <section id="round" class="rulebook-section">
+      <p class="section-number">02 — RAUND AKIŞI</p><h2>Bir raund nasıl oynanır?</h2>
+      <p>Raund durumunu sunucu yönetir. Yönetici gerekli hazırlıkları atlayamaz ve her oturmuş komutan ortak kontrol listesini tamamlamadan hesaplama başlatılamaz.</p>
+      <div class="rulebook-timeline">
+        <article><span>1</span><div><h3>İki uzmanlık kartı dağıtılır</h3><p>Yönetici her oturmuş oyuncuya tam iki kart dağıtır. Kartlar, bir eylem seçene kadar gizlidir ve çoğu kullanıldığında harcanır.</p></div></article>
+        <article><span>2</span><div><h3>Coin planınızı yapın</h3><p>100 coinlik satın alma isteklerini tek tek gönderin, yöneticinin onayını bekleyin, Banker kartınız varsa kredi alın ve ne kadar nakdi sahalara yatıracağınıza karar verin.</p></div></article>
+        <article><span>3</span><div><h3>Yatırımlarınızı kilitleyin</h3><p>Coinleri Tarım, Petrol ve Madenler arasında dağıtın. Toplam, sunucu tarafından onaylanmış cüzdan bakiyenizi aşamaz. Kilitleme raund boyunca değiştirilemez ve savaş, Atom Bombası ve hazır olma için gereklidir.</p></div></article>
+        <article><span>4</span><div><h3>Bir Küresel Koşul çekilir</h3><p>Kartlar dağıtıldıktan ve tüm oyuncular yatırımlarını kilitledikten sonra yönetici tam bir koşul çeker. Koşul bu raundaki ticaretleri, gelirleri, kart kısıtlarını ve savaş çarpanlarını etkiler.</p></div></article>
+        <article><span>5</span><div><h3>Müzakere edin ve hamle yapın</h3><p>İkili ticaret yapın, kartları etkinleştirin, ittifak önerin veya uygun Field Battle hamlelerini başlatın. Ayrılmamış coinlerinizi ticaret için saklayabilirsiniz.</p></div></article>
+        <article><span>6</span><div><h3>Hazır olun</h3><p>Yatırımları kilitleyip istediğiniz hamleleri bitirdikten sonra hazır olduğunuzu işaretleyin. Hesaplama öncesi hazır durumunuzu kaldırabilirsiniz, ancak kilitli yatırımları değiştiremezsiniz.</p></div></article>
+        <article><span>7</span><div><h3>Raundu kapatın ve hesaplayın</h3><p>Tüm oyuncular kilitleyip hazır olduğunda yönetici raundu kapatır. Bekleyen ticaret emaneti iade edilir, gelir ve krediler hesaplanır, geçici etkiler ve ittifaklar temizlenir. Üçüncü hesaplama oyunu bitirir.</p></div></article>
+      </div>
+      <div class="rulebook-callout"><strong>Ortak zamanlama:</strong> tüm oturmuş oyuncular yatırımlarını kilitlemeden Küresel Koşul çekilemez. Bir oyuncu odadan ayrılırsa oturmuş oyuncu sayısından çıkarılır.</div>
+    </section>
+    <section id="economy" class="rulebook-section">
+      <p class="section-number">03 — EKONOMİ VE YATIRIMLAR</p><h2>Nakit bitmeden gelir oluşturun</h2>
+      <p>Coin tek para birimidir. Raund başında coinleri cüzdanda tutabilir, sahalara ayırabilir, yöneticiden satın alma isteyebilir veya Banker kartıyla borç alabilirsiniz.</p>
+      <div class="rulebook-formula"><span>Saha ödemesi</span><strong>⌊ kilitli yatırım × etkin çarpan ⌋</strong></div>
+      <p>Tarım, Petrol ve Madenler ayrı ayrı hesaplanır ve sonuçlar bakiyenize eklenir. Ayrılmamış coinler coin olarak kalır fakat saha geliri üretmez. Hesaplamadan sonra saha yatırımları sıfırlanır.</p>
+      <div class="rulebook-table-wrap"><table class="rulebook-table"><thead><tr><th>Kaynak</th><th>Etkisi</th><th>Çarpan kaynağı</th></tr></thead><tbody><tr><td>🌾 Tarım</td><td>Kilitli yatırımından gelir üretir</td><td>Ülkenin raund değeri; Küresel Isınma %10 azaltır</td></tr><tr><td>🛢️ Petrol</td><td>Kilitli yatırımından gelir üretir</td><td>Ülkenin raund değeri; Küresel Isınma %10 azaltır</td></tr><tr><td>⛏️ Madenler</td><td>Kilitli yatırımından gelir üretir</td><td>Ülkenin raund değeri; Pandemi ×1 yapar</td></tr></tbody></table></div>
+      <div class="rulebook-two-column"><article class="rulebook-mini-card"><h3>🪙 100 Coin Al</h3><p>Her tıklama yöneticiye 100 coinlik bir istek gönderir. Onaylanan alımlar ve bekleyen istekler birlikte satın alma sınırı olan 500 coini aşamaz. Reddedilen istek bu hakkı serbest bırakır. Ödeme, kredi ve ticaret transferleri bakiyeyi 500ün üzerine çıkarabilir.</p></article><article class="rulebook-mini-card"><h3>🏦 Banker kredisi</h3><p>Banker kartıyla 1–250 arasında tam coin borç alabilirsiniz; kart hemen harcanır. Hesaplamada anaparanın %120si ödenir. 100 coin kredi 120 coin gerektirir. Mevcut bakiye ve raund geliri önce toplanır; kalan borç sonraki raunda taşınır.</p></article></div>
+      <h3>Gelir örneği</h3><p>30 Tarım, 20 Petrol ve 10 Maden kilitlediniz; çarpanlarınız ×2, ×1 ve ×3. Brüt geliriniz (30×2) + (20×1) + (10×3) = <strong>100 coin</strong> olur. Küresel Isınmada Tarım ve Petrol sonuçları %90 çarpanla kullanılır ve her saha ayrı ayrı aşağı yuvarlanır.</p>
+    </section>
+    <section id="trades" class="rulebook-section">
+      <p class="section-number">04 — TİCARET VE ANLAŞMALAR</p><h2>Güvenli müzakere edin</h2>
+      <p>Field Trade iki ülke arasındaki ikili değiş tokuştur. Teklif, sunduğunuz saha veya cüzdan miktarını ve istediğiniz saha veya cüzdan miktarını belirtir. Teklif gönderildiğinde yalnızca sizin sunduğunuz varlık emanete alınır; hedefin varlığı onay anında yeniden kontrol edilir.</p>
+      <ol class="rulebook-steps"><li><strong>Önerin.</strong> Oturmuş bir rakip, sunulacak ve istenecek varlıkları seçin. Sunucu miktarın sizde olduğunu doğrular ve emanete alır.</li><li><strong>Yanıtlayın.</strong> Hedef oyuncu onaylayabilir veya reddedebilir. İstenen miktar artık mevcut değilse teklif güvenli biçimde reddedilir ve emanet iade edilir.</li><li><strong>Sonuçlandırın.</strong> Onayda iki taraf gerçek sunucu hesabıyla hesaplanan makbuz miktarını alır. Merchant ve Resesyon düzeltmeleri emanetteki miktara değil alınan miktara uygulanır.</li><li><strong>Spy ile bozun.</strong> Spy, bu raundun bekleyen veya kabul edilmiş bir ticaretini hedefleyebilir. Bekleyen teklif iptal edilip iade edilir. Kabul edilmiş ticaret yalnızca iki varlık da hâlâ mevcutsa, kaydedilmiş makbuzlar kullanılarak geri çevrilir.</li></ol>
+      <div class="rulebook-two-column"><article class="rulebook-mini-card"><h3>💰 Merchant düzeltmesi</h3><p>Etkinleştirildiğinde Merchant, oyuncunun bu raundda aldığı ticaret gelirine %10 ekler. Resesyonda Merchant artışı önce uygulanır, sonra %20 azaltma yapılır.</p></article><article class="rulebook-mini-card"><h3>🕵️ Spy sınırları</h3><p>Spy ancak tüm kontroller başarılı olduktan sonra harcanır. Soğuk Savaş Spy eylemini engeller ve kartı harcamaz. Bir ticaret yalnızca bir kez ve kaynak raundunda bozulabilir. Alınan varlık harcanmışsa geri çevirme başarısız olur.</p></article></div>
+      <div class="rulebook-callout"><strong>Duyuruları izleyin:</strong> teklifler, kabuller, iadeler, Spy iptalleri ve geri çevirmeler görünür sonuçlar yayınlar. Bakiyeler ve uygunluk kararını tarayıcı değil sunucu verir.</div>
+    </section>
+    <section id="cards" class="rulebook-section">
+      <p class="section-number">05 — UZMANLIK KARTLARI</p><h2>Altı kart, altı stratejik araç</h2>
+      <p>Her raund başında iki kart alırsınız. Kartlar kullanılana kadar gizlidir ve çoğu etkinleştirildiğinde harcanır. Onaylamadan önce eylem penceresini okuyun; sunucu bütün koşulları doğrular.</p>
+      <div class="rulebook-card-grid"><article><span>🏦</span><h3>Banker</h3><p>Hemen 1–250 coin borç alın. Kart harcanır. Hesaplamada anapara + %20 faiz ödenir; ödenmeyen borç taşınır.</p></article><article><span>🏛️</span><h3>President</h3><p>Kendiniz ve bir veya iki davetli ülkeyle Mega-Merger önerisi başlatın. Tüm davetliler onaylarsa ittifak kurulur. Kart öneri oluşturulurken harcanır.</p></article><article><span>🎖️</span><h3>General</h3><p>Solo Field Battle hakkınızı bu raund birden iki saldırıya çıkarır. Etkinleştirilince harcanır.</p></article><article><span>🕵️</span><h3>Spy</h3><p>Bu raunddaki bekleyen veya kabul edilmiş ticareti keser. Bekleyen teklif iade edilir; kabul edilmiş ticaret yalnızca varlıklar duruyorsa geri çevrilir. Soğuk Savaş engeller.</p></article><article><span>💰</span><h3>Merchant</h3><p>Bu raund alınan ticaret gelirine %10 ekler. Ekonomik Resesyon indirimi öncesi uygulanır ve etkinleştirilince harcanır.</p></article><article><span>☢️</span><h3>Atomic Bomb</h3><p>Yatırımları kilitledikten sonra rakip ve saha seçin. O sahanın mevcut yatırımının yarısı yukarı yuvarlanarak yok edilir; coin transferi yapılmaz.</p></article></div>
+    </section>
+    <section id="alliances" class="rulebook-section">
+      <p class="section-number">06 — İTTİFAKLAR</p><h2>Mega-Merger veya Counter-Union kurun</h2>
+      <p>İttifaklar mevcut raund için geçerli, onaya dayalı geçici koalisyonlardır. Öneride iki veya üç oturmuş ülke bulunur ve başlatan ülke ilk sıradadır. Her davetli onaylamalıdır; bir ret öneriyi durdurur.</p>
+      <div class="rulebook-two-column"><article class="rulebook-mini-card"><h3>🏛️ Mega-Merger</h3><p>President kartı ile başlatılır. Başlatanı ve bir veya iki onay veren ortağı birleştirir. Kart öneri kurulurken kullanılır; onaylanmış üyeler aynı raundda başka ittifaka katılamaz.</p></article><article class="rulebook-mini-card"><h3>🛡️ Counter-Union</h3><p>Mega-Merger önerisi veya koalisyonu ortaya çıktığında uygun ve ittifaksız ülkeler bir veya iki onay veren ortakla Counter-Union kurabilir. Aynı onay ve havuz kurallarını kullanır, President gerektirmez.</p></article></div>
+      <h3>Ortak kaynak havuzları</h3><p>Her saha için ittifak havuzu başlatanın kilitli yatırımından oluşturulur:</p><div class="rulebook-formula"><span>İttifak havuzu</span><strong>max(150, başlatanın kilitli saha yatırımı × üye sayısı + 150)</strong></div><p>Her üye bu havuza kendi ülke çarpanını uygular ve eşit, tam coin payı alır; pay aşağı yuvarlanır. Havuz bütün üyelerin yatırımlarının toplamı değildir. Raund hesabından sonra ittifaklar silinir.</p>
+      <h3>İttifak anlaşmaları</h3><p>Bir ittifak raund başına bir koalisyon Field Battle başlatabilir ve bunu yalnızca başlatan yapabilir. Onaylanmış üyeler solo savaş yerine koalisyon savaşını kullanır.</p>
+    </section>
+    <section id="conflict" class="rulebook-section">
+      <p class="section-number">07 — FIELD BATTLE</p><h2>Kilitli kaynakları güce dönüştürün</h2>
+      <p>Uygulamada iki saldırı düğmesinin adı da <strong>Field Battle</strong>dır. Siz ve rakip kaynakları kilitlemiş olmalı; seçilen sahada iki tarafın da sıfırdan büyük kaynağı bulunmalıdır. Küresel Koşul ve raund çarpanları savaş gücünü de etkiler.</p>
+      <div class="rulebook-two-column"><article class="rulebook-mini-card"><h3>⚔️ Solo Field Battle</h3><p>İttifaksız bir rakip ve saha seçin. Güç, mevcut saha kaynağı × ülkenin etkin çarpanıdır. Raundda bir saldırı, General sonrası iki saldırı hakkınız vardır. Galibiyette rakibin tüm saha kaynağı size geçer ve rakibin sahası sıfırlanır. Mağlubiyette sizin tüm saha kaynağınız rakibe geçer. Beraberlikte transfer olmaz.</p></article><article class="rulebook-mini-card"><h3>🏛️ Alliance Field Battle</h3><p>Yalnızca onaylanmış ittifak başlatanı raundda bir kez saldırabilir. Kilitli ittifaksız ülkeyi veya başka onaylanmış ittifakı hedefler. İki tarafın saha havuzu × etkin çarpanı karşılaştırılır; üstün taraf kaybedenin kaynağını alır, beraberlikte transfer olmaz.</p></article><article class="rulebook-mini-card"><h3>☢️ Atom saldırısı</h3><p>Kilitledikten sonra rakip ve saha seçin. Hedefin mevcut yatırımının yarısı yukarı yuvarlanarak yok edilir. Yok edilen miktar aktarılmaz, cüzdan etkilenmez.</p></article></div>
+      <div class="rulebook-callout"><strong>Savaş örneği:</strong> ×2 çarpanlı 40 Petrolün gücü 80dir. ×1 çarpanlı 50 Petrolü (50 güç) yener ve 50 Petrolü alır. Pandemide iki taraf da ×1 kullanır.</div>
+    </section>
+    <section id="events" class="rulebook-section">
+      <p class="section-number">08 — KÜRESEL KOŞULLAR</p><h2>Tek bir dünya durumu raundu değiştirir</h2>
+      <p>Yönetici, herkes kilitledikten sonra bir koşul çeker. Koşul ticaretler, hamleler, savaşlar ve hesaplama boyunca aktif kalır; raund kapanınca temizlenir.</p>
+      <div class="rulebook-event-grid"><article><span>📉</span><h3>Ekonomik Resesyon</h3><p>Alınan ticaret geliri %20 azaltılır ve aşağı yuvarlanır. Ticaret yine yapılabilir. Merchant artışı önce uygulanır.</p></article><article><span>🌡️</span><h3>Küresel Isınma</h3><p>Tarım ve Petrol, gelir ve Field Battle için etkin çarpanlarını %10 azaltılmış şekilde kullanır. Madenler etkilenmez.</p></article><article><span>🦠</span><h3>Pandemi</h3><p>Tarım, Petrol ve Madenler için tüm çarpanlar bu raund ×1 olur. Bu hem geliri hem savaş gücünü etkiler.</p></article><article><span>🕊️</span><h3>Soğuk Savaş</h3><p>Spy kartları kullanılamaz. Engellenen Spy harcanmaz ve normal raund temizliğine kadar elde kalabilir.</p></article></div>
+      <div class="rulebook-callout rulebook-finish"><strong>Unutmayın:</strong> Koşul ülkenin görünen temel atamasını değiştirmez; sunucunun bu raund sonucu hesaplamak için kullandığı etkin değeri değiştirir.</div>
+    </section>
+    <section id="hosting" class="rulebook-section">
+      <p class="section-number">09 — YÖNETİCİ VE GÖRÜNÜRLÜK</p><h2>Yöneticinin kontrolleri</h2>
+      <p>Yönetici ortak masanın hakemidir; özel stratejilere erişen ayrıcalıklı bir oyuncu değildir. Kontroller sunucu tarafından doğrulanır ve yalnızca mevcut yöneticiye açıktır.</p>
+      <div class="rulebook-table-wrap"><table class="rulebook-table"><thead><tr><th>Kontrol</th><th>Ne zaman çalışır?</th><th>Sonuç</th></tr></thead><tbody><tr><td>Kartları Dağıt</td><td>Raundda bir kez</td><td>Her oyuncuya iki gizli uzmanlık kartı verir</td></tr><tr><td>Küresel Koşul Çek</td><td>Kartlardan ve tüm kilitlerden sonra</td><td>Raund için bir koşul belirler</td></tr><tr><td>Coin isteğini çöz</td><td>İstek beklerken</td><td>Bir 100 coin isteğini onaylar veya reddeder</td></tr><tr><td>Kapat ve hesapla</td><td>Herkes kilitleyip hazır olduğunda</td><td>Gelir, krediler, geçici etkiler ve raundu hesaplar</td></tr><tr><td>Odayı yeniden başlat</td><td>Oyun bittikten sonra</td><td>Yeni masa için üç raundu başlatır; kazanan seçmez</td></tr></tbody></table></div>
+      <h3>Diğer oyuncular ne görür?</h3><p>Komuta panosu ülke adlarını, ülke çarpanlarını, hazır olduğunda toplam saha yatırımını, ittifak durumunu ve hazır olma bilgisini gösterir. Rakibin Tarım, Petrol ve Maden dağılımını raund çözülmeden göstermez. Ayrıntılı yatırımlarınızı siz görürsünüz.</p>
+      <h3>Ayrılma ve yeniden bağlanma</h3><p>Exit Game ile koltuğunuzu ve oturumunuzu temiz biçimde bırakın. Yönetici ayrılırsa sorumluluk uygun kalan oyuncuya aktarılır. Bağlantınız koparsa kayıtlı kod ve komutan adıyla, kod süresi dolmadan ülkenizi geri alın.</p>
+    </section>
+    <section id="finish" class="rulebook-section">
+      <p class="section-number">10 — OYUN SONU VE SSS</p><h2>Üçüncü raunddan sonra bitiş</h2>
+      <p>Üçüncü hesaplamadan sonra sunucu oyunu bitirir, son bakiyeleri korur ve sıralamayı gösterir. Eşit bakiyeler aynı dereceyi paylaşır; eşitlikler ülke adına göre tutarlı biçimde sıralanır. Uygulama sıralamayı gösterir ancak kazananı otomatik seçmez; masa sonucu birlikte belirler.</p>
+      <div class="rulebook-two-column"><article class="rulebook-mini-card"><h3>Kilitli yatırımı değiştirebilir miyim?</h3><p>Hayır. Kilitleme o raund için kalıcıdır. Ayrılmamış varlıklarla geçerli hamle ve ticaret yapabilirsiniz.</p></article><article class="rulebook-mini-card"><h3>Sonuçlanmayan ticarete ne olur?</h3><p>Hesaplama sırasında iade edilir. Teklif sahibinin emaneti geri döner ve varlık aktarılmaz.</p></article><article class="rulebook-mini-card"><h3>Spy eski ticareti bozabilir mi?</h3><p>Hayır. Yalnızca mevcut raundun bekleyen veya kabul edilmiş ticaretini bir kez hedefler; kabul edilmiş ticarette alınan varlıklar hâlâ durmalıdır.</p></article><article class="rulebook-mini-card"><h3>Ödemeler satın alma sınırına dahil mi?</h3><p>Hayır. 500 sınırı yalnızca onaylanmış ve bekleyen 100 Coin Al istekleri içindir. Ödeme, kredi ve transferler ayrıdır.</p></article><article class="rulebook-mini-card"><h3>Krediyi ödeyemezsem?</h3><p>Sunucu mevcut bakiye ve raund gelirinizdeki tüm coinleri alır; kalan borç sonraki raunda aktif kredi olarak taşınır.</p></article><article class="rulebook-mini-card"><h3>Odayı kim yeniden başlatabilir?</h3><p>Üçüncü raunddan sonra yalnızca yönetici yeniden başlatabilir. Yeni raund çarpanlarıyla yeni üç raundluk oyun başlar.</p></article></div>
+      <div class="rulebook-callout"><strong>Sunucu durumunu izleyin:</strong> duyuru, bakiye, kart veya düğme yerel varsayımınızdan farklı görünürse oda görüntüsünü yenileyin ve sunucunun son onayladığı durumu izleyin.</div>
+    </section>
+  </template>
+
+  <template id="rulebook-template-fa">
+    <section id="quick-start" class="rulebook-section">
+      <p class="section-number">۰۱ — آماده‌سازی</p>
+      <h2>بازی را به‌عنوان فرمانده آغاز کنید</h2>
+      <p>این یک بازی راهبردی مشترک برای ۱ تا ۱۰ قدرت است. هر فرمانده یک کشور، موجودی سکه، سه میدان منابع و مجموعه‌ای خصوصی از کارت‌های مهارت را مدیریت می‌کند. هدف این است که پس از محاسبه دور سوم، بیشترین موجودی را داشته باشید.</p>
+      <div class="rulebook-callout"><strong>مهم‌ترین نکته:</strong> برای ساختن درآمد سرمایه‌گذاری کنید، برای معامله و اتفاق‌های ناگهانی مقداری سکه تخصیص‌نیافته نگه دارید و پیش از تصمیم‌گیری پنل ضریب‌های زنده را ببینید.</div>
+      <ol class="rulebook-steps">
+        <li><strong>وارد اتاق شوید.</strong> یک نام فرمانده یکتا وارد کنید. سرور نخستین کشور آزاد را به شما اختصاص می‌دهد. هر کشور فقط یک فرمانده دارد.</li>
+        <li><strong>کد اتصال مجدد را ذخیره کنید.</strong> اگر ارتباط قطع شود، برای پس گرفتن کشورتان به این کد و نام فرمانده نیاز دارید. هر اتصال مجدد موفق، کد تازه‌ای می‌سازد و کد قبلی را بی‌اعتبار می‌کند.</li>
+        <li><strong>جایگاه آغازین را بشناسید.</strong> همه بازیکنان با ۰ سکه شروع می‌کنند. سازنده اتاق میزبان است و بازیکنان بعدی فرمانده هستند.</li>
+        <li><strong>برد را بخوانید.</strong> موجودی، تخصیص دقیق میدان‌ها، کارت‌ها و وام شما خصوصی است. کشورهای رقیب، وضعیت آمادگی، ضریب‌ها و مجموع سرمایه‌گذاری میدان دیده می‌شود، اما جزئیات تک‌تک میدان‌های رقیب دیده نمی‌شود.</li>
+      </ol>
+      <h3>کشورها و ضریب‌ها</h3>
+      <p>ده کشور در دسترس است. در آغاز هر دور، برای هر کشور مقدارهای ×۱، ×۲ و ×۳ به‌صورت تصادفی و هر کدام یک‌بار میان کشاورزی، نفت و معادن تقسیم می‌شود. همین مقدارها در همان دور برای درآمد و قدرت نبرد استفاده می‌شوند.</p>
+      <div class="rulebook-callout"><strong>نمونه:</strong> اگر ضریب کشاورزی کشور شما ×۳ باشد و ۴۰ سکه در کشاورزی قفل کنید، پیش از اثر شرایط جهانی این میدان ۱۲۰ سکه تولید می‌کند. ضریب‌های کشور در دور بعد می‌توانند متفاوت باشند.</div>
+    </section>
+    <section id="round" class="rulebook-section">
+      <p class="section-number">۰۲ — روند دور</p><h2>یک دور چگونه انجام می‌شود؟</h2>
+      <p>وضعیت دور را سرور کنترل می‌کند. میزبان نمی‌تواند مراحل لازم را رد کند و تا زمانی که همه فرماندهان نشسته فهرست مشترک را کامل نکنند، محاسبه انجام نمی‌شود.</p>
+      <div class="rulebook-timeline">
+        <article><span>۱</span><div><h3>دو کارت مهارت توزیع می‌شود</h3><p>میزبان دقیقاً دو کارت به هر بازیکن نشسته می‌دهد. کارت‌ها تا زمان استفاده خصوصی هستند و بیشتر کارت‌ها هنگام فعال‌سازی مصرف می‌شوند.</p></div></article>
+        <article><span>۲</span><div><h3>سکه‌های خود را برنامه‌ریزی کنید</h3><p>درخواست‌های خرید ۱۰۰ سکه را یکی‌یکی ارسال کنید، منتظر تأیید میزبان بمانید، اگر کارت Banker دارید وام بگیرید و مقدار سرمایه‌گذاری و نقدینگی ذخیره را تعیین کنید.</p></div></article>
+        <article><span>۳</span><div><h3>سرمایه‌گذاری را قفل کنید</h3><p>سکه‌ها را بین کشاورزی، نفت و معادن تقسیم کنید. مجموع آن‌ها نباید از موجودی تأییدشده سرور بیشتر باشد. قفل‌کردن در همان دور برگشت‌پذیر نیست و برای نبرد، بمب اتم و آمادگی لازم است.</p></div></article>
+        <article><span>۴</span><div><h3>یک شرایط جهانی کشیده می‌شود</h3><p>پس از توزیع کارت‌ها و قفل‌شدن سرمایه‌گذاری همه بازیکنان، میزبان دقیقاً یک شرایط می‌کشد. اثر آن روی معامله، درآمد، محدودیت کارت و ضریب نبرد همان دور اعمال می‌شود.</p></div></article>
+        <article><span>۵</span><div><h3>مذاکره و اقدام کنید</h3><p>معامله دوجانبه انجام دهید، کارت‌ها را فعال کنید، ائتلاف پیشنهاد دهید یا نبرد میدانی مجاز آغاز کنید. می‌توانید سکه‌های تخصیص‌نیافته را برای معامله نگه دارید.</p></div></article>
+        <article><span>۶</span><div><h3>آماده شوید</h3><p>پس از قفل‌کردن سرمایه‌گذاری و پایان اقدام‌های دلخواه، وضعیت آمادگی را فعال کنید. پیش از محاسبه می‌توانید آمادگی را بردارید، اما سرمایه‌گذاری قفل‌شده قابل ویرایش نیست.</p></div></article>
+        <article><span>۷</span><div><h3>دور را ببندید و محاسبه کنید</h3><p>وقتی همه بازیکنان قفل و آماده باشند، میزبان دور را می‌بندد. سپرده معاملات معلق برگردانده، درآمد و وام محاسبه، اثرهای موقت و ائتلاف‌ها پاک می‌شوند. محاسبه دور سوم بازی را تمام می‌کند.</p></div></article>
+      </div>
+      <div class="rulebook-callout"><strong>زمان‌بندی مشترک:</strong> تا وقتی همه بازیکنان نشسته سرمایه‌گذاری را قفل نکرده‌اند، شرایط جهانی کشیده نمی‌شود. خروج یک بازیکن، او را از شمار بازیکنان نشسته حذف می‌کند.</div>
+    </section>
+    <section id="economy" class="rulebook-section">
+      <p class="section-number">۰۳ — اقتصاد و سرمایه‌گذاری</p><h2>بدون تمام‌کردن نقدینگی درآمد بسازید</h2>
+      <p>سکه تنها واحد پول است. در آغاز دور می‌توانید سکه را در کیف پول نگه دارید، به میدان‌ها تخصیص دهید، از میزبان درخواست خرید کنید یا با کارت Banker وام بگیرید.</p>
+      <div class="rulebook-formula"><span>پرداخت میدان</span><strong>⌊ سرمایه‌گذاری قفل‌شده × ضریب مؤثر ⌋</strong></div>
+      <p>کشاورزی، نفت و معادن جداگانه محاسبه و سپس جمع می‌شوند. سکه‌های تخصیص‌نیافته در کیف پول می‌مانند اما درآمد میدان تولید نمی‌کنند. پس از محاسبه، تخصیص میدان‌ها برای دور بعد صفر می‌شود.</p>
+      <div class="rulebook-table-wrap"><table class="rulebook-table"><thead><tr><th>منبع</th><th>اثر</th><th>منبع ضریب</th></tr></thead><tbody><tr><td>🌾 کشاورزی</td><td>از تخصیص قفل‌شده درآمد می‌سازد</td><td>مقدار دور کشور؛ گرمایش جهانی ۱۰٪ کم می‌کند</td></tr><tr><td>🛢️ نفت</td><td>از تخصیص قفل‌شده درآمد می‌سازد</td><td>مقدار دور کشور؛ گرمایش جهانی ۱۰٪ کم می‌کند</td></tr><tr><td>⛏️ معادن</td><td>از تخصیص قفل‌شده درآمد می‌سازد</td><td>مقدار دور کشور؛ همه‌گیری آن را ×۱ می‌کند</td></tr></tbody></table></div>
+      <div class="rulebook-two-column"><article class="rulebook-mini-card"><h3>🪙 خرید ۱۰۰ سکه</h3><p>هر کلیک یک درخواست ۱۰۰ سکه‌ای برای میزبان می‌سازد. خریدهای تأییدشده و درخواست‌های معلق با هم نمی‌توانند از سقف خرید ۵۰۰ سکه بیشتر شوند. ردشدن درخواست این ظرفیت را آزاد می‌کند. پرداخت درآمد، وام و انتقال معامله جدا هستند و می‌توانند موجودی را از ۵۰۰ بیشتر کنند.</p></article><article class="rulebook-mini-card"><h3>🏦 وام Banker</h3><p>کارت Banker امکان وام‌گرفتن بین ۱ تا ۲۵۰ سکه را می‌دهد و بلافاصله مصرف می‌شود. در محاسبه، ۱۲۰٪ اصل وام باید پرداخت شود؛ وام ۱۰۰ سکه‌ای ۱۲۰ سکه بازپرداخت دارد. موجودی و درآمد دور ابتدا دریافت می‌شوند و بدهی باقی‌مانده به دور بعد منتقل می‌شود.</p></article></div>
+      <h3>نمونه درآمد</h3><p>۳۰ کشاورزی، ۲۰ نفت و ۱۰ معدن قفل کرده‌اید و ضریب‌ها ×۲، ×۱ و ×۳ هستند. درآمد ناخالص شما (۳۰×۲) + (۲۰×۱) + (۱۰×۳) = <strong>۱۰۰ سکه</strong> است. در گرمایش جهانی، نتیجه کشاورزی و نفت با ۹۰٪ ضریب مؤثر و هر میدان جداگانه رو به پایین گرد می‌شود.</p>
+    </section>
+    <section id="trades" class="rulebook-section">
+      <p class="section-number">۰۴ — معاملات و توافق‌ها</p><h2>با امنیت مذاکره کنید</h2>
+      <p>Field Trade مبادله‌ای دوجانبه میان دو کشور است. پیشنهاد، دارایی پیشنهادی شما از کیف پول یا یک میدان و دارایی درخواستی را مشخص می‌کند. با ارسال پیشنهاد فقط دارایی شما در سپرده قرار می‌گیرد و دارایی طرف مقابل هنگام تأیید دوباره بررسی می‌شود.</p>
+      <ol class="rulebook-steps"><li><strong>پیشنهاد دهید.</strong> یک رقیب نشسته و دارایی‌های پیشنهادی و درخواستی را انتخاب کنید. سرور موجودبودن مقدار شما را بررسی و آن را در سپرده قرار می‌دهد.</li><li><strong>پاسخ دهید.</strong> هدف می‌تواند تأیید یا رد کند. اگر مقدار درخواستی دیگر موجود نباشد، معامله امن رد و سپرده شما برگردانده می‌شود.</li><li><strong>تسویه کنید.</strong> پس از تأیید، هر طرف رسید واقعی محاسبه‌شده توسط سرور را دریافت می‌کند. تعدیل‌های Merchant و رکود روی مقدار دریافتی اعمال می‌شوند، نه مقدار سپرده.</li><li><strong>با Spy بشکنید.</strong> Spy می‌تواند معامله معلق یا پذیرفته‌شده همین دور را هدف بگیرد. پیشنهاد معلق لغو و مسترد می‌شود. معامله پذیرفته‌شده فقط وقتی با رسیدهای ذخیره‌شده برعکس می‌شود که هر دو دارایی دریافتی هنوز موجود باشند.</li></ol>
+      <div class="rulebook-two-column"><article class="rulebook-mini-card"><h3>💰 تعدیل Merchant</h3><p>پس از فعال‌سازی، Merchant درآمد معامله دریافتی آن بازیکن را در همین دور ۱۰٪ افزایش می‌دهد. در رکود اقتصادی، افزایش Merchant ابتدا و کاهش ۲۰٪ پس از آن اعمال می‌شود.</p></article><article class="rulebook-mini-card"><h3>🕵️ محدودیت‌های Spy</h3><p>Spy فقط پس از موفقیت همه بررسی‌ها مصرف می‌شود. جنگ سرد عملیات Spy را بدون مصرف کارت متوقف می‌کند. هر معامله فقط یک‌بار و در دور مبدأ قابل شکستن است. اگر دارایی دریافتی خرج شده باشد، برگشت ناموفق است.</p></article></div>
+      <div class="rulebook-callout"><strong>اطلاعیه‌ها را دنبال کنید:</strong> پیشنهاد، تأیید، بازپرداخت، لغو و برگشت معامله به‌صورت نتیجه قابل مشاهده اعلام می‌شود. سرور، نه مرورگر، موجودی و امکان اقدام را تعیین می‌کند.</div>
+    </section>
+    <section id="cards" class="rulebook-section">
+      <p class="section-number">۰۵ — کارت‌های مهارت</p><h2>شش کارت، شش ابزار راهبردی</h2>
+      <p>در ابتدای هر دور دو کارت دریافت می‌کنید. کارت‌ها تا زمان استفاده خصوصی‌اند و بیشترشان هنگام فعال‌سازی مصرف می‌شوند. پیش از تأیید، پنجره اقدام را بخوانید؛ سرور همه شرط‌ها را بررسی می‌کند.</p>
+      <div class="rulebook-card-grid"><article><span>🏦</span><h3>Banker</h3><p>فوراً ۱ تا ۲۵۰ سکه وام بگیرید. کارت مصرف می‌شود. در محاسبه اصل + ۲۰٪ بهره پرداخت و بدهی پرداخت‌نشده منتقل می‌شود.</p></article><article><span>🏛️</span><h3>President</h3><p>پیشنهاد Mega-Merger را با خود و یک یا دو کشور دعوت‌شده آغاز کنید. همه دعوت‌شده‌ها باید تأیید کنند. کارت هنگام ساخت پیشنهاد مصرف می‌شود.</p></article><article><span>🎖️</span><h3>General</h3><p>تعداد نبرد میدانی انفرادی شما را در این دور از یک به دو حمله افزایش می‌دهد. هنگام فعال‌سازی مصرف می‌شود.</p></article><article><span>🕵️</span><h3>Spy</h3><p>معامله معلق یا پذیرفته‌شده همین دور را مختل می‌کند. معامله معلق مسترد و معامله پذیرفته‌شده فقط در صورت باقی‌بودن دارایی‌ها برعکس می‌شود. جنگ سرد مانع استفاده است.</p></article><article><span>💰</span><h3>Merchant</h3><p>درآمد معامله دریافتی این دور را ۱۰٪ زیاد می‌کند. پیش از کاهش رکود اعمال و هنگام فعال‌سازی مصرف می‌شود.</p></article><article><span>☢️</span><h3>Atomic Bomb</h3><p>پس از قفل‌کردن سرمایه‌گذاری، رقیب و میدان را انتخاب کنید. نیمی از سرمایه‌گذاری فعلی میدان با گردکردن مقدار نابودی به بالا نابود می‌شود و انتقال سکه‌ای رخ نمی‌دهد.</p></article></div>
+    </section>
+    <section id="alliances" class="rulebook-section">
+      <p class="section-number">۰۶ — ائتلاف‌ها</p><h2>Mega-Merger یا Counter-Union بسازید</h2>
+      <p>ائتلاف‌ها ائتلاف‌های موقت و مبتنی بر رضایت برای همان دور هستند. پیشنهاد دو یا سه کشور نشسته دارد و کشور آغازکننده اول است. هر دعوت‌شده باید تأیید کند؛ یک رد، پیشنهاد را متوقف می‌کند.</p>
+      <div class="rulebook-two-column"><article class="rulebook-mini-card"><h3>🏛️ Mega-Merger</h3><p>با کارت President آغاز می‌شود و آغازکننده را با یک یا دو شریک موافق متحد می‌کند. کارت هنگام ساخت پیشنهاد مصرف می‌شود؛ اعضای ائتلاف تأییدشده در همان دور نمی‌توانند وارد ائتلاف دیگری شوند.</p></article><article class="rulebook-mini-card"><h3>🛡️ Counter-Union</h3><p>پس از دیده‌شدن پیشنهاد یا ائتلاف Mega-Merger، کشورهای آزاد و واجد شرایط می‌توانند با یک یا دو شریک موافق Counter-Union بسازند. همین قواعد تأیید و استخر را دارد اما کارت President لازم ندارد.</p></article></div>
+      <h3>استخرهای منابع مشترک</h3><p>برای هر میدان، استخر ائتلاف از سرمایه‌گذاری قفل‌شده آغازکننده ساخته می‌شود:</p><div class="rulebook-formula"><span>استخر ائتلاف</span><strong>max(150, سرمایه‌گذاری قفل‌شده آغازکننده × تعداد اعضا + 150)</strong></div><p>هر عضو ضریب کشور خود را روی این استخر اعمال می‌کند و سهمی برابر و رو به پایین گرد‌شده دریافت می‌کند. استخر، مجموع سرمایه‌گذاری اولیه همه اعضا نیست. پس از محاسبه دور، ائتلاف‌ها حذف می‌شوند.</p>
+      <h3>نبرد ائتلافی</h3><p>یک ائتلاف در هر دور فقط یک نبرد ائتلافی دارد و فقط آغازکننده می‌تواند آن را شروع کند. اعضای تأییدشده به‌جای نبرد انفرادی از نبرد ائتلافی استفاده می‌کنند.</p>
+    </section>
+    <section id="conflict" class="rulebook-section">
+      <p class="section-number">۰۷ — نبردهای میدانی</p><h2>منابع قفل‌شده را به قدرت تبدیل کنید</h2>
+      <p>در برنامه نام هر دو دکمه حمله <strong>Field Battle</strong> است. شما و رقیب باید منابع را قفل کرده باشید و هر دو در میدان انتخاب‌شده مقدار بیشتر از صفر داشته باشید. شرایط جهانی و ضریب‌های دور بر قدرت نبرد اثر می‌گذارند.</p>
+      <div class="rulebook-two-column"><article class="rulebook-mini-card"><h3>⚔️ نبرد میدانی انفرادی</h3><p>یک رقیب آزاد و یک میدان انتخاب کنید. قدرت برابر است با منبع فعلی میدان × ضریب مؤثر کشور. در هر دور یک حمله و پس از فعال‌سازی General دو حمله دارید. پیروزی تمام منبع میدان مدافع را به شما می‌دهد و میدان او صفر می‌شود. در شکست، تمام منبع میدان شما به مدافع منتقل می‌شود. تساوی انتقالی ندارد.</p></article><article class="rulebook-mini-card"><h3>🏛️ نبرد میدانی ائتلافی</h3><p>فقط آغازکننده ائتلاف تأییدشده می‌تواند در هر دور یک‌بار حمله کند. هدف، کشور آزاد قفل‌شده یا ائتلاف تأییدشده دیگر است. استخر میدان × ضریب مؤثر دو طرف مقایسه می‌شود؛ طرف قوی‌تر منبع طرف بازنده را می‌گیرد و در تساوی انتقالی نیست.</p></article><article class="rulebook-mini-card"><h3>☢️ حمله اتمی</h3><p>پس از قفل‌کردن، رقیب و میدان را انتخاب کنید. نیمی از تخصیص فعلی هدف، با گردکردن مقدار نابودی به بالا، از بین می‌رود. مقدار نابودشده منتقل نمی‌شود و کیف پول هدف تغییر نمی‌کند.</p></article></div>
+      <div class="rulebook-callout"><strong>نمونه نبرد:</strong> ۴۰ نفت با ضریب ×۲ قدرت ۸۰ دارد. ۵۰ نفت با ضریب ×۱ قدرت ۵۰ دارد، پس طرف اول پیروز و ۵۰ نفت را می‌گیرد. در همه‌گیری هر دو طرف از ×۱ استفاده می‌کنند.</div>
+    </section>
+    <section id="events" class="rulebook-section">
+      <p class="section-number">۰۸ — شرایط جهانی</p><h2>یک وضعیت جهانی دور را تغییر می‌دهد</h2>
+      <p>میزبان پس از قفل‌شدن همه سرمایه‌گذاری‌ها یک شرایط می‌کشد. شرایط در معامله، اقدام، نبرد و محاسبه فعال است و هنگام بسته‌شدن دور پاک می‌شود.</p>
+      <div class="rulebook-event-grid"><article><span>📉</span><h3>رکود اقتصادی</h3><p>درآمد دریافتی معامله ۲۰٪ کم و رو به پایین گرد می‌شود. معامله مجاز است. افزایش Merchant ابتدا اعمال می‌شود.</p></article><article><span>🌡️</span><h3>گرمایش جهانی</h3><p>کشاورزی و نفت برای درآمد و نبرد از ضریب مؤثر ۱۰٪ کمتر استفاده می‌کنند. معادن بی‌تأثیر است.</p></article><article><span>🦠</span><h3>همه‌گیری</h3><p>ضریب کشاورزی، نفت و معادن در این دور ×۱ می‌شود و هم درآمد و هم قدرت نبرد را تغییر می‌دهد.</p></article><article><span>🕊️</span><h3>جنگ سرد</h3><p>کارت Spy قابل استفاده نیست. Spy مسدودشده مصرف نمی‌شود و می‌تواند تا پاک‌سازی عادی دور در دست بماند.</p></article></div>
+      <div class="rulebook-callout rulebook-finish"><strong>توجه:</strong> شرایط جهانی تخصیص پایه نمایش‌داده‌شده کشور را عوض نمی‌کند؛ فقط نتیجه مؤثری را که سرور برای این دور استفاده می‌کند تغییر می‌دهد.</div>
+    </section>
+    <section id="hosting" class="rulebook-section">
+      <p class="section-number">۰۹ — میزبانی و قابل‌مشاهده‌بودن</p><h2>کنترل‌های میزبان</h2>
+      <p>میزبان داور مشترک میز است، نه بازیکنی با دسترسی به راهبرد خصوصی دیگران. کنترل‌ها توسط سرور بررسی می‌شوند و فقط برای میزبان فعلی در دسترس‌اند.</p>
+      <div class="rulebook-table-wrap"><table class="rulebook-table"><thead><tr><th>کنترل میزبان</th><th>چه زمانی؟</th><th>نتیجه</th></tr></thead><tbody><tr><td>توزیع کارت</td><td>یک‌بار در دور</td><td>دو کارت مهارت خصوصی به هر بازیکن می‌دهد</td></tr><tr><td>کشیدن شرایط جهانی</td><td>پس از کارت‌ها و همه قفل‌ها</td><td>یک شرایط برای دور تعیین می‌کند</td></tr><tr><td>رسیدگی به درخواست سکه</td><td>درخواست معلق</td><td>درخواست ۱۰۰ سکه را تأیید یا رد می‌کند</td></tr><tr><td>بستن و محاسبه</td><td>پس از قفل و آمادگی همه</td><td>درآمد، وام، اثرهای موقت و وضعیت دور را محاسبه می‌کند</td></tr><tr><td>راه‌اندازی مجدد اتاق</td><td>پس از پایان بازی</td><td>بازی سه‌دوری تازه را آغاز می‌کند و برنده را انتخاب نمی‌کند</td></tr></tbody></table></div>
+      <h3>دیگر بازیکنان چه می‌بینند؟</h3><p>برد فرماندهی نام کشور، ضریب‌ها، مجموع سرمایه‌گذاری میدان پس از در دسترس بودن، وضعیت ائتلاف و آمادگی را نشان می‌دهد. جزئیات کشاورزی، نفت و معادن رقیب پیش از حل دور نمایش داده نمی‌شود. جزئیات سرمایه‌گذاری خودتان را می‌بینید.</p>
+      <h3>خروج و اتصال مجدد</h3><p>با Exit Game صندلی و نشست خود را پاک‌سازی کنید. اگر میزبان خارج شود، مسئولیت به بازیکن واجد شرایط باقی‌مانده منتقل می‌شود. اگر ارتباط قطع شد، پیش از انقضای کد با نام فرمانده و کد ذخیره‌شده کشور خود را پس بگیرید.</p>
+    </section>
+    <section id="finish" class="rulebook-section">
+      <p class="section-number">۱۰ — پایان بازی و پرسش‌های متداول</p><h2>پایان پس از دور سوم</h2>
+      <p>پس از محاسبه سوم، سرور بازی را تمام می‌کند، موجودی نهایی را نگه می‌دارد و رتبه‌بندی را نمایش می‌دهد. موجودی برابر رتبه یکسان دارد و ترتیب تساوی‌ها بر اساس نام کشور ثابت است. برنامه رتبه‌بندی را نشان می‌دهد اما برنده را خودکار انتخاب نمی‌کند؛ میز نتیجه را تعیین می‌کند.</p>
+      <div class="rulebook-two-column"><article class="rulebook-mini-card"><h3>آیا سرمایه‌گذاری قفل‌شده را تغییر دهم؟</h3><p>خیر. قفل‌کردن برای همان دور دائمی است. با دارایی تخصیص‌نیافته همچنان می‌توانید اقدام و معامله مجاز انجام دهید.</p></article><article class="rulebook-mini-card"><h3>معامله حل‌نشده چه می‌شود؟</h3><p>در زمان محاسبه مسترد می‌شود. سپرده پیشنهاددهنده برمی‌گردد و دارایی منتقل نمی‌شود.</p></article><article class="rulebook-mini-card"><h3>آیا Spy معامله قدیمی را می‌شکند؟</h3><p>خیر. Spy فقط یک معامله معلق یا پذیرفته‌شده در دور فعلی را هدف می‌گیرد؛ معامله پذیرفته‌شده نیاز دارد دارایی‌های دریافتی هنوز موجود باشند.</p></article><article class="rulebook-mini-card"><h3>پرداخت‌ها جزو سقف خرید هستند؟</h3><p>خیر. سقف ۵۰۰ فقط برای درخواست‌های تأییدشده و معلق خرید ۱۰۰ سکه است. درآمد، وام و انتقال جدا هستند.</p></article><article class="rulebook-mini-card"><h3>اگر وام را نتوانم بازپرداخت کنم؟</h3><p>سرور همه سکه موجود در کیف پول و درآمد دور را دریافت می‌کند؛ بدهی باقی‌مانده به‌عنوان وام فعال به دور بعد می‌رود.</p></article><article class="rulebook-mini-card"><h3>چه کسی اتاق را راه‌اندازی مجدد می‌کند؟</h3><p>پس از دور سوم فقط میزبان می‌تواند اتاق را راه‌اندازی مجدد کند. بازی سه‌دوری تازه با ضریب‌های جدید آغاز می‌شود.</p></article></div>
+      <div class="rulebook-callout"><strong>وضعیت سرور را دنبال کنید:</strong> اگر اطلاعیه، موجودی، کارت یا دکمه با برداشت محلی شما متفاوت بود، نمای اتاق را تازه کنید و آخرین وضعیت تأییدشده سرور را ملاک قرار دهید.</div>
+    </section>
+  </template>
+
+  <script>
+    const rulebookCopy = {
+      en: {
+        htmlLang: "en", dir: "ltr", title: "Global Domination & Fortune — Rulebook",
+        kicker: "OFFICIAL TABLE GUIDE", lead: "Build the strongest resource economy, outmaneuver rival powers, and agree with your table when to stop and compare fortunes.",
+        language: "Language", back: "← Back to game", navLabel: "Rulebook sections",
+        nav: ["Quick start", "Round flow", "Economy", "Trades", "Cards", "Alliances", "Conflict", "Conditions", "Hosting", "Finish & FAQ"],
+        summaryTitle: "AT A GLANCE", playersLabel: "Players", players: "1–10 powers", roundsLabel: "Game length", rounds: "3 rounds", startLabel: "Starting balance", start: "0 coins", purchaseLabel: "Coin requests", purchase: "100 each, 500 cap", cardsLabel: "Cards", cards: "2 per round", leaderLabel: "Ranking", leader: "Most coins",
+        summaryNote: "The room creator is the host. The host runs shared controls, but never decides a player’s private strategy.",
+        controller: "Open player controller →", description: "Complete rules for Global Domination & Fortune."
+      },
+      tr: {
+        htmlLang: "tr", dir: "ltr", title: "Küresel Hakimiyet ve Servet — Kural Kitabı",
+        kicker: "RESMÎ MASA REHBERİ", lead: "En güçlü kaynak ekonomisini kurun, rakip güçleri alt edin ve servetleri karşılaştırmak için masanızla ne zaman duracağınıza karar verin.",
+        language: "Dil", back: "← Oyuna dön", navLabel: "Kural kitabı bölümleri",
+        nav: ["Hızlı başlangıç", "Raund akışı", "Ekonomi", "Ticaret", "Kartlar", "İttifaklar", "Çatışma", "Koşullar", "Yönetici", "Bitiş ve SSS"],
+        summaryTitle: "KISA BİLGİ", playersLabel: "Oyuncular", players: "1–10 güç", roundsLabel: "Oyun süresi", rounds: "3 raund", startLabel: "Başlangıç bakiyesi", start: "0 coin", purchaseLabel: "Coin istekleri", purchase: "100'er, 500 sınır", cardsLabel: "Kartlar", cards: "Raund başı 2", leaderLabel: "Sıralama", leader: "En çok coin",
+        summaryNote: "Odayı oluşturan oyuncu yöneticidir. Yönetici ortak kontrolleri yürütür, ancak oyuncuların özel stratejilerine karar vermez.",
+        controller: "Oyuncu kontrolünü aç →", description: "Küresel Hakimiyet ve Servet için eksiksiz kurallar."
+      },
+      fa: {
+        htmlLang: "fa", dir: "rtl", title: "تسلط جهانی و ثروت — کتاب قوانین",
+        kicker: "راهنمای رسمی میز", lead: "قوی‌ترین اقتصاد منابع را بسازید، قدرت‌های رقیب را فریب دهید و با میز خود زمان پایان و مقایسه ثروت‌ها را تعیین کنید.",
+        language: "زبان", back: "← بازگشت به بازی", navLabel: "بخش‌های کتاب قوانین",
+        nav: ["شروع سریع", "روند دور", "اقتصاد", "معاملات", "کارت‌ها", "ائتلاف‌ها", "نبرد", "شرایط", "میزبانی", "پایان و پرسش‌ها"],
+        summaryTitle: "در یک نگاه", playersLabel: "بازیکنان", players: "۱ تا ۱۰ قدرت", roundsLabel: "مدت بازی", rounds: "۳ دور", startLabel: "موجودی آغازین", start: "۰ سکه", purchaseLabel: "درخواست سکه", purchase: "۱۰۰تایی، سقف ۵۰۰", cardsLabel: "کارت‌ها", cards: "۲ کارت در هر دور", leaderLabel: "رتبه‌بندی", leader: "بیشترین سکه",
+        summaryNote: "سازنده اتاق میزبان است. میزبان کنترل‌های مشترک را اجرا می‌کند اما درباره راهبرد خصوصی بازیکنان تصمیم نمی‌گیرد.",
+        controller: "بازکردن کنترل بازیکن ←", description: "قوانین کامل بازی تسلط جهانی و ثروت."
+      }
+    };
+
+    function renderRulebookLanguage(language) {
+      const selected = rulebookCopy[language] ? language : "en";
+      const copy = rulebookCopy[selected];
+      const template = document.getElementById(`rulebook-template-${selected}`);
+      const content = document.getElementById("rulebook-content");
+      if (!template || !content) return;
+
+      document.documentElement.lang = copy.htmlLang;
+      document.documentElement.dir = copy.dir;
+      document.body.dir = copy.dir;
+      document.title = copy.title;
+      document.getElementById("rulebook-description").content = copy.description;
+      document.getElementById("rulebook-kicker").textContent = copy.kicker;
+      document.getElementById("rulebook-lead").textContent = copy.lead;
+      document.getElementById("rulebook-language-label").textContent = `🌐 ${copy.language}`;
+      document.getElementById("rulebook-back").textContent = copy.back;
+      document.getElementById("rulebook-nav").setAttribute("aria-label", copy.navLabel);
+      document.querySelectorAll("[data-nav-key]").forEach((link, index) => {
+        link.textContent = copy.nav[index];
+      });
+      document.getElementById("rulebook-summary-title").textContent = copy.summaryTitle;
+      document.getElementById("summary-players-label").textContent = copy.playersLabel;
+      document.getElementById("summary-players").textContent = copy.players;
+      document.getElementById("summary-rounds-label").textContent = copy.roundsLabel;
+      document.getElementById("summary-rounds").textContent = copy.rounds;
+      document.getElementById("summary-start-label").textContent = copy.startLabel;
+      document.getElementById("summary-start").textContent = copy.start;
+      document.getElementById("summary-purchase-label").textContent = copy.purchaseLabel;
+      document.getElementById("summary-purchase").textContent = copy.purchase;
+      document.getElementById("summary-cards-label").textContent = copy.cardsLabel;
+      document.getElementById("summary-cards").textContent = copy.cards;
+      document.getElementById("summary-leader-label").textContent = copy.leaderLabel;
+      document.getElementById("summary-leader").textContent = copy.leader;
+      document.getElementById("rulebook-summary-note").textContent = copy.summaryNote;
+      document.getElementById("rulebook-controller-link").textContent = copy.controller;
+      content.replaceChildren(template.content.cloneNode(true));
+      const anchorTarget = window.location.hash ? document.getElementById(window.location.hash.slice(1)) : null;
+      if (anchorTarget) requestAnimationFrame(() => anchorTarget.scrollIntoView());
+      const select = document.getElementById("rulebook-language-select");
+      if (select) select.value = selected;
+      try { localStorage.setItem("selected_lang", selected); } catch (error) {}
+    }
+
+    document.getElementById("rulebook-language-select").addEventListener("change", (event) => {
+      renderRulebookLanguage(event.target.value);
+    });
+
+    const requestedRulebookLanguage = new URLSearchParams(window.location.search).get("lang");
+    let savedRulebookLanguage = "en";
+    try { savedRulebookLanguage = localStorage.getItem("selected_lang") || "en"; } catch (error) {}
+    renderRulebookLanguage(rulebookCopy[requestedRulebookLanguage] ? requestedRulebookLanguage : savedRulebookLanguage);
+  </script>
 </body>
 </html>

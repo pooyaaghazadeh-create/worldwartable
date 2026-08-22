@@ -1160,6 +1160,43 @@ body {
   padding: 28px 0 32px;
 }
 
+.rulebook-hero-actions {
+  align-items: flex-end;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rulebook-language {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.rulebook-language label {
+  color: #cbd5e1;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.rulebook-language select {
+  background: #0f172a;
+  border: 1px solid rgba(147, 197, 253, 0.45);
+  border-radius: 8px;
+  color: #f8fafc;
+  font: inherit;
+  font-size: 0.82rem;
+  min-width: 116px;
+  padding: 8px 10px;
+}
+
+.rulebook-language select:focus-visible {
+  border-color: #60a5fa;
+  outline: 2px solid rgba(96, 165, 250, 0.35);
+  outline-offset: 2px;
+}
+
 .rulebook-kicker,
 .section-number {
   color: var(--gold-color);
@@ -1352,6 +1389,10 @@ body {
   font-weight: 800;
 }
 
+.rulebook-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
 .rulebook-timeline {
   display: grid;
   gap: 0;
@@ -1469,6 +1510,36 @@ body {
   margin-bottom: 0;
 }
 
+.rulebook-section strong {
+  color: #fef3c7;
+}
+
+[dir="rtl"] .rulebook-callout {
+  border-left: 0;
+  border-right: 3px solid var(--gold-color);
+}
+
+[dir="rtl"] .rulebook-steps,
+[dir="rtl"] .rulebook-list {
+  margin-left: 0;
+  margin-right: 22px;
+}
+
+[dir="rtl"] .rulebook-summary dd,
+[dir="rtl"] .rulebook-table th,
+[dir="rtl"] .rulebook-table td {
+  text-align: right;
+}
+
+[dir="rtl"] .rulebook-table td:not(:first-child) {
+  text-align: right;
+}
+
+[dir="rtl"] .rulebook-event-grid article {
+  border-left: 0;
+  border-right: 3px solid #60a5fa;
+}
+
 .rulebook-footer {
   align-items: center;
   border-top: 1px solid rgba(148, 163, 184, 0.2);
@@ -1494,6 +1565,20 @@ body {
   .rulebook-hero {
     flex-direction: column;
     padding-top: 14px;
+  }
+
+  .rulebook-hero-actions {
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .rulebook-language {
+    justify-content: space-between;
+  }
+
+  .rulebook-language select {
+    flex: 1;
+    max-width: 220px;
   }
 
   .rulebook-layout {
