@@ -61,6 +61,11 @@ class RoundSettlementTests(unittest.TestCase):
         self.assertEqual(settlement["interestRemaining"], 0)
         self.assertEqual(settlement["endingBalance"], 0)
 
+    def test_locked_investment_is_not_added_again_to_ending_balance(self):
+        # A player with 500 locked and no unallocated cash earns 500, not 1,000.
+        settlement = GameHandler.settle_banker_debt(0, 500, 0, 0)
+        self.assertEqual(settlement["endingBalance"], 500)
+
     def test_partial_loan_carry_forward_does_not_compound_interest(self):
         first = GameHandler.settle_banker_debt(0, 50, 100, 20)
         self.assertEqual(first["collected"], 50)

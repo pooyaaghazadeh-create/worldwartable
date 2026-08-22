@@ -1006,8 +1006,11 @@ class GameHandler(SimpleHTTPRequestHandler):
                             }
                         settlement_source = {"type": "solo"}
                     gross_profit = sum(item["income"] for item in field_yields.values())
+                    unallocated_balance = self.unallocated_wallet_coins(
+                        connection, seated["id"], seated["coins"]
+                    )
                     loan_settlement = self.settle_banker_debt(
-                        seated["coins"],
+                        unallocated_balance,
                         gross_profit,
                         seated["loans"],
                         seated["loan_interest"],
@@ -1027,7 +1030,7 @@ class GameHandler(SimpleHTTPRequestHandler):
                     )
                     settlement_record = {
                         "source": settlement_source,
-                        "balanceBefore": seated["coins"],
+                        "balanceBefore": unallocated_balance,
                         "grossFieldIncome": gross_profit,
                         "loan": {
                             "principalBefore": seated["loans"],

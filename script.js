@@ -3351,6 +3351,10 @@ function calculateAndAdvanceRound(canonicalResult = null, roundResult = {}) {
   } else {
     // This fallback is only for an interrupted event stream. The server result is
     // always the source of truth when the normal round-close event arrives.
+    balanceBeforeRound = Math.max(
+      0,
+      coins - (Number(investments.agri) || 0) - (Number(investments.oil) || 0) - (Number(investments.mines) || 0)
+    );
     const activeAlliance = [activePresidentCoalition, activeCounterUnion].find(alliance =>
       alliance?.members?.some(member => cleanStr(member) === cleanStr(assignedCountry?.name || ""))
     ) || null;
