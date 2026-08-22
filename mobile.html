@@ -119,13 +119,41 @@
           <span id="lbl-loan">Active Loan:</span>
           <strong><span id="player-loan">0</span> Coins</strong>
         </div>
+        <section class="loan-calculator" aria-labelledby="txt-loan-calculator-title">
+          <h3 id="txt-loan-calculator-title">Banker Loan Calculator</h3>
+          <div class="loan-calculator-grid">
+            <div class="info-row">
+              <span id="lbl-loan-principal">Principal:</span>
+              <strong><span id="loan-principal">0</span> Coins</strong>
+            </div>
+            <div class="info-row">
+              <span id="lbl-loan-interest">Interest (20%):</span>
+              <strong><span id="loan-interest">0</span> Coins</strong>
+            </div>
+            <div class="info-row highlight">
+              <span id="lbl-loan-total">Total repayment:</span>
+              <strong><span id="loan-total">0</span> Coins</strong>
+            </div>
+            <div class="info-row">
+              <span id="lbl-loan-available">Wallet available:</span>
+              <strong><span id="loan-wallet">0</span> Coins</strong>
+            </div>
+            <div class="info-row loan-shortfall-row">
+              <span id="lbl-loan-shortfall">Shortfall:</span>
+              <strong><span id="loan-shortfall">0</span> Coins</strong>
+            </div>
+          </div>
+          <p id="loan-settlement-message" class="loan-settlement-message" role="status">No active Banker loan.</p>
+        </section>
         <div class="info-row">
           <span id="lbl-merchant-bonus">Merchant Bonus Active:</span>
           <strong id="merchant-status" style="color: var(--gold-color);">No ❌</strong>
         </div>
         <div class="player-overview-actions">
           <button id="btn-buy-coins" class="btn btn-primary" onclick="requestBuyCoins()">Buy 100 Coins (Max 500)</button>
+          <button id="btn-repay-loan" class="btn btn-danger" type="button" onclick="repayBankerLoan()" disabled>Repay Loan + Interest</button>
         </div>
+        <p id="field-battle-loan-gate" class="field-battle-loan-gate" role="status">Loan settled — Field Battle available.</p>
       </section>
 
       <!-- ROUND CLOSING CONSENSUS STATUS -->
@@ -376,7 +404,7 @@
         <strong id="val-attacks-left">1</strong>
       </div>
       <div class="button-group modal-btn-group">
-        <button class="btn btn-danger" onclick="executeSkirmishAttack()">⚔️ EXECUTE ATTACK</button>
+        <button id="btn-execute-skirmish" class="btn btn-danger" onclick="executeSkirmishAttack()">⚔️ EXECUTE ATTACK</button>
         <button class="btn btn-small cancel-btn" onclick="closeSkirmishModal()">Cancel</button>
       </div>
     </div>
@@ -399,7 +427,7 @@
         </select>
       </div>
       <div class="button-group modal-btn-group">
-        <button class="btn btn-danger" onclick="executeAllianceSkirmish()">⚔️ Launch Coalition Attack</button>
+        <button id="btn-execute-alliance-skirmish" class="btn btn-danger" onclick="executeAllianceSkirmish()">⚔️ Launch Coalition Attack</button>
         <button class="btn btn-small cancel-btn" onclick="closeAllianceSkirmishModal()">Cancel</button>
       </div>
     </div>

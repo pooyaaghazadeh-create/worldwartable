@@ -576,12 +576,63 @@ body {
 
 .player-overview-actions {
   display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   justify-content: flex-end;
   padding-top: 12px;
 }
 
 .player-overview-actions .btn {
-  width: 100%;
+  flex: 1 1 180px;
+}
+
+.loan-calculator {
+  margin: 12px 0 4px;
+  padding: 12px;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(120, 53, 15, 0.28), rgba(15, 23, 42, 0.15));
+}
+
+.loan-calculator h3 {
+  margin: 0 0 8px;
+  color: var(--gold-color);
+  font-size: 0.95rem;
+}
+
+.loan-calculator-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 14px;
+}
+
+.loan-calculator .info-row {
+  gap: 8px;
+  font-size: 0.86rem;
+}
+
+.loan-shortfall-row.has-shortfall strong,
+.field-battle-loan-gate.is-blocked {
+  color: #fca5a5;
+}
+
+.loan-settlement-message,
+.field-battle-loan-gate {
+  margin: 10px 0 0;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.loan-settlement-message.is-ready,
+.field-battle-loan-gate.is-ready {
+  color: #86efac;
+}
+
+@media (max-width: 430px) {
+  .loan-calculator-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .multiplier-grid, .investment-grid {

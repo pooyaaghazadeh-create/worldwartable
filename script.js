@@ -99,6 +99,19 @@ const translations = {
     lblCountry: "Country:",
     lblCoins: "Total Coins Balance:",
     lblLoan: "Active Loan:",
+    txtLoanCalculatorTitle: "Banker Loan Calculator",
+    lblLoanPrincipal: "Principal:",
+    lblLoanInterest: "Interest (20%):",
+    lblLoanTotal: "Total repayment:",
+    lblLoanAvailable: "Unallocated cash:",
+    lblLoanShortfall: "Shortfall:",
+    btnRepayLoan: "Repay Loan + Interest",
+    txtLoanNoDebt: "No active Banker loan.",
+    txtLoanInsufficient: "You need {shortfall} more coins to settle this loan.",
+    txtLoanReady: "Your unallocated cash can fully settle this loan.",
+    txtBattleLoanGate: "Field Battles are locked until your loan and interest are fully repaid.",
+    txtBattleReady: "Loan settled — Field Battle available.",
+    txtBoardBattleLoanLocked: "Settle loan to battle",
     lblMerchantBonus: "Merchant Bonus Active:",
     txtReadyTitle: "🏁 Round Closure Consensus",
     txtReadyDesc: "Lock investments, finish all actions, and mark ready. The host can advance after every setup step is complete.",
@@ -150,6 +163,19 @@ const translations = {
     lblCountry: "Ülke:",
     lblCoins: "Toplam Coin Bakiyesi:",
     lblLoan: "Aktif Kredi:",
+    txtLoanCalculatorTitle: "Banker Kredi Hesaplayıcısı",
+    lblLoanPrincipal: "Ana para:",
+    lblLoanInterest: "Faiz (%20):",
+    lblLoanTotal: "Toplam ödeme:",
+    lblLoanAvailable: "Ayrılmamış nakit:",
+    lblLoanShortfall: "Eksik coin:",
+    btnRepayLoan: "Kredi + Faizi Öde",
+    txtLoanNoDebt: "Aktif Banker kredisi yok.",
+    txtLoanInsufficient: "Bu krediyi kapatmak için {shortfall} coin daha gerekli.",
+    txtLoanReady: "Ayrılmamış nakdiniz bu krediyi tamamen kapatmaya yeterli.",
+    txtBattleLoanGate: "Saha Savaşları, kredi ve faiz tamamen ödenene kadar kilitlidir.",
+    txtBattleReady: "Kredi kapatıldı — Saha Savaşı kullanılabilir.",
+    txtBoardBattleLoanLocked: "Savaş için krediyi öde",
     lblMerchantBonus: "Tüccar Bonusu Aktif:",
     txtReadyTitle: "🏁 Raund Kapatma Konsensüsü",
     txtReadyDesc: "Yatırımları kilitleyin, tüm hamleleri bitirin ve hazır olun. Yönetici tüm hazırlıklar tamamlanınca ilerleyebilir.",
@@ -201,6 +227,19 @@ const translations = {
     lblCountry: "کشور:",
     lblCoins: "موجودی کل سکه:",
     lblLoan: "وام فعال:",
+    txtLoanCalculatorTitle: "محاسبه‌گر تسویه وام Banker",
+    lblLoanPrincipal: "اصل وام:",
+    lblLoanInterest: "بهره (۲۰٪):",
+    lblLoanTotal: "مبلغ کل بازپرداخت:",
+    lblLoanAvailable: "نقدی تخصیص‌نیافته:",
+    lblLoanShortfall: "کسری:",
+    btnRepayLoan: "پرداخت وام + بهره",
+    txtLoanNoDebt: "وام فعال Banker ندارید.",
+    txtLoanInsufficient: "برای تسویه این وام به {shortfall} سکه دیگر نیاز دارید.",
+    txtLoanReady: "نقدی تخصیص‌نیافته برای تسویه کامل وام کافی است.",
+    txtBattleLoanGate: "تا بازپرداخت کامل وام و بهره، نبردهای میدانی قفل هستند.",
+    txtBattleReady: "وام تسویه شد — نبرد میدانی در دسترس است.",
+    txtBoardBattleLoanLocked: "برای نبرد وام را بپردازید",
     lblMerchantBonus: "پاداش بازرگان فعال:",
     txtReadyTitle: "🏁 اجماع بستن دور بازی",
     txtReadyDesc: "سرمایه‌گذاری‌ها را قفل کنید، اقدامات را تمام کنید و آماده شوید. میزبان پس از تکمیل همه مراحل می‌تواند ادامه دهد.",
@@ -262,6 +301,8 @@ window.changeLanguage = function(lang) {
 
   syncHostButtonsUI();
   updateReadyConsensusUI();
+  updateLoanCalculator();
+  updateAllianceUI();
   renderCommandBoard();
   logAction(`🌐 Language changed to ${lang.toUpperCase()}.`, "SYSTEM");
 };
@@ -1240,6 +1281,13 @@ function applyHostEvent(event) {
       void refreshCurrentHand();
       updateUI();
     }
+  } else if (event.type === "REPAY_BANKER_LOAN") {
+    if (assignedCountry && cleanStr(event.payload?.country) === cleanStr(assignedCountry.name)) {
+      coins = Number(event.payload.coins) || 0;
+      loans = Number(event.payload.loans) || 0;
+      updateUI();
+      logAction(`🏦 Banker loan settled: ${event.payload.repayment} coins paid, including interest.`, "BANK");
+    }
   } else if (event.type === "ACTIVATE_MERCHANT") {
     if (assignedCountry && cleanStr(event.payload?.country) === cleanStr(assignedCountry.name)) {
       isMerchantActive = true;
@@ -1771,11 +1819,14 @@ function renderCommandBoardDetails(player) {
   const battle = document.createElement("button");
   battle.type = "button";
   battle.className = "btn btn-danger btn-small";
-  battle.textContent = copy.txtBoardBattle;
-  battle.disabled = gameFinished || !investmentsLocked || !player.locked;
-  battle.title = battle.disabled
-    ? "Both countries must lock investments before a field battle."
-    : "Open a Field Battle against this country.";
+  const blockedByLoan = loans > 0;
+  battle.textContent = blockedByLoan ? copy.txtBoardBattleLoanLocked : copy.txtBoardBattle;
+  battle.disabled = gameFinished || !investmentsLocked || !player.locked || blockedByLoan;
+  battle.title = blockedByLoan
+    ? copy.txtBattleLoanGate
+    : battle.disabled
+      ? "Both countries must lock investments before a field battle."
+      : "Open a Field Battle against this country.";
   battle.onclick = window.openCommandBoardBattle;
   actions.append(trade, battle);
 
@@ -2421,6 +2472,7 @@ function updateUI() {
   setTxt("player-loan", loans);
   setTxt("total-budget", coins);
   setTxt("merchant-status", isMerchantActive ? "Yes (+10%) ✅" : "No ❌");
+  updateLoanCalculator();
   syncCoinPurchaseControl();
 
   // Read state to text fields and calculate unallocated without overwriting sliders yet
@@ -2441,8 +2493,86 @@ function updateUI() {
 
   updateOfferSliderCapacity();
   updateAllianceUI();
+  syncFieldBattleLoanGate();
   renderCommandBoard();
 }
+
+function bankerRepaymentDue(principal = loans) {
+  return Math.floor(Math.max(0, Number(principal) || 0) * 1.20);
+}
+
+function updateLoanCalculator() {
+  const copy = translations[currentLang] || translations.en;
+  const principal = Math.max(0, Number(loans) || 0);
+  const totalDue = bankerRepaymentDue(principal);
+  const interest = Math.max(0, totalDue - principal);
+  const availableCash = getAvailableTradeAmount("unallocated");
+  const shortfall = Math.max(0, totalDue - availableCash);
+  const canRepay = principal > 0 && shortfall === 0 && !gameFinished;
+
+  setTxt("loan-principal", principal);
+  setTxt("loan-interest", interest);
+  setTxt("loan-total", totalDue);
+  setTxt("loan-wallet", availableCash);
+  setTxt("loan-shortfall", shortfall);
+  document.querySelector(".loan-shortfall-row")?.classList.toggle("has-shortfall", shortfall > 0);
+
+  const repayButton = document.getElementById("btn-repay-loan");
+  if (repayButton) {
+    repayButton.textContent = copy.btnRepayLoan;
+    repayButton.disabled = !canRepay;
+    repayButton.title = principal <= 0
+      ? copy.txtLoanNoDebt
+      : shortfall > 0
+        ? copy.txtLoanInsufficient.replace("{shortfall}", shortfall)
+        : copy.txtLoanReady;
+  }
+
+  const message = document.getElementById("loan-settlement-message");
+  if (message) {
+    message.classList.toggle("is-ready", canRepay);
+    message.textContent = principal <= 0
+      ? copy.txtLoanNoDebt
+      : shortfall > 0
+        ? copy.txtLoanInsufficient.replace("{shortfall}", shortfall)
+        : copy.txtLoanReady;
+  }
+
+  const battleGate = document.getElementById("field-battle-loan-gate");
+  if (battleGate) {
+    const battleLocked = principal > 0;
+    battleGate.classList.toggle("is-blocked", battleLocked);
+    battleGate.classList.toggle("is-ready", !battleLocked);
+    battleGate.textContent = battleLocked ? copy.txtBattleLoanGate : copy.txtBattleReady;
+  }
+}
+
+function syncFieldBattleLoanGate() {
+  const copy = translations[currentLang] || translations.en;
+  const blocked = loans > 0;
+  ["btn-execute-skirmish", "btn-execute-alliance-skirmish"].forEach(id => {
+    const button = document.getElementById(id);
+    if (!button) return;
+    button.disabled = blocked;
+    button.title = blocked ? copy.txtBattleLoanGate : "";
+  });
+}
+
+window.repayBankerLoan = async function() {
+  const repaymentDue = bankerRepaymentDue();
+  if (loans <= 0) {
+    logAction("⚠️ You do not have an active Banker loan to repay.", "BANK");
+    return;
+  }
+  const availableCash = getAvailableTradeAmount("unallocated");
+  if (availableCash < repaymentDue) {
+    const shortfall = repaymentDue - availableCash;
+    logAction(`⚠️ Loan repayment requires ${repaymentDue} unallocated coins; you need ${shortfall} more.`, "BANK");
+    return;
+  }
+  const repaid = await submitRoomEvent("REPAY_BANKER_LOAN", {});
+  if (repaid) playSound("ui");
+};
 
 function renderInvestmentVisuals() {
   ["agri", "oil", "mines"].forEach(field => {
@@ -2551,6 +2681,10 @@ window.confirmInvestments = async function() {
 // SKIRMISH BATTLE ENGINE
 // ==========================================
 window.openSkirmishModal = function() {
+  if (loans > 0) {
+    logAction("⚠️ Settle your Banker loan and interest in Player Overview before opening a Field Battle.", "SKIRMISH");
+    return;
+  }
   if (!investmentsLocked) {
     logAction("⚠️ Skirmish combat requires field investments to be locked first!", "SKIRMISH");
     return;
@@ -2585,6 +2719,10 @@ window.closeSkirmishModal = function() {
 };
 
 window.executeSkirmishAttack = async function() {
+  if (loans > 0) {
+    logAction("⚠️ Settle your Banker loan and interest before launching a Field Battle.", "SKIRMISH");
+    return;
+  }
   const targetCountryName = document.getElementById("select-skirmish-target-country")?.value;
   const targetField = document.getElementById("select-skirmish-target-field")?.value;
 
@@ -2879,10 +3017,15 @@ function updateAllianceUI() {
       setTxt("coalition-members-list", `Members: ${activePresidentCoalition.members.join(", ")}`);
       if (allianceAttackButton && cleanStr(activePresidentCoalition.initiator) === myCountryClean) {
         allianceAttackButton.style.display = "inline-flex";
-        allianceAttackButton.disabled = Boolean(activePresidentCoalition.attacksUsed);
-        allianceAttackButton.textContent = activePresidentCoalition.attacksUsed
+        allianceAttackButton.disabled = Boolean(activePresidentCoalition.attacksUsed) || loans > 0;
+        allianceAttackButton.textContent = loans > 0
+          ? (translations[currentLang] || translations.en).txtBoardBattleLoanLocked
+          : activePresidentCoalition.attacksUsed
           ? "✓ Alliance Skirmish Used"
           : "⚔️ Alliance Skirmish";
+        allianceAttackButton.title = loans > 0
+          ? (translations[currentLang] || translations.en).txtBattleLoanGate
+          : "";
       }
     } else if (!activeCounterUnion) {
       if (unionBanner) unionBanner.style.display = "block";
@@ -2908,10 +3051,15 @@ function updateAllianceUI() {
       setTxt("coalition-members-list", `Defenders: ${activeCounterUnion.members.join(", ")}`);
       if (allianceAttackButton && cleanStr(activeCounterUnion.initiator) === myCountryClean) {
         allianceAttackButton.style.display = "inline-flex";
-        allianceAttackButton.disabled = Boolean(activeCounterUnion.attacksUsed);
-        allianceAttackButton.textContent = activeCounterUnion.attacksUsed
+        allianceAttackButton.disabled = Boolean(activeCounterUnion.attacksUsed) || loans > 0;
+        allianceAttackButton.textContent = loans > 0
+          ? (translations[currentLang] || translations.en).txtBoardBattleLoanLocked
+          : activeCounterUnion.attacksUsed
           ? "✓ Alliance Skirmish Used"
           : "⚔️ Alliance Skirmish";
+        allianceAttackButton.title = loans > 0
+          ? (translations[currentLang] || translations.en).txtBattleLoanGate
+          : "";
       }
     }
   }
@@ -2925,6 +3073,10 @@ function currentInitiatedAlliance() {
 }
 
 window.openAllianceSkirmishModal = function() {
+  if (loans > 0) {
+    logAction("⚠️ Settle your Banker loan and interest in Player Overview before launching an alliance Field Battle.", "ALLIANCE");
+    return;
+  }
   const alliance = currentInitiatedAlliance();
   if (!alliance || alliance.attacksUsed) {
     logAction("⚠️ Only the alliance initiator may launch one coalition skirmish this round.", "ALLIANCE");
@@ -2968,6 +3120,10 @@ window.closeAllianceSkirmishModal = function() {
 };
 
 window.executeAllianceSkirmish = async function() {
+  if (loans > 0) {
+    logAction("⚠️ Settle your Banker loan and interest before launching an alliance Field Battle.", "ALLIANCE");
+    return;
+  }
   const selected = document.getElementById("select-alliance-skirmish-target")?.value || "";
   const [targetKind, ...targetIdParts] = selected.split(":");
   const targetId = targetIdParts.join(":");

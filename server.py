@@ -64,6 +64,7 @@ ROOM_EVENT_TYPES = {
     "SOLO_SKIRMISH",
     "ACTIVATE_GENERAL",
     "TAKE_BANKER_LOAN",
+    "REPAY_BANKER_LOAN",
     "ACTIVATE_MERCHANT",
     "ATOMIC_STRIKE",
     "PROPOSE_TRADE",
@@ -921,7 +922,7 @@ class GameHandler(SimpleHTTPRequestHandler):
                             )
                             for field in ("agri", "oil", "mines")
                         )
-                    repayment_due = int(seated["loans"] * 1.20)
+                    repayment_due = self.banker_repayment_due(seated["loans"])
                     repayment_collected = min(seated["coins"] + gross_profit, repayment_due)
                     next_coins = max(0, seated["coins"] + gross_profit - repayment_collected)
                     next_loan = repayment_due - repayment_collected
@@ -1047,6 +1048,8 @@ class GameHandler(SimpleHTTPRequestHandler):
             self.activate_general(player, event_payload)
         elif event_type == "TAKE_BANKER_LOAN":
             self.take_banker_loan(player, event_payload)
+        elif event_type == "REPAY_BANKER_LOAN":
+            self.repay_banker_loan(player, event_payload)
         elif event_type == "ACTIVATE_MERCHANT":
             self.activate_merchant(player, event_payload)
         elif event_type == "ATOMIC_STRIKE":
@@ -1088,6 +1091,26 @@ class GameHandler(SimpleHTTPRequestHandler):
         )
         return True
 
+    @staticmethod
+    def banker_repayment_due(loan: int) -> int:
+        return int(loan * 1.20)
+
+    @staticmethod
+    def unallocated_wallet_coins(
+        connection: sqlite3.Connection,
+        player_id: int,
+        wallet_coins: int,
+    ) -> int:
+        locked = connection.execute(
+            """
+            SELECT COALESCE(SUM(agri + oil + mines), 0) AS allocated
+            FROM player_round_resources
+            WHERE player_id = ?
+            """,
+            (player_id,),
+        ).fetchone()
+        return max(0, wallet_coins - (locked["allocated"] if locked else 0))
+
     def take_banker_loan(self, player: sqlite3.Row, payload: dict) -> None:
         amount = payload.get("amount")
         if isinstance(amount, bool) or not isinstance(amount, int) or not 1 <= amount <= 250:
@@ -1108,6 +1131,52 @@ class GameHandler(SimpleHTTPRequestHandler):
             event = self.publish_room_event(connection, "TAKE_BANKER_LOAN", {
                 "country": player["country"], "amount": amount, "coins": wallet["coins"], "loans": wallet["loans"]
             })
+        self.send_json({"event": event}, HTTPStatus.CREATED)
+
+    def repay_banker_loan(self, player: sqlite3.Row, payload: dict) -> None:
+        if payload:
+            self.send_json({"error": "Loan repayment does not accept extra data."}, HTTPStatus.BAD_REQUEST)
+            return
+        with database() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            wallet = connection.execute(
+                "SELECT coins, loans FROM player_wallets WHERE player_id = ?", (player["id"],)
+            ).fetchone()
+            if not wallet or wallet["loans"] <= 0:
+                self.send_json({"error": "You do not have an active Banker loan."}, HTTPStatus.CONFLICT)
+                return
+            repayment_due = self.banker_repayment_due(wallet["loans"])
+            available_coins = self.unallocated_wallet_coins(
+                connection, player["id"], wallet["coins"]
+            )
+            if available_coins < repayment_due:
+                self.send_json(
+                    {
+                        "error": f"You need {repayment_due} unallocated coins to settle your loan and interest, but only have {available_coins}.",
+                        "repaymentDue": repayment_due,
+                        "availableCoins": available_coins,
+                        "shortfall": repayment_due - available_coins,
+                    },
+                    HTTPStatus.CONFLICT,
+                )
+                return
+            connection.execute(
+                "UPDATE player_wallets SET coins = coins - ?, loans = 0 WHERE player_id = ?",
+                (repayment_due, player["id"]),
+            )
+            updated_wallet = connection.execute(
+                "SELECT coins, loans FROM player_wallets WHERE player_id = ?", (player["id"],)
+            ).fetchone()
+            event = self.publish_room_event(
+                connection,
+                "REPAY_BANKER_LOAN",
+                {
+                    "country": player["country"],
+                    "repayment": repayment_due,
+                    "coins": updated_wallet["coins"],
+                    "loans": updated_wallet["loans"],
+                },
+            )
         self.send_json({"event": event}, HTTPStatus.CREATED)
 
     def activate_merchant(self, player: sqlite3.Row, payload: dict) -> None:
@@ -1568,6 +1637,16 @@ class GameHandler(SimpleHTTPRequestHandler):
             if not attacker:
                 self.send_json({"error": "Only a confirmed alliance initiator may launch an alliance skirmish."}, HTTPStatus.FORBIDDEN)
                 return
+            attacker_wallet = connection.execute(
+                "SELECT loans FROM player_wallets WHERE player_id = ?", (player["id"],)
+            ).fetchone()
+            if attacker_wallet and attacker_wallet["loans"] > 0:
+                repayment_due = self.banker_repayment_due(attacker_wallet["loans"])
+                self.send_json(
+                    {"error": f"Settle your Banker loan and {repayment_due - attacker_wallet['loans']} coins of interest before launching a Field Battle."},
+                    HTTPStatus.CONFLICT,
+                )
+                return
             if attacker["attacks_used"] >= 1:
                 self.send_json({"error": "This alliance has already used its skirmish this round."}, HTTPStatus.CONFLICT)
                 return
@@ -1757,6 +1836,16 @@ class GameHandler(SimpleHTTPRequestHandler):
 
         with database() as connection:
             connection.execute("BEGIN IMMEDIATE")
+            attacker_wallet = connection.execute(
+                "SELECT loans FROM player_wallets WHERE player_id = ?", (player["id"],)
+            ).fetchone()
+            if attacker_wallet and attacker_wallet["loans"] > 0:
+                repayment_due = self.banker_repayment_due(attacker_wallet["loans"])
+                self.send_json(
+                    {"error": f"Settle your Banker loan and {repayment_due - attacker_wallet['loans']} coins of interest before launching a Field Battle."},
+                    HTTPStatus.CONFLICT,
+                )
+                return
             target_player = connection.execute(
                 "SELECT id, country FROM players WHERE country = ?", (target_id,)
             ).fetchone()
