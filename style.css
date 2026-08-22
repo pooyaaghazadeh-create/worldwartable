@@ -629,6 +629,45 @@ body {
   color: #86efac;
 }
 
+.round-settlement-card {
+  margin: 12px 0 4px;
+  padding: 12px;
+  border: 1px solid rgba(96, 165, 250, 0.45);
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.3), rgba(15, 23, 42, 0.14));
+}
+
+.round-settlement-card h3 {
+  color: #bfdbfe;
+  font-size: 0.95rem;
+}
+
+.round-settlement-method {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
+
+.round-settlement-details {
+  display: grid;
+  gap: 5px;
+  margin-top: 9px;
+}
+
+.round-settlement-details p {
+  color: #dbeafe;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.round-settlement-details p.round-settlement-total {
+  border-top: 1px solid rgba(148, 163, 184, 0.25);
+  color: #fef3c7;
+  font-weight: 800;
+  margin-top: 3px;
+  padding-top: 7px;
+}
+
 @media (max-width: 430px) {
   .loan-calculator-grid {
     grid-template-columns: 1fr;

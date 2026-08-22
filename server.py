@@ -103,6 +103,34 @@ def parse_round_resource_multipliers(raw_value: str | None) -> dict[str, dict[st
     return multipliers
 
 
+def legacy_fresh_banker_principal(
+    events: list[dict[str, object]],
+    country: str,
+    outstanding_debt: int,
+) -> int:
+    """Find legacy Banker principal issued after that country's last settlement."""
+    fresh_principal = 0
+    for event in events:
+        event_type = event.get("event_type")
+        payload = event.get("payload")
+        if isinstance(payload, str):
+            try:
+                payload = json.loads(payload)
+            except json.JSONDecodeError:
+                continue
+        if not isinstance(payload, dict):
+            continue
+        if event_type == "TAKE_BANKER_LOAN" and payload.get("country") == country:
+            fresh_principal += max(0, int(payload.get("amount", 0) or 0))
+        elif event_type == "REPAY_BANKER_LOAN" and payload.get("country") == country:
+            fresh_principal = 0
+        elif event_type == "EXECUTE_ROUND_CALCULATION":
+            results = payload.get("results")
+            if isinstance(results, dict) and country in results:
+                fresh_principal = 0
+    return min(max(0, outstanding_debt), fresh_principal)
+
+
 @contextmanager
 def database():
     connection = sqlite3.connect(DATABASE_PATH, timeout=10)
@@ -156,7 +184,8 @@ def initialize_database() -> None:
             CREATE TABLE IF NOT EXISTS player_wallets (
               player_id INTEGER PRIMARY KEY REFERENCES players(id) ON DELETE CASCADE,
               coins INTEGER NOT NULL DEFAULT 0 CHECK (coins >= 0),
-              loans INTEGER NOT NULL DEFAULT 0 CHECK (loans >= 0)
+              loans INTEGER NOT NULL DEFAULT 0 CHECK (loans >= 0),
+              loan_interest INTEGER NOT NULL DEFAULT 0 CHECK (loan_interest >= 0)
             );
             CREATE TABLE IF NOT EXISTS player_round_readiness (
               player_id INTEGER PRIMARY KEY REFERENCES players(id) ON DELETE CASCADE,
@@ -181,6 +210,12 @@ def initialize_database() -> None:
             CREATE TABLE IF NOT EXISTS player_round_effects (
               player_id INTEGER PRIMARY KEY REFERENCES players(id) ON DELETE CASCADE,
               merchant_active INTEGER NOT NULL DEFAULT 0
+            );
+            CREATE TABLE IF NOT EXISTS player_round_settlements (
+              player_id INTEGER PRIMARY KEY REFERENCES players(id) ON DELETE CASCADE,
+              round_number INTEGER NOT NULL,
+              settlement TEXT NOT NULL,
+              settled_at INTEGER NOT NULL
             );
             CREATE TABLE IF NOT EXISTS trade_proposals (
               proposal_id TEXT PRIMARY KEY,
@@ -287,6 +322,34 @@ def initialize_database() -> None:
             connection.execute("ALTER TABLE round_state ADD COLUMN final_placements TEXT")
         if "resource_multipliers" not in round_columns:
             connection.execute("ALTER TABLE round_state ADD COLUMN resource_multipliers TEXT")
+        wallet_columns = {
+            row["name"] for row in connection.execute("PRAGMA table_info(player_wallets)")
+        }
+        if "loan_interest" not in wallet_columns:
+            connection.execute(
+                "ALTER TABLE player_wallets ADD COLUMN loan_interest INTEGER NOT NULL DEFAULT 0"
+            )
+            historical_events = [
+                {"event_type": row["event_type"], "payload": row["payload"]}
+                for row in connection.execute(
+                    "SELECT event_type, payload FROM host_events ORDER BY id ASC"
+                )
+            ]
+            for wallet in connection.execute(
+                """
+                SELECT player_wallets.player_id, player_wallets.loans, players.country
+                FROM player_wallets
+                JOIN players ON players.id = player_wallets.player_id
+                WHERE player_wallets.loans > 0
+                """
+            ):
+                fresh_principal = legacy_fresh_banker_principal(
+                    historical_events, wallet["country"], wallet["loans"]
+                )
+                connection.execute(
+                    "UPDATE player_wallets SET loan_interest = ? WHERE player_id = ?",
+                    (int(fresh_principal * 0.20), wallet["player_id"]),
+                )
         connection.execute("INSERT OR IGNORE INTO room_state (id, host_player_id) VALUES (1, NULL)")
         connection.execute("INSERT OR IGNORE INTO round_state (id) VALUES (1)")
         multiplier_row = connection.execute(
@@ -439,12 +502,19 @@ class GameHandler(SimpleHTTPRequestHandler):
                 "SELECT cards FROM player_round_cards WHERE player_id = ?", (player["id"],)
             ).fetchone()
             wallet_row = connection.execute(
-                "SELECT coins, loans FROM player_wallets WHERE player_id = ?", (player["id"],)
+                "SELECT coins, loans, loan_interest FROM player_wallets WHERE player_id = ?", (player["id"],)
             ).fetchone()
             lock_row = connection.execute(
                 "SELECT agri, oil, mines FROM player_round_resources WHERE player_id = ?", (player["id"],)
             ).fetchone()
+            settlement_row = connection.execute(
+                "SELECT settlement FROM player_round_settlements WHERE player_id = ?", (player["id"],)
+            ).fetchone()
             room = self.room_snapshot(connection)
+        try:
+            last_settlement = json.loads(settlement_row["settlement"]) if settlement_row else None
+        except (TypeError, json.JSONDecodeError):
+            last_settlement = None
         self.send_json(
             {
                 "player": {
@@ -458,7 +528,9 @@ class GameHandler(SimpleHTTPRequestHandler):
                 "economy": {
                     "coins": wallet_row["coins"] if wallet_row else 0,
                     "loans": wallet_row["loans"] if wallet_row else 0,
+                    "loanInterest": wallet_row["loan_interest"] if wallet_row else 0,
                     "investments": {field: lock_row[field] for field in ("agri", "oil", "mines")} if lock_row else None,
+                    "lastSettlement": last_settlement,
                 },
             }
         )
@@ -894,48 +966,106 @@ class GameHandler(SimpleHTTPRequestHandler):
                 results = {}
                 for seated in connection.execute(
                     """
-                    SELECT players.id, players.country, player_wallets.coins, player_wallets.loans
+                    SELECT players.id, players.country, player_wallets.coins, player_wallets.loans,
+                           player_wallets.loan_interest
                     FROM players JOIN player_wallets ON player_wallets.player_id = players.id
                     """
                 ):
                     resources = locked_resources[seated["id"]]
                     alliance = alliance_by_member.get(seated["country"])
+                    field_yields = {}
                     if alliance:
                         member_count = len(json.loads(alliance["members"]))
-                        gross_profit = sum(
-                            int(
-                                alliance[field]
-                                * self.field_multiplier(
-                                    seated["country"], field, condition, round_multipliers
-                                )
-                                / member_count
+                        for field in RESOURCE_FIELDS:
+                            multiplier = self.field_multiplier(
+                                seated["country"], field, condition, round_multipliers
                             )
-                            for field in ("agri", "oil", "mines")
-                        )
+                            income = self.calculate_field_yield(alliance[field], multiplier, member_count)
+                            field_yields[field] = {
+                                "basis": alliance[field],
+                                "multiplier": multiplier,
+                                "income": income,
+                                "isAlliancePool": True,
+                            }
+                        settlement_source = {
+                            "type": "alliance",
+                            "allianceType": alliance["alliance_type"],
+                            "memberCount": member_count,
+                        }
                     else:
-                        gross_profit = sum(
-                            int(
-                                resources[field]
-                                * self.field_multiplier(
-                                    seated["country"], field, condition, round_multipliers
-                                )
+                        for field in RESOURCE_FIELDS:
+                            multiplier = self.field_multiplier(
+                                seated["country"], field, condition, round_multipliers
                             )
-                            for field in ("agri", "oil", "mines")
-                        )
-                    repayment_due = self.banker_repayment_due(seated["loans"])
-                    repayment_collected = min(seated["coins"] + gross_profit, repayment_due)
-                    next_coins = max(0, seated["coins"] + gross_profit - repayment_collected)
-                    next_loan = repayment_due - repayment_collected
-                    connection.execute(
-                        "UPDATE player_wallets SET coins = ?, loans = ? WHERE player_id = ?",
-                        (next_coins, next_loan, seated["id"]),
+                            income = self.calculate_field_yield(resources[field], multiplier)
+                            field_yields[field] = {
+                                "basis": resources[field],
+                                "multiplier": multiplier,
+                                "income": income,
+                                "isAlliancePool": False,
+                            }
+                        settlement_source = {"type": "solo"}
+                    gross_profit = sum(item["income"] for item in field_yields.values())
+                    loan_settlement = self.settle_banker_debt(
+                        seated["coins"],
+                        gross_profit,
+                        seated["loans"],
+                        seated["loan_interest"],
                     )
+                    repayment_due = loan_settlement["repaymentDue"]
+                    repayment_collected = loan_settlement["collected"]
+                    next_coins = loan_settlement["endingBalance"]
+                    next_loan = loan_settlement["principalRemaining"]
+                    next_loan_interest = loan_settlement["interestRemaining"]
+                    connection.execute(
+                        """
+                        UPDATE player_wallets
+                        SET coins = ?, loans = ?, loan_interest = ?
+                        WHERE player_id = ?
+                        """,
+                        (next_coins, next_loan, next_loan_interest, seated["id"]),
+                    )
+                    settlement_record = {
+                        "source": settlement_source,
+                        "balanceBefore": seated["coins"],
+                        "grossFieldIncome": gross_profit,
+                        "loan": {
+                            "principalBefore": seated["loans"],
+                            "interestBefore": seated["loan_interest"],
+                            "repaymentDue": repayment_due,
+                            "collected": repayment_collected,
+                            "principalCollected": loan_settlement["principalCollected"],
+                            "interestCollected": loan_settlement["interestCollected"],
+                            "principalRemaining": next_loan,
+                            "interestRemaining": next_loan_interest,
+                        },
+                        "endingBalance": next_coins,
+                        "fieldYields": field_yields,
+                        "round": state["round_number"],
+                    }
                     results[seated["country"]] = {
                         "coins": next_coins,
                         "loans": next_loan,
+                        "loanInterest": next_loan_interest,
                         "grossProfit": gross_profit,
                         "repayment": repayment_collected,
                     }
+                    connection.execute(
+                        """
+                        INSERT INTO player_round_settlements (player_id, round_number, settlement, settled_at)
+                        VALUES (?, ?, ?, ?)
+                        ON CONFLICT(player_id) DO UPDATE SET
+                          round_number = excluded.round_number,
+                          settlement = excluded.settlement,
+                          settled_at = excluded.settled_at
+                        """,
+                        (
+                            seated["id"],
+                            state["round_number"],
+                            json.dumps(settlement_record),
+                            int(time.time()),
+                        ),
+                    )
                 completed_round = state["round_number"]
                 final_placements = []
                 if completed_round == 3:
@@ -1092,8 +1222,42 @@ class GameHandler(SimpleHTTPRequestHandler):
         return True
 
     @staticmethod
-    def banker_repayment_due(loan: int) -> int:
-        return int(loan * 1.20)
+    def banker_interest(loan_principal: int) -> int:
+        return int(max(0, loan_principal) * 0.20)
+
+    @classmethod
+    def banker_repayment_due(cls, loan_principal: int, loan_interest: int | None = None) -> int:
+        """Return the persisted debt due without reapplying interest to a prior shortfall."""
+        interest = cls.banker_interest(loan_principal) if loan_interest is None else max(0, loan_interest)
+        return max(0, loan_principal) + interest
+
+    @classmethod
+    def settle_banker_debt(
+        cls,
+        balance_before: int,
+        gross_income: int,
+        loan_principal: int,
+        loan_interest: int,
+    ) -> dict[str, int]:
+        """Collect the one-time interest first, then reduce principal without compounding."""
+        due = cls.banker_repayment_due(loan_principal, loan_interest)
+        collected = min(max(0, balance_before + gross_income), due)
+        interest_collected = min(max(0, loan_interest), collected)
+        principal_collected = collected - interest_collected
+        return {
+            "repaymentDue": due,
+            "collected": collected,
+            "principalCollected": principal_collected,
+            "interestCollected": interest_collected,
+            "principalRemaining": max(0, loan_principal - principal_collected),
+            "interestRemaining": max(0, loan_interest - interest_collected),
+            "endingBalance": max(0, balance_before + gross_income - collected),
+        }
+
+    @staticmethod
+    def calculate_field_yield(basis: int, multiplier: float, member_count: int = 1) -> int:
+        """Round each field payout down after applying multiplier and alliance share."""
+        return int(max(0, basis) * multiplier / max(1, member_count))
 
     @staticmethod
     def banker_loan_amount(available_coins: int) -> int:
@@ -1122,7 +1286,7 @@ class GameHandler(SimpleHTTPRequestHandler):
         with database() as connection:
             connection.execute("BEGIN IMMEDIATE")
             wallet = connection.execute(
-                "SELECT coins, loans FROM player_wallets WHERE player_id = ?", (player["id"],)
+                "SELECT coins, loans, loan_interest FROM player_wallets WHERE player_id = ?", (player["id"],)
             ).fetchone()
             available_coins = self.unallocated_wallet_coins(
                 connection, player["id"], wallet["coins"] if wallet else 0
@@ -1137,12 +1301,17 @@ class GameHandler(SimpleHTTPRequestHandler):
             if not self.consume_card(connection, player["id"], "Banker"):
                 self.send_json({"error": "You need an unplayed Banker card."}, HTTPStatus.FORBIDDEN)
                 return
+            interest = self.banker_interest(amount)
             connection.execute(
-                "UPDATE player_wallets SET coins = coins + ?, loans = loans + ? WHERE player_id = ?",
-                (amount, amount, player["id"]),
+                """
+                UPDATE player_wallets
+                SET coins = coins + ?, loans = loans + ?, loan_interest = loan_interest + ?
+                WHERE player_id = ?
+                """,
+                (amount, amount, interest, player["id"]),
             )
             wallet = connection.execute(
-                "SELECT coins, loans FROM player_wallets WHERE player_id = ?", (player["id"],)
+                "SELECT coins, loans, loan_interest FROM player_wallets WHERE player_id = ?", (player["id"],)
             ).fetchone()
             event = self.publish_room_event(connection, "TAKE_BANKER_LOAN", {
                 "country": player["country"],
@@ -1150,6 +1319,8 @@ class GameHandler(SimpleHTTPRequestHandler):
                 "availableCoins": available_coins,
                 "coins": wallet["coins"],
                 "loans": wallet["loans"],
+                "loanInterest": wallet["loan_interest"],
+                "repaymentDue": self.banker_repayment_due(wallet["loans"], wallet["loan_interest"]),
             })
         self.send_json({"event": event}, HTTPStatus.CREATED)
 
@@ -1160,12 +1331,12 @@ class GameHandler(SimpleHTTPRequestHandler):
         with database() as connection:
             connection.execute("BEGIN IMMEDIATE")
             wallet = connection.execute(
-                "SELECT coins, loans FROM player_wallets WHERE player_id = ?", (player["id"],)
+                "SELECT coins, loans, loan_interest FROM player_wallets WHERE player_id = ?", (player["id"],)
             ).fetchone()
-            if not wallet or wallet["loans"] <= 0:
+            if not wallet or self.banker_repayment_due(wallet["loans"], wallet["loan_interest"]) <= 0:
                 self.send_json({"error": "You do not have an active Banker loan."}, HTTPStatus.CONFLICT)
                 return
-            repayment_due = self.banker_repayment_due(wallet["loans"])
+            repayment_due = self.banker_repayment_due(wallet["loans"], wallet["loan_interest"])
             available_coins = self.unallocated_wallet_coins(
                 connection, player["id"], wallet["coins"]
             )
@@ -1181,11 +1352,11 @@ class GameHandler(SimpleHTTPRequestHandler):
                 )
                 return
             connection.execute(
-                "UPDATE player_wallets SET coins = coins - ?, loans = 0 WHERE player_id = ?",
+                "UPDATE player_wallets SET coins = coins - ?, loans = 0, loan_interest = 0 WHERE player_id = ?",
                 (repayment_due, player["id"]),
             )
             updated_wallet = connection.execute(
-                "SELECT coins, loans FROM player_wallets WHERE player_id = ?", (player["id"],)
+                "SELECT coins, loans, loan_interest FROM player_wallets WHERE player_id = ?", (player["id"],)
             ).fetchone()
             event = self.publish_room_event(
                 connection,
@@ -1195,6 +1366,8 @@ class GameHandler(SimpleHTTPRequestHandler):
                     "repayment": repayment_due,
                     "coins": updated_wallet["coins"],
                     "loans": updated_wallet["loans"],
+                    "loanInterest": updated_wallet["loan_interest"],
+                    "repaymentDue": 0,
                 },
             )
         self.send_json({"event": event}, HTTPStatus.CREATED)
@@ -1658,12 +1831,16 @@ class GameHandler(SimpleHTTPRequestHandler):
                 self.send_json({"error": "Only a confirmed alliance initiator may launch an alliance skirmish."}, HTTPStatus.FORBIDDEN)
                 return
             attacker_wallet = connection.execute(
-                "SELECT loans FROM player_wallets WHERE player_id = ?", (player["id"],)
+                "SELECT loans, loan_interest FROM player_wallets WHERE player_id = ?", (player["id"],)
             ).fetchone()
-            if attacker_wallet and attacker_wallet["loans"] > 0:
-                repayment_due = self.banker_repayment_due(attacker_wallet["loans"])
+            if attacker_wallet and self.banker_repayment_due(
+                attacker_wallet["loans"], attacker_wallet["loan_interest"]
+            ) > 0:
+                repayment_due = self.banker_repayment_due(
+                    attacker_wallet["loans"], attacker_wallet["loan_interest"]
+                )
                 self.send_json(
-                    {"error": f"Settle your Banker loan and {repayment_due - attacker_wallet['loans']} coins of interest before launching a Field Battle."},
+                    {"error": f"Settle your Banker loan and {attacker_wallet['loan_interest']} coins of interest before launching a Field Battle."},
                     HTTPStatus.CONFLICT,
                 )
                 return
@@ -1857,12 +2034,16 @@ class GameHandler(SimpleHTTPRequestHandler):
         with database() as connection:
             connection.execute("BEGIN IMMEDIATE")
             attacker_wallet = connection.execute(
-                "SELECT loans FROM player_wallets WHERE player_id = ?", (player["id"],)
+                "SELECT loans, loan_interest FROM player_wallets WHERE player_id = ?", (player["id"],)
             ).fetchone()
-            if attacker_wallet and attacker_wallet["loans"] > 0:
-                repayment_due = self.banker_repayment_due(attacker_wallet["loans"])
+            if attacker_wallet and self.banker_repayment_due(
+                attacker_wallet["loans"], attacker_wallet["loan_interest"]
+            ) > 0:
+                repayment_due = self.banker_repayment_due(
+                    attacker_wallet["loans"], attacker_wallet["loan_interest"]
+                )
                 self.send_json(
-                    {"error": f"Settle your Banker loan and {repayment_due - attacker_wallet['loans']} coins of interest before launching a Field Battle."},
+                    {"error": f"Settle your Banker loan and {attacker_wallet['loan_interest']} coins of interest before launching a Field Battle."},
                     HTTPStatus.CONFLICT,
                 )
                 return
@@ -2469,6 +2650,7 @@ class GameHandler(SimpleHTTPRequestHandler):
             connection.execute("DELETE FROM player_round_readiness")
             connection.execute("DELETE FROM coin_requests")
             connection.execute("DELETE FROM player_round_effects")
+            connection.execute("DELETE FROM player_round_settlements")
             connection.execute("DELETE FROM player_wallets")
             connection.execute("DELETE FROM active_alliances")
             connection.execute("DELETE FROM trade_escrow")

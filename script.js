@@ -4,6 +4,8 @@
 let coins = 0;                  
 const MAX_PURCHASE_CAP = 500;   
 let loans = 0;
+let loanInterest = 0;
+let lastRoundSettlement = null;
 let currentRound = 1;
 let gameFinished = false;
 let finalPlacements = [];
@@ -114,6 +116,13 @@ const translations = {
     txtLoanNoDebt: "No active Banker loan.",
     txtLoanInsufficient: "You need {shortfall} more coins to settle this loan.",
     txtLoanReady: "Your unallocated cash can fully settle this loan.",
+    txtSettlementTitle: "Latest Server Settlement",
+    txtSettlementEmpty: "The server will show a field-by-field breakdown after the round closes.",
+    txtSettlementGross: "Gross field income",
+    txtSettlementLoan: "Loan collected",
+    txtSettlementBalance: "Ending balance",
+    txtSettlementSolo: "Solo fields",
+    txtSettlementAlliance: "Alliance pool",
     txtBattleLoanGate: "Field Battles are locked until your loan and interest are fully repaid.",
     txtBattleReady: "Loan settled — Field Battle available.",
     txtBoardBattleLoanLocked: "Settle loan to battle",
@@ -183,6 +192,13 @@ const translations = {
     txtLoanNoDebt: "Aktif Banker kredisi yok.",
     txtLoanInsufficient: "Bu krediyi kapatmak için {shortfall} coin daha gerekli.",
     txtLoanReady: "Ayrılmamış nakdiniz bu krediyi tamamen kapatmaya yeterli.",
+    txtSettlementTitle: "Son Sunucu Hesaplaşması",
+    txtSettlementEmpty: "Raund kapandığında sunucu saha bazlı dökümü burada gösterir.",
+    txtSettlementGross: "Brüt saha geliri",
+    txtSettlementLoan: "Tahsil edilen kredi",
+    txtSettlementBalance: "Bitiş bakiyesi",
+    txtSettlementSolo: "Tekil sahalar",
+    txtSettlementAlliance: "İttifak havuzu",
     txtBattleLoanGate: "Saha Savaşları, kredi ve faiz tamamen ödenene kadar kilitlidir.",
     txtBattleReady: "Kredi kapatıldı — Saha Savaşı kullanılabilir.",
     txtBoardBattleLoanLocked: "Savaş için krediyi öde",
@@ -252,6 +268,13 @@ const translations = {
     txtLoanNoDebt: "وام فعال Banker ندارید.",
     txtLoanInsufficient: "برای تسویه این وام به {shortfall} سکه دیگر نیاز دارید.",
     txtLoanReady: "نقدی تخصیص‌نیافته برای تسویه کامل وام کافی است.",
+    txtSettlementTitle: "آخرین تسویه تأییدشده سرور",
+    txtSettlementEmpty: "پس از بسته شدن دور، سرور جزئیات هر زمین را اینجا نشان می‌دهد.",
+    txtSettlementGross: "درآمد ناخالص زمین‌ها",
+    txtSettlementLoan: "وام وصول‌شده",
+    txtSettlementBalance: "موجودی پایانی",
+    txtSettlementSolo: "زمین‌های مستقل",
+    txtSettlementAlliance: "استخر ائتلاف",
     txtBattleLoanGate: "تا بازپرداخت کامل وام و بهره، نبردهای میدانی قفل هستند.",
     txtBattleReady: "وام تسویه شد — نبرد میدانی در دسترس است.",
     txtBoardBattleLoanLocked: "برای نبرد وام را بپردازید",
@@ -317,6 +340,7 @@ window.changeLanguage = function(lang) {
   syncHostButtonsUI();
   updateReadyConsensusUI();
   updateLoanCalculator();
+  renderRoundSettlement();
   updateAllianceUI();
   renderCommandBoard();
   logAction(`🌐 Language changed to ${lang.toUpperCase()}.`, "SYSTEM");
@@ -502,6 +526,26 @@ async function refreshRoomSnapshot() {
     const data = await response.json();
     applyRoomSnapshot(data.room);
   } catch (e) {}
+}
+
+async function refreshPlayerEconomy() {
+  if (typeof fetch !== "function") return;
+  try {
+    const response = await fetch("/api/session", { credentials: "same-origin" });
+    if (!response.ok) return;
+    const session = await response.json();
+    if (!session?.economy) return;
+    coins = Number(session.economy.coins) || 0;
+    loans = Number(session.economy.loans) || 0;
+    loanInterest = Number(session.economy.loanInterest) || 0;
+    lastRoundSettlement = session.economy.lastSettlement?.fieldYields
+      ? session.economy.lastSettlement
+      : null;
+    updateUI();
+  } catch (error) {
+    // The event still supplies the public balance result. A later session refresh
+    // restores the private field-by-field receipt if this request is interrupted.
+  }
 }
 
 function renderTvRoster() {
@@ -1238,6 +1282,7 @@ function applyHostEvent(event) {
   } else if (event.type === "EXECUTE_ROUND_CALCULATION") {
     const result = assignedCountry ? event.payload?.results?.[assignedCountry.name] : null;
     calculateAndAdvanceRound(result || null, event.payload || {});
+    void refreshPlayerEconomy();
     if (event.payload?.gameFinished && !document.body?.classList.contains("tv-body")) {
       publishGameResult({
         id: Number.isFinite(event.id) ? `final-placements-${event.id}` : "final-placements",
@@ -1293,6 +1338,7 @@ function applyHostEvent(event) {
     if (assignedCountry && cleanStr(event.payload?.country) === cleanStr(assignedCountry.name)) {
       coins = Number(event.payload.coins) || 0;
       loans = Number(event.payload.loans) || 0;
+      loanInterest = Number(event.payload.loanInterest) || 0;
       void refreshCurrentHand();
       updateUI();
     }
@@ -1300,6 +1346,7 @@ function applyHostEvent(event) {
     if (assignedCountry && cleanStr(event.payload?.country) === cleanStr(assignedCountry.name)) {
       coins = Number(event.payload.coins) || 0;
       loans = Number(event.payload.loans) || 0;
+      loanInterest = Number(event.payload.loanInterest) || 0;
       updateUI();
       logAction(`🏦 Banker loan settled: ${event.payload.repayment} coins paid, including interest.`, "BANK");
     }
@@ -1699,6 +1746,10 @@ async function initMobilePlayerSession() {
   if (session.economy) {
     coins = Number(session.economy.coins) || 0;
     loans = Number(session.economy.loans) || 0;
+    loanInterest = Number(session.economy.loanInterest) || 0;
+    if (session.economy.lastSettlement?.fieldYields) {
+      lastRoundSettlement = session.economy.lastSettlement;
+    }
     if (session.economy.investments) {
       investments = { ...session.economy.investments };
       investmentsLocked = true;
@@ -1834,7 +1885,7 @@ function renderCommandBoardDetails(player) {
   const battle = document.createElement("button");
   battle.type = "button";
   battle.className = "btn btn-danger btn-small";
-  const blockedByLoan = loans > 0;
+  const blockedByLoan = bankerRepaymentDue() > 0;
   battle.textContent = blockedByLoan ? copy.txtBoardBattleLoanLocked : copy.txtBoardBattle;
   battle.disabled = gameFinished || !investmentsLocked || !player.locked || blockedByLoan;
   battle.title = blockedByLoan
@@ -2484,10 +2535,11 @@ async function resolveCoinRequest(requestId, approved) {
 
 function updateUI() {
   setTxt("player-coins", coins);
-  setTxt("player-loan", loans);
+  setTxt("player-loan", bankerRepaymentDue());
   setTxt("total-budget", coins);
   setTxt("merchant-status", isMerchantActive ? "Yes (+10%) ✅" : "No ❌");
   updateLoanCalculator();
+  renderRoundSettlement();
   syncCoinPurchaseControl();
 
   // Read state to text fields and calculate unallocated without overwriting sliders yet
@@ -2512,8 +2564,10 @@ function updateUI() {
   renderCommandBoard();
 }
 
-function bankerRepaymentDue(principal = loans) {
-  return Math.floor(Math.max(0, Number(principal) || 0) * 1.20);
+function bankerRepaymentDue(principal = loans, persistedInterest = loanInterest) {
+  const safePrincipal = Math.max(0, Number(principal) || 0);
+  const safeInterest = Math.max(0, Number(persistedInterest) || 0);
+  return safePrincipal + safeInterest;
 }
 
 function bankerLoanAmount(availableCoins) {
@@ -2523,11 +2577,11 @@ function bankerLoanAmount(availableCoins) {
 function updateLoanCalculator() {
   const copy = translations[currentLang] || translations.en;
   const principal = Math.max(0, Number(loans) || 0);
-  const totalDue = bankerRepaymentDue(principal);
-  const interest = Math.max(0, totalDue - principal);
+  const interest = Math.max(0, Number(loanInterest) || 0);
+  const totalDue = bankerRepaymentDue(principal, interest);
   const availableCash = getAvailableTradeAmount("unallocated");
   const shortfall = Math.max(0, totalDue - availableCash);
-  const canRepay = principal > 0 && shortfall === 0 && !gameFinished;
+  const canRepay = totalDue > 0 && shortfall === 0 && !gameFinished;
 
   setTxt("loan-principal", principal);
   setTxt("loan-interest", interest);
@@ -2540,7 +2594,7 @@ function updateLoanCalculator() {
   if (repayButton) {
     repayButton.textContent = copy.btnRepayLoan;
     repayButton.disabled = !canRepay;
-    repayButton.title = principal <= 0
+    repayButton.title = totalDue <= 0
       ? copy.txtLoanNoDebt
       : shortfall > 0
         ? copy.txtLoanInsufficient.replace("{shortfall}", shortfall)
@@ -2550,7 +2604,7 @@ function updateLoanCalculator() {
   const message = document.getElementById("loan-settlement-message");
   if (message) {
     message.classList.toggle("is-ready", canRepay);
-    message.textContent = principal <= 0
+    message.textContent = totalDue <= 0
       ? copy.txtLoanNoDebt
       : shortfall > 0
         ? copy.txtLoanInsufficient.replace("{shortfall}", shortfall)
@@ -2559,16 +2613,72 @@ function updateLoanCalculator() {
 
   const battleGate = document.getElementById("field-battle-loan-gate");
   if (battleGate) {
-    const battleLocked = principal > 0;
+    const battleLocked = totalDue > 0;
     battleGate.classList.toggle("is-blocked", battleLocked);
     battleGate.classList.toggle("is-ready", !battleLocked);
     battleGate.textContent = battleLocked ? copy.txtBattleLoanGate : copy.txtBattleReady;
   }
 }
 
+function renderRoundSettlement() {
+  const card = document.getElementById("round-settlement-card");
+  const method = document.getElementById("round-settlement-method");
+  const details = document.getElementById("round-settlement-details");
+  if (!card || !method || !details) return;
+
+  const settlement = lastRoundSettlement;
+  if (!settlement?.fieldYields) {
+    card.classList.add("hidden");
+    method.textContent = "";
+    details.replaceChildren();
+    return;
+  }
+
+  const copy = translations[currentLang] || translations.en;
+  const source = settlement.source || {};
+  const isAlliance = source.type === "alliance";
+  method.textContent = isAlliance
+    ? `${copy.txtSettlementAlliance}: ${source.allianceType || "Alliance"} · ${source.memberCount || 1} members`
+    : copy.txtSettlementSolo;
+  details.replaceChildren();
+
+  const fieldLabels = {
+    agri: copy.lblMultAgri,
+    oil: copy.lblMultOil,
+    mines: copy.lblMultMines
+  };
+  ["agri", "oil", "mines"].forEach(field => {
+    const yieldData = settlement.fieldYields[field] || {};
+    const row = document.createElement("p");
+    const basisLabel = yieldData.isAlliancePool ? "pool" : "locked";
+    row.textContent = `${fieldLabels[field]}: ${basisLabel} ${Number(yieldData.basis) || 0} × ${Number(yieldData.multiplier) || 0} = +${Number(yieldData.income) || 0}`;
+    details.appendChild(row);
+  });
+
+  const gross = document.createElement("p");
+  gross.className = "round-settlement-total";
+  gross.textContent = `${copy.txtSettlementGross}: +${Number(settlement.grossFieldIncome) || 0}`;
+  details.appendChild(gross);
+
+  const loan = settlement.loan || {};
+  const loanDue = Number(loan.repaymentDue) || 0;
+  const loanCollected = Number(loan.collected) || 0;
+  if (loanDue > 0 || loanCollected > 0) {
+    const loanRow = document.createElement("p");
+    loanRow.textContent = `${copy.txtSettlementLoan}: -${loanCollected} / ${loanDue}`;
+    details.appendChild(loanRow);
+  }
+
+  const balance = document.createElement("p");
+  balance.className = "round-settlement-total";
+  balance.textContent = `${copy.txtSettlementBalance}: ${Number(settlement.endingBalance) || 0}`;
+  details.appendChild(balance);
+  card.classList.remove("hidden");
+}
+
 function syncFieldBattleLoanGate() {
   const copy = translations[currentLang] || translations.en;
-  const blocked = loans > 0;
+  const blocked = bankerRepaymentDue() > 0;
   ["btn-execute-skirmish", "btn-execute-alliance-skirmish"].forEach(id => {
     const button = document.getElementById(id);
     if (!button) return;
@@ -2579,7 +2689,7 @@ function syncFieldBattleLoanGate() {
 
 window.repayBankerLoan = async function() {
   const repaymentDue = bankerRepaymentDue();
-  if (loans <= 0) {
+  if (repaymentDue <= 0) {
     logAction("⚠️ You do not have an active Banker loan to repay.", "BANK");
     return;
   }
@@ -2700,7 +2810,7 @@ window.confirmInvestments = async function() {
 // SKIRMISH BATTLE ENGINE
 // ==========================================
 window.openSkirmishModal = function() {
-  if (loans > 0) {
+  if (bankerRepaymentDue() > 0) {
     logAction("⚠️ Settle your Banker loan and interest in Player Overview before opening a Field Battle.", "SKIRMISH");
     return;
   }
@@ -2738,7 +2848,7 @@ window.closeSkirmishModal = function() {
 };
 
 window.executeSkirmishAttack = async function() {
-  if (loans > 0) {
+  if (bankerRepaymentDue() > 0) {
     logAction("⚠️ Settle your Banker loan and interest before launching a Field Battle.", "SKIRMISH");
     return;
   }
@@ -3036,13 +3146,13 @@ function updateAllianceUI() {
       setTxt("coalition-members-list", `Members: ${activePresidentCoalition.members.join(", ")}`);
       if (allianceAttackButton && cleanStr(activePresidentCoalition.initiator) === myCountryClean) {
         allianceAttackButton.style.display = "inline-flex";
-        allianceAttackButton.disabled = Boolean(activePresidentCoalition.attacksUsed) || loans > 0;
-        allianceAttackButton.textContent = loans > 0
+        allianceAttackButton.disabled = Boolean(activePresidentCoalition.attacksUsed) || bankerRepaymentDue() > 0;
+        allianceAttackButton.textContent = bankerRepaymentDue() > 0
           ? (translations[currentLang] || translations.en).txtBoardBattleLoanLocked
           : activePresidentCoalition.attacksUsed
           ? "✓ Alliance Skirmish Used"
           : "⚔️ Alliance Skirmish";
-        allianceAttackButton.title = loans > 0
+        allianceAttackButton.title = bankerRepaymentDue() > 0
           ? (translations[currentLang] || translations.en).txtBattleLoanGate
           : "";
       }
@@ -3070,13 +3180,13 @@ function updateAllianceUI() {
       setTxt("coalition-members-list", `Defenders: ${activeCounterUnion.members.join(", ")}`);
       if (allianceAttackButton && cleanStr(activeCounterUnion.initiator) === myCountryClean) {
         allianceAttackButton.style.display = "inline-flex";
-        allianceAttackButton.disabled = Boolean(activeCounterUnion.attacksUsed) || loans > 0;
-        allianceAttackButton.textContent = loans > 0
+        allianceAttackButton.disabled = Boolean(activeCounterUnion.attacksUsed) || bankerRepaymentDue() > 0;
+        allianceAttackButton.textContent = bankerRepaymentDue() > 0
           ? (translations[currentLang] || translations.en).txtBoardBattleLoanLocked
           : activeCounterUnion.attacksUsed
           ? "✓ Alliance Skirmish Used"
           : "⚔️ Alliance Skirmish";
-        allianceAttackButton.title = loans > 0
+        allianceAttackButton.title = bankerRepaymentDue() > 0
           ? (translations[currentLang] || translations.en).txtBattleLoanGate
           : "";
       }
@@ -3092,7 +3202,7 @@ function currentInitiatedAlliance() {
 }
 
 window.openAllianceSkirmishModal = function() {
-  if (loans > 0) {
+  if (bankerRepaymentDue() > 0) {
     logAction("⚠️ Settle your Banker loan and interest in Player Overview before launching an alliance Field Battle.", "ALLIANCE");
     return;
   }
@@ -3139,7 +3249,7 @@ window.closeAllianceSkirmishModal = function() {
 };
 
 window.executeAllianceSkirmish = async function() {
-  if (loans > 0) {
+  if (bankerRepaymentDue() > 0) {
     logAction("⚠️ Settle your Banker loan and interest before launching an alliance Field Battle.", "ALLIANCE");
     return;
   }
@@ -3214,62 +3324,83 @@ function calculateAndAdvanceRound(canonicalResult = null, roundResult = {}) {
   let earnedOilYield = 0;
   let earnedMinesYield = 0;
   const completedCondition = activeGlobalCondition ? { ...activeGlobalCondition } : null;
-
-  const activeAlliance = activePresidentCoalition || activeCounterUnion;
-  const agriMultiplier = getEffectiveResourceMultiplier("agri");
-  const oilMultiplier = getEffectiveResourceMultiplier("oil");
-  const minesMultiplier = getEffectiveResourceMultiplier("mines");
-
-  if (activeAlliance) {
-    const totalMembers = activeAlliance.members.length;
-    const livePool = activeAlliance.pool || {
-      agri: activeAlliance.totalAgri,
-      oil: activeAlliance.totalOil,
-      mines: activeAlliance.totalMines
-    };
-    const poolAgriTotal = livePool.agri * agriMultiplier;
-    const poolOilTotal = livePool.oil * oilMultiplier;
-    const poolMinesTotal = livePool.mines * minesMultiplier;
-
-    // Guaranteed proportional ratio (equal split approximation)
-    const playerShareRatio = 1 / totalMembers;
-
-    earnedAgriYield = Math.floor(poolAgriTotal * playerShareRatio);
-    earnedOilYield = Math.floor(poolOilTotal * playerShareRatio);
-    earnedMinesYield = Math.floor(poolMinesTotal * playerShareRatio);
-  } else {
-    earnedAgriYield = Math.floor(investments.agri * agriMultiplier);
-    earnedOilYield = Math.floor(investments.oil * oilMultiplier);
-    earnedMinesYield = Math.floor(investments.mines * minesMultiplier);
-  }
-
-  if (isGlobalConditionActive("global-warming")) {
-    earnedAgriYield = Math.floor(earnedAgriYield * activeGlobalCondition.agricultureIncomeMultiplier);
-    earnedOilYield = Math.floor(earnedOilYield * activeGlobalCondition.oilIncomeMultiplier);
-  }
-
-  const grossRoundProfit = earnedAgriYield + earnedOilYield + earnedMinesYield;
-
-  const balanceBeforeRound = coins;
+  let grossRoundProfit = 0;
+  let balanceBeforeRound = coins;
   let loanRepaymentDue = 0;
   let loanRepaymentCollected = 0;
-  if (loans > 0) {
-    loanRepaymentDue = Math.floor(loans * 1.20);
+  let fieldYields = canonicalResult?.fieldYields || null;
+
+  if (canonicalResult) {
+    const settlement = canonicalResult.settlement || {};
+    balanceBeforeRound = Number(settlement.balanceBefore);
+    if (!Number.isFinite(balanceBeforeRound)) balanceBeforeRound = coins;
+    earnedAgriYield = Number(fieldYields?.agri?.income) || 0;
+    earnedOilYield = Number(fieldYields?.oil?.income) || 0;
+    earnedMinesYield = Number(fieldYields?.mines?.income) || 0;
+    grossRoundProfit = Number(canonicalResult.grossProfit) || (
+      earnedAgriYield + earnedOilYield + earnedMinesYield
+    );
+    loanRepaymentDue = Number(settlement.loan?.repaymentDue) || 0;
+    loanRepaymentCollected = Number(canonicalResult.repayment) || 0;
+    coins = Number(canonicalResult.coins) || 0;
+    loans = Number(canonicalResult.loans) || 0;
+    loanInterest = Number(canonicalResult.loanInterest) || 0;
+    lastRoundSettlement = fieldYields && settlement
+      ? { ...settlement, fieldYields, round: Number(roundResult.round) || currentRound }
+      : null;
+  } else {
+    // This fallback is only for an interrupted event stream. The server result is
+    // always the source of truth when the normal round-close event arrives.
+    const activeAlliance = [activePresidentCoalition, activeCounterUnion].find(alliance =>
+      alliance?.members?.some(member => cleanStr(member) === cleanStr(assignedCountry?.name || ""))
+    ) || null;
+    const fieldBasis = activeAlliance
+      ? (activeAlliance.pool || {
+          agri: activeAlliance.totalAgri,
+          oil: activeAlliance.totalOil,
+          mines: activeAlliance.totalMines
+        })
+      : investments;
+    const memberCount = activeAlliance?.members?.length || 1;
+    fieldYields = Object.fromEntries(["agri", "oil", "mines"].map(field => {
+      const multiplier = getEffectiveResourceMultiplier(field);
+      return [field, {
+        basis: Number(fieldBasis[field]) || 0,
+        multiplier,
+        income: Math.floor((Number(fieldBasis[field]) || 0) * multiplier / memberCount),
+        isAlliancePool: Boolean(activeAlliance)
+      }];
+    }));
+    earnedAgriYield = fieldYields.agri.income;
+    earnedOilYield = fieldYields.oil.income;
+    earnedMinesYield = fieldYields.mines.income;
+    grossRoundProfit = earnedAgriYield + earnedOilYield + earnedMinesYield;
+    loanRepaymentDue = bankerRepaymentDue();
     loanRepaymentCollected = Math.min(
       Math.max(0, coins + grossRoundProfit),
       loanRepaymentDue
     );
-    loans = loanRepaymentDue - loanRepaymentCollected;
-  }
-
-  coins = Math.max(0, coins + grossRoundProfit - loanRepaymentCollected);
-  if (canonicalResult) {
-    coins = Number(canonicalResult.coins) || 0;
-    loans = Number(canonicalResult.loans) || 0;
-    earnedAgriYield = 0;
-    earnedOilYield = 0;
-    earnedMinesYield = 0;
-    loanRepaymentCollected = Number(canonicalResult.repayment) || 0;
+    const interestCollected = Math.min(loanInterest, loanRepaymentCollected);
+    const principalCollected = loanRepaymentCollected - interestCollected;
+    loans = Math.max(0, loans - principalCollected);
+    loanInterest = Math.max(0, loanInterest - interestCollected);
+    coins = Math.max(0, coins + grossRoundProfit - loanRepaymentCollected);
+    lastRoundSettlement = {
+      source: activeAlliance
+        ? { type: "alliance", allianceType: activeAlliance.allianceType, memberCount }
+        : { type: "solo" },
+      balanceBefore: balanceBeforeRound,
+      grossFieldIncome: grossRoundProfit,
+      loan: {
+        repaymentDue: loanRepaymentDue,
+        collected: loanRepaymentCollected,
+        principalRemaining: loans,
+        interestRemaining: loanInterest
+      },
+      endingBalance: coins,
+      fieldYields,
+      round: Number(roundResult.round) || currentRound
+    };
   }
   const netBalanceChange = coins - balanceBeforeRound;
 
@@ -3338,7 +3469,7 @@ function calculateAndAdvanceRound(canonicalResult = null, roundResult = {}) {
     : "";
   const netBalanceLabel = netBalanceChange >= 0 ? `+${netBalanceChange}` : `${netBalanceChange}`;
   const loanSummary = loanRepaymentDue > 0
-    ? ` Loan Repayment: -${loanRepaymentCollected} of ${loanRepaymentDue}. Remaining Loan: ${loans}.`
+    ? ` Loan Repayment: -${loanRepaymentCollected} of ${loanRepaymentDue}. Remaining Debt: ${bankerRepaymentDue()}.`
     : " Loan Repayment: -0.";
   const canonicalSummary = canonicalResult
     ? ` Server settlement: Gross +${canonicalResult.grossProfit} Coins.`
