@@ -2989,13 +2989,6 @@ function syncCommanderStatus(totalAllocated = investments.agri + investments.oil
   strip.classList.toggle("has-loan", loanDue > 0);
   strip.classList.toggle("is-ready", isLocalPlayerReadyToClose);
 
-  const steps = ["prepare", "act", "review"];
-  document.querySelectorAll("[data-round-step]").forEach(step => {
-    const stepName = step.dataset.roundStep;
-    step.classList.toggle("is-current", stepName === phase);
-    step.classList.toggle("is-complete", steps.indexOf(stepName) < steps.indexOf(phase));
-  });
-
   if (!gameTabsInitialized) initializeGameTabs();
   if (lastAutoGamePhase !== null && lastAutoGamePhase !== phase) {
     selectGameTab(phase);

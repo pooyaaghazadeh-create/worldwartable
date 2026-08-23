@@ -50,59 +50,6 @@
 
     <main class="dashboard-container">
 
-      <!-- COMMANDER STATUS -->
-      <section id="commander-status-strip" class="commander-status-strip full-width" aria-labelledby="txt-status-kicker">
-        <div class="status-strip-heading">
-          <div>
-            <p class="section-kicker" id="txt-status-kicker">COMMANDER STATUS</p>
-            <h2><span id="status-round-label">Round 1</span><span class="status-round-total"> / 3</span></h2>
-          </div>
-          <div class="status-next-action" aria-live="polite">
-            <span id="txt-next-move">NEXT MOVE</span>
-            <strong id="status-next-action">Lock your investments</strong>
-          </div>
-        </div>
-        <ol class="round-progress" aria-label="Round progress">
-          <li class="is-current" data-round-step="prepare"><span>1</span><strong id="txt-flow-prepare">Prepare</strong></li>
-          <li data-round-step="act"><span>2</span><strong id="txt-flow-act">Act</strong></li>
-          <li data-round-step="review"><span>3</span><strong id="txt-flow-review">Review</strong></li>
-        </ol>
-        <div class="status-metrics" role="list" aria-label="Commander summary">
-          <div class="status-metric" role="listitem">
-            <span id="txt-status-country">Country</span>
-            <strong id="status-country">—</strong>
-          </div>
-          <div class="status-metric status-metric-emphasis" role="listitem">
-            <span id="txt-status-coins">Coins</span>
-            <strong id="status-coins">0</strong>
-          </div>
-          <div class="status-metric" role="listitem">
-            <span id="txt-status-unallocated">Free to use</span>
-            <strong id="status-unallocated">0</strong>
-          </div>
-          <div class="status-metric" role="listitem">
-            <span id="txt-status-loan">Loan</span>
-            <strong id="status-loan">Clear</strong>
-          </div>
-          <div class="status-metric" role="listitem">
-            <span id="txt-status-trades">Trades left</span>
-            <strong id="status-trades">2</strong>
-          </div>
-          <div class="status-metric" role="listitem">
-            <span id="txt-status-battles">Battles left</span>
-            <strong id="status-battles">1</strong>
-          </div>
-        </div>
-        <div class="status-purchase">
-          <div class="status-purchase-copy">
-            <span id="txt-coin-requests">Coin requests</span>
-            <strong id="status-coin-requests">0 / 5</strong>
-            <small id="status-coin-requests-help">Requests used this game</small>
-          </div>
-          <button id="btn-buy-coins" class="btn btn-primary" onclick="requestBuyCoins()">Buy 100 Coins (Max 500)</button>
-        </div>
-      </section>
-
       <nav class="game-tabs" role="tablist" aria-label="Game phases">
         <button id="tab-status" class="game-tab is-active" role="tab" aria-selected="true" aria-controls="tab-panel-status" tabindex="0" data-game-tab="status" onclick="selectGameTab('status')">
           <span class="game-tab-icon" aria-hidden="true">◎</span>
@@ -146,6 +93,54 @@
       </div>
 
       <section id="tab-panel-status" class="game-tab-panel is-active" role="tabpanel" aria-labelledby="tab-status" data-panel="status">
+      <!-- COMMANDER STATUS -->
+      <section id="commander-status-strip" class="commander-status-strip full-width" aria-labelledby="txt-status-kicker">
+        <div class="status-strip-heading">
+          <div>
+            <p class="section-kicker" id="txt-status-kicker">COMMANDER STATUS</p>
+            <h2><span id="status-round-label">Round 1</span><span class="status-round-total"> / 3</span></h2>
+          </div>
+          <div class="status-next-action" aria-live="polite">
+            <span id="txt-next-move">NEXT MOVE</span>
+            <strong id="status-next-action">Lock your investments</strong>
+          </div>
+        </div>
+        <div class="status-metrics" role="list" aria-label="Commander summary">
+          <div class="status-metric" role="listitem">
+            <span id="txt-status-country">Country</span>
+            <strong id="status-country">—</strong>
+          </div>
+          <div class="status-metric status-metric-emphasis" role="listitem">
+            <span id="txt-status-coins">Coins</span>
+            <strong id="status-coins">0</strong>
+          </div>
+          <div class="status-metric" role="listitem">
+            <span id="txt-status-unallocated">Free to use</span>
+            <strong id="status-unallocated">0</strong>
+          </div>
+          <div class="status-metric" role="listitem">
+            <span id="txt-status-loan">Loan</span>
+            <strong id="status-loan">Clear</strong>
+          </div>
+          <div class="status-metric" role="listitem">
+            <span id="txt-status-trades">Trades left</span>
+            <strong id="status-trades">2</strong>
+          </div>
+          <div class="status-metric" role="listitem">
+            <span id="txt-status-battles">Battles left</span>
+            <strong id="status-battles">1</strong>
+          </div>
+        </div>
+        <div class="status-purchase">
+          <div class="status-purchase-copy">
+            <span id="txt-coin-requests">Coin requests</span>
+            <strong id="status-coin-requests">0 / 5</strong>
+            <small id="status-coin-requests-help">Requests used this game</small>
+          </div>
+          <button id="btn-buy-coins" class="btn btn-primary" onclick="requestBuyCoins()">Buy 100 Coins (Max 500)</button>
+        </div>
+      </section>
+
       <!-- GAME CARDS -->
       <section class="game-cards-panel full-width" aria-labelledby="txt-game-cards-title">
         <div class="game-cards-heading">

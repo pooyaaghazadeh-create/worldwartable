@@ -1592,10 +1592,9 @@ body:not(.tv-body) .card {
   text-align: right;
 }
 
-.dashboard-container > .commander-status-strip { order: 1; }
-.dashboard-container > .game-tabs { order: 2; }
-.dashboard-container > .urgent-game-alerts { order: 3; }
-.dashboard-container > .game-tab-panel { order: 4; }
+.dashboard-container > .game-tabs { order: 1; }
+.dashboard-container > .urgent-game-alerts { order: 2; }
+.dashboard-container > .game-tab-panel { order: 3; }
 
 .game-cards-panel {
   background:
@@ -1751,16 +1750,21 @@ input[type="range"] {
 
 @media (max-width: 480px) {
   .game-tabs {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     position: static;
   }
 
   .game-tab {
-    min-height: 48px;
+    min-height: 52px;
+    padding-left: 2px;
+    padding-right: 2px;
   }
 
   .game-tab > span:nth-child(2) {
-    font-size: 0.72rem;
+    font-size: 0.62rem;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
   }
 
   .status-purchase {
