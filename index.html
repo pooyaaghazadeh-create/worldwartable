@@ -6,7 +6,7 @@
   <title>World War Game - Entry</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body style="display: flex; justify-content: center; align-items: center; min-height: 90vh;">
+<body class="entry-page" style="display: flex; justify-content: center; align-items: center; min-height: 90vh;">
 
   <div class="card" style="max-width: 420px; text-align: center; padding: 30px; width: 90%;">
     <h1 style="color: var(--gold-color); font-size: 2rem; margin-bottom: 10px;">🌍 World War Table</h1>
@@ -15,7 +15,7 @@
     <div id="entry-actions">
       <div class="field-box modal-input-box" style="text-align: left; margin-bottom: 20px;">
         <label class="modal-label">Commander Name:</label>
-        <input type="text" id="input-commander-name" class="modal-select" placeholder="Enter commander handle..." />
+        <input type="text" id="input-commander-name" class="modal-select" autofocus autocomplete="nickname" placeholder="Enter commander handle..." />
       </div>
 
       <button class="btn btn-success btn-large" style="font-size: 1.1rem; padding: 14px;" onclick="enterGameAutoSeat()">

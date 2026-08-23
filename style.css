@@ -1222,6 +1222,18 @@ body {
 
 .hidden { display: none !important; }
 
+.entry-page > .card {
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.entry-page input,
+.entry-page button,
+.entry-page a {
+  pointer-events: auto;
+}
+
 .entry-rulebook-link {
   color: #bfdbfe;
   display: inline-block;
