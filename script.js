@@ -976,7 +976,7 @@ window.publishGameResult = function(result) {
   const payload = {
     ...result,
     id: result?.id || createGameResultId(),
-    round: currentRound,
+    round: Number.isInteger(Number(result?.round)) ? Number(result.round) : currentRound,
     publishedAt: result?.publishedAt || Date.now()
   };
 
@@ -1262,6 +1262,44 @@ function applySoloSkirmishResult(result, eventId) {
   );
 }
 
+function publishRoundLifecycleAlerts(event) {
+  const payload = event?.payload || {};
+  const completedRound = Number(payload.round);
+  if (!Number.isInteger(completedRound)) return;
+
+  const localResult = assignedCountry ? payload.results?.[assignedCountry.name] : null;
+  const grossProfit = Number(localResult?.grossProfit);
+  const repayment = Number(localResult?.repayment);
+  const settlementDetails = Number.isFinite(grossProfit)
+    ? `Your settlement: +${grossProfit} Coins from fields${repayment > 0 ? `, with ${repayment} Coins collected for loan repayment` : ""}.`
+    : "The server has settled every commander’s field income and Banker obligations.";
+
+  publishGameResult({
+    id: Number.isFinite(event.id) ? `round-complete-${event.id}` : `round-complete-${completedRound}`,
+    round: completedRound,
+    icon: payload.gameFinished ? "🏆" : "✅",
+    category: payload.gameFinished ? "FINAL ROUND COMPLETE" : "ROUND COMPLETE",
+    tone: "success",
+    title: `Round ${completedRound} Complete`,
+    summary: `Round ${completedRound} has been settled for every commander.`,
+    details: settlementDetails
+  });
+
+  const nextRound = Number(payload.nextRound);
+  if (!payload.gameFinished && Number.isInteger(nextRound)) {
+    publishGameResult({
+      id: Number.isFinite(event.id) ? `round-start-${event.id}` : `round-start-${nextRound}`,
+      round: nextRound,
+      icon: "🎲",
+      category: "NEW ROUND",
+      tone: "neutral",
+      title: `Round ${nextRound} Started`,
+      summary: `Round ${nextRound} is now open.`,
+      details: "New resource multipliers are active. Proficiency Cards are dealt automatically; lock your investments when ready."
+    });
+  }
+}
+
 function applyHostEvent(event) {
   if (!event?.type) return;
   if (Number.isFinite(event.id)) {
@@ -1303,6 +1341,9 @@ function applyHostEvent(event) {
     calculateAndAdvanceRound(result || null, event.payload || {});
     void refreshPlayerEconomy();
     if (event.payload?.cardsDealt) void refreshCurrentHand();
+    if (!document.body?.classList.contains("tv-body")) {
+      publishRoundLifecycleAlerts(event);
+    }
     if (event.payload?.gameFinished && !document.body?.classList.contains("tv-body")) {
       publishGameResult({
         id: Number.isFinite(event.id) ? `final-placements-${event.id}` : "final-placements",
