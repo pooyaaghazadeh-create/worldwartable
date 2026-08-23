@@ -141,6 +141,7 @@ const translations = {
     btnReadyNextRound: "🏁 Ready for Next Round",
     txtHandTitle: "Your Proficiency Hand (2 Cards)",
     txtClickCard: "👆 Click Card to Action",
+    txtAtomicDisabled: "Disabled during Pandemic",
     txtAnnouncements: "📣 Round Announcements",
     txtCommandBoardKicker: "LIVE STRATEGIC MAP",
     txtCommandBoardTitle: "Command Board",
@@ -266,6 +267,7 @@ const translations = {
     btnReadyNextRound: "🏁 Sonraki Raund İçin Hazır",
     txtHandTitle: "Uzmanlık Kart Eliniz (2 Kart)",
     txtClickCard: "👆 Eylem İçin Karta Tıklayın",
+    txtAtomicDisabled: "Pandemi sırasında devre dışı",
     txtAnnouncements: "📣 Raund Duyuruları",
     txtCommandBoardKicker: "CANLI STRATEJİ HARİTASI",
     txtCommandBoardTitle: "Komuta Panosu",
@@ -391,6 +393,7 @@ const translations = {
     btnReadyNextRound: "🏁 آماده برای دور بعد",
     txtHandTitle: "دست کارت‌های مهارت شما (۲ کارت)",
     txtClickCard: "👆 برای اقدام روی کارت کلیک کنید",
+    txtAtomicDisabled: "در زمان همه‌گیری غیرفعال است",
     txtAnnouncements: "📣 اطلاعیه‌های دور",
     txtCommandBoardKicker: "نقشه زنده راهبردی",
     txtCommandBoardTitle: "برد فرماندهی",
@@ -2010,6 +2013,7 @@ function activateGlobalCondition(condition) {
   } catch (e) {}
 
   renderActiveGlobalCondition();
+  renderHand();
   renderTvRoster();
   renderCommandBoard();
   updateTradePreview();
@@ -3954,13 +3958,33 @@ function renderHand() {
   container.replaceChildren();
 
   const displayCards = currentHand.slice(0, 2);
+  const copy = translations[currentLang] || translations.en;
 
   displayCards.forEach((card, index) => {
     const element = document.createElement("div");
-    element.className = "prof-card";
-    element.style.cursor = "pointer";
+    const isAtomicDisabled = card.title === "Atomic Bomb" && isGlobalConditionActive("pandemic");
+    element.className = `prof-card${isAtomicDisabled ? " is-disabled" : ""}`;
+    element.style.cursor = isAtomicDisabled ? "not-allowed" : "pointer";
+    element.setAttribute("role", "button");
+    element.setAttribute("aria-disabled", String(isAtomicDisabled));
+    element.tabIndex = isAtomicDisabled ? -1 : 0;
+    if (isAtomicDisabled) {
+      element.title = copy.txtAtomicDisabled;
+    }
 
-    element.onclick = () => playCardAction(card, index);
+    element.onclick = () => {
+      if (isAtomicDisabled) {
+        logAction(`🦠 Pandemic is active: ${copy.txtAtomicDisabled}.`, "EVENT");
+        return;
+      }
+      playCardAction(card, index);
+    };
+    element.onkeydown = event => {
+      if (!isAtomicDisabled && (event.key === "Enter" || event.key === " ")) {
+        event.preventDefault();
+        playCardAction(card, index);
+      }
+    };
 
     const iconDiv = document.createElement("div");
     iconDiv.className = "card-icon";

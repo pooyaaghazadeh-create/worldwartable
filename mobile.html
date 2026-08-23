@@ -141,6 +141,33 @@
         </div>
       </section>
 
+      <!-- HOST ONLY CONSOLE -->
+      <section id="host-panel" class="card full-width host-card hidden">
+        <div class="card-header-flex">
+          <h2 id="txt-host-title">👑 Game Runner (Host) Controls</h2>
+          <span class="badge-host" id="txt-referee">Master Referee Active</span>
+        </div>
+
+        <div class="host-grid">
+          <div class="host-box full-width">
+            <h3 id="txt-master-ctrl">Master Game Controls</h3>
+            <div class="button-group">
+              <p class="host-auto-flow">🃏 Cards are dealt automatically at round start. 🌍 The Global Condition is revealed automatically after every investment is locked.</p>
+              <button id="btn-host-advance" class="btn btn-success" onclick="hostAdvanceRound()">Close & Calculate Round</button>
+              <button id="btn-host-restart" class="btn btn-danger hidden" onclick="restartCompletedGame()">Restart Game</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- HOST COIN REQUEST APPROVAL QUEUE -->
+        <div class="host-requests-list">
+          <h3 id="txt-pending-requests-title" style="margin-bottom: 5px; color: var(--gold-color);">📥 Pending Coin Purchase Requests</h3>
+          <div id="host-requests-container">
+            <p style="color: var(--text-muted); font-size: 0.9rem;">No pending coin purchase requests.</p>
+          </div>
+        </div>
+      </section>
+
       <!-- GAME CARDS -->
       <section class="game-cards-panel full-width" aria-labelledby="txt-game-cards-title">
         <div class="game-cards-heading">
@@ -175,33 +202,6 @@
         <small id="txt-prepare-section-desc">Set your economy and lock investments</small>
       </div>
 
-      <!-- HOST ONLY CONSOLE -->
-      <section id="host-panel" class="card full-width host-card hidden">
-        <div class="card-header-flex">
-          <h2 id="txt-host-title">👑 Game Runner (Host) Controls</h2>
-          <span class="badge-host" id="txt-referee">Master Referee Active</span>
-        </div>
-        
-        <div class="host-grid">
-          <div class="host-box full-width">
-            <h3 id="txt-master-ctrl">Master Game Controls</h3>
-            <div class="button-group">
-              <p class="host-auto-flow">🃏 Cards are dealt automatically at round start. 🌍 The Global Condition is revealed automatically after every investment is locked.</p>
-              <button id="btn-host-advance" class="btn btn-success" onclick="hostAdvanceRound()">Close & Calculate Round</button>
-              <button id="btn-host-restart" class="btn btn-danger hidden" onclick="restartCompletedGame()">Restart Game</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- HOST COIN REQUEST APPROVAL QUEUE -->
-        <div class="host-requests-list">
-          <h3 id="txt-pending-requests-title" style="margin-bottom: 5px; color: var(--gold-color);">📥 Pending Coin Purchase Requests</h3>
-          <div id="host-requests-container">
-            <p style="color: var(--text-muted); font-size: 0.9rem;">No pending coin purchase requests.</p>
-          </div>
-        </div>
-      </section>
-
       <!-- ECONOMY & BANKER -->
       <section class="card player-card">
         <h2 id="txt-economy-title">Economy &amp; Banker</h2>
@@ -230,11 +230,6 @@
             </div>
           </div>
           <p id="loan-settlement-message" class="loan-settlement-message" role="status">No active Banker loan.</p>
-        </section>
-        <section id="round-settlement-card" class="round-settlement-card hidden" aria-labelledby="txt-settlement-title" aria-live="polite">
-          <h3 id="txt-settlement-title">Latest Server Settlement</h3>
-          <p id="round-settlement-method" class="round-settlement-method"></p>
-          <div id="round-settlement-details" class="round-settlement-details"></div>
         </section>
         <div class="info-row">
           <span id="lbl-merchant-bonus">Merchant Bonus Active:</span>
@@ -363,6 +358,12 @@
         <strong id="txt-review-section">Review</strong>
         <small id="txt-review-section-desc">Check the table and finish the round</small>
       </div>
+
+      <section id="round-settlement-card" class="round-settlement-card card full-width hidden" aria-labelledby="txt-settlement-title" aria-live="polite">
+        <h3 id="txt-settlement-title">Latest Server Settlement</h3>
+        <p id="round-settlement-method" class="round-settlement-method"></p>
+        <div id="round-settlement-details" class="round-settlement-details"></div>
+      </section>
 
       <!-- ROUND CLOSING CONSENSUS STATUS -->
       <section class="card full-width ready-consensus-card compact-round-card">

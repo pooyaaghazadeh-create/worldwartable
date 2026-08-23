@@ -779,6 +779,21 @@ body {
   transform: translateY(-3px);
 }
 
+.prof-card.is-disabled,
+.prof-card.is-disabled:hover {
+  background:
+    linear-gradient(135deg, rgba(71, 85, 105, 0.72), rgba(15, 23, 42, 0.88));
+  border-color: rgba(148, 163, 184, 0.45);
+  filter: grayscale(0.7);
+  opacity: 0.55;
+  transform: none;
+}
+
+.prof-card.is-disabled .card-icon,
+.prof-card.is-disabled .card-title {
+  color: #94a3b8;
+}
+
 .card-icon { font-size: 2rem; margin-bottom: 5px; }
 .card-title { font-weight: bold; color: var(--gold-color); margin-bottom: 4px; }
 .card-desc { font-size: 0.8rem; color: var(--text-muted); }
