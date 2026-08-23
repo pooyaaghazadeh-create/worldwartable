@@ -1169,6 +1169,21 @@ body {
   .resource-workspace {
     display: block;
   }
+
+  .investment-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .resource-field {
+    min-width: 0;
+    text-align: left;
+    width: 100%;
+  }
+
+  .resource-field .investment-adjuster {
+    min-height: 38px;
+  }
 }
 
 .hidden { display: none !important; }
