@@ -480,6 +480,15 @@ function applyRoundResourceMultipliers(multipliers) {
 function applyRoomSnapshot(room) {
   if (!room || !Array.isArray(room.players)) return;
   const serverRound = Number(room.roundNumber);
+  const serverGameFinished = Boolean(room.gameFinished);
+  const isExplicitGameReset = gameFinished && serverRound === 1 && !serverGameFinished;
+  if (
+    Number.isInteger(serverRound) &&
+    serverRound < currentRound &&
+    !isExplicitGameReset
+  ) {
+    return;
+  }
   if (Number.isInteger(serverRound) && serverRound >= 1 && serverRound <= 3) {
     currentRound = serverRound;
   }
@@ -1057,6 +1066,11 @@ function resetRoundAnnouncements() {
   gameActivityLedger = [];
   try { localStorage.removeItem("world_war_round_announcements"); } catch (e) {}
   renderRoundAnnouncements();
+}
+
+function resetLocalSoloBattleAllowance() {
+  skirmishAttacksExecuted = 0;
+  skirmishMaxAllowedAttacks = 1;
 }
 
 function safeStorageGet(key, fallback = null) {
@@ -3513,8 +3527,7 @@ function calculateAndAdvanceRound(canonicalResult = null, roundResult = {}) {
   isLocalPlayerReadyToClose = false;
   readyPlayersSet.clear();
   lockedPlayersSet.clear();
-  skirmishAttacksExecuted = 0;
-  skirmishMaxAllowedAttacks = 1;
+  resetLocalSoloBattleAllowance();
 
   investments = { agri: 0, oil: 0, mines: 0 };
   ["slider-agri", "slider-oil", "slider-mines"].forEach(id => {
