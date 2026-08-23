@@ -152,9 +152,42 @@ const translations = {
     txtBoardReady: "Ready to close",
     txtBoardTrade: "Open Field Trade",
     txtBoardBattle: "Open Field Battle",
+    txtBoardTradeUsed: "Field Trade is unavailable: both proposals have been used this round.",
+    txtBoardBattleLoanLocked: "Settle your loan and interest before Field Battle is available.",
+    txtBoardBattleUsed: "Field Battle is unavailable: all attacks have been used this round.",
+    txtBoardBattleLocked: "Field Battle opens after both countries lock investments.",
+    txtBoardActionsAvailable: "Choose an available action for this country.",
     txtBoardTotalInvestment: "Total field investment: {total} coins",
     txtBoardTotalPending: "Total field investment: pending",
     txtBoardAlliance: "Alliance",
+    txtStatusKicker: "COMMANDER STATUS",
+    txtNextMove: "NEXT MOVE",
+    txtStatusRound: "Round",
+    txtStatusClear: "Clear",
+    ariaRoundProgress: "Round progress",
+    ariaCommanderSummary: "Commander summary",
+    ariaRoundReadiness: "Round readiness",
+    ariaCommandBoard: "Interactive country command board",
+    txtStatusCountry: "Country",
+    txtStatusCoins: "Coins",
+    txtStatusUnallocated: "Free to use",
+    txtStatusLoan: "Loan",
+    txtStatusTrades: "Trades left",
+    txtStatusBattles: "Battles left",
+    txtPrepareSection: "Prepare",
+    txtPrepareSectionDesc: "Set your economy and lock investments",
+    txtFlowPrepare: "Prepare",
+    txtFlowAct: "Act",
+    txtFlowReview: "Review",
+    txtActSection: "Act",
+    txtActSectionDesc: "Trade, battle, or use a proficiency card",
+    txtReviewSection: "Review",
+    txtReviewSectionDesc: "Check the table and finish the round",
+    txtStatusLock: "Lock your investments",
+    txtStatusAct: "Trade, battle, or use a card",
+    txtStatusReady: "Mark yourself ready",
+    txtStatusWaiting: "Waiting for the host",
+    txtStatusComplete: "Review final results",
     btnHostDealUsed: "✓ Cards Dealt This Round",
     btnHostEventLocked: "Deal Cards Before Drawing Event",
     btnHostEventUsed: "✓ Global Event Drawn"
@@ -228,9 +261,42 @@ const translations = {
     txtBoardReady: "Kapanışa hazır",
     txtBoardTrade: "Saha Ticaretini Aç",
     txtBoardBattle: "Saha Savaşını Aç",
+    txtBoardTradeUsed: "Saha Ticareti kullanılamıyor: bu raund iki teklif de kullanıldı.",
+    txtBoardBattleLoanLocked: "Saha Savaşı açılmadan önce kredi ve faizi ödeyin.",
+    txtBoardBattleUsed: "Saha Savaşı kullanılamıyor: bu raund tüm saldırılar kullanıldı.",
+    txtBoardBattleLocked: "Saha Savaşı, iki ülke de yatırımlarını kilitlediğinde açılır.",
+    txtBoardActionsAvailable: "Bu ülke için kullanılabilir bir hamle seçin.",
     txtBoardTotalInvestment: "Toplam saha yatırımı: {total} coin",
     txtBoardTotalPending: "Toplam saha yatırımı: bekliyor",
     txtBoardAlliance: "İttifak",
+    txtStatusKicker: "KOMUTAN DURUMU",
+    txtNextMove: "SIRADAKİ HAMLE",
+    txtStatusRound: "Raund",
+    txtStatusClear: "Yok",
+    ariaRoundProgress: "Raund ilerlemesi",
+    ariaCommanderSummary: "Komutan özeti",
+    ariaRoundReadiness: "Raund hazırlık durumu",
+    ariaCommandBoard: "Etkileşimli ülke komuta panosu",
+    txtStatusCountry: "Ülke",
+    txtStatusCoins: "Coin",
+    txtStatusUnallocated: "Kullanılabilir",
+    txtStatusLoan: "Kredi",
+    txtStatusTrades: "Kalan ticaret",
+    txtStatusBattles: "Kalan savaş",
+    txtPrepareSection: "Hazırlık",
+    txtPrepareSectionDesc: "Ekonominizi kurun ve yatırımları kilitleyin",
+    txtFlowPrepare: "Hazırlık",
+    txtFlowAct: "Hamle",
+    txtFlowReview: "Kontrol",
+    txtActSection: "Hamle",
+    txtActSectionDesc: "Ticaret yapın, savaşın veya uzmanlık kartı kullanın",
+    txtReviewSection: "Kontrol",
+    txtReviewSectionDesc: "Masayı kontrol edin ve raundu tamamlayın",
+    txtStatusLock: "Yatırımları kilitle",
+    txtStatusAct: "Ticaret, savaş veya kart",
+    txtStatusReady: "Hazır olduğunuzu belirtin",
+    txtStatusWaiting: "Yönetici bekleniyor",
+    txtStatusComplete: "Sonuçları inceleyin",
     btnHostDealUsed: "✓ Kartlar Bu Raund Dağıtıldı",
     btnHostEventLocked: "Önce Kartları Dağıtın",
     btnHostEventUsed: "✓ Küresel Etkinlik Çekildi"
@@ -304,9 +370,42 @@ const translations = {
     txtBoardReady: "آماده بستن دور",
     txtBoardTrade: "باز کردن معامله میدانی",
     txtBoardBattle: "باز کردن نبرد میدانی",
+    txtBoardTradeUsed: "معامله میدانی در دسترس نیست: هر دو پیشنهاد این دور استفاده شده‌اند.",
+    txtBoardBattleLoanLocked: "پیش از فعال شدن نبرد میدانی، وام و بهره را تسویه کنید.",
+    txtBoardBattleUsed: "نبرد میدانی در دسترس نیست: همه حمله‌های این دور استفاده شده‌اند.",
+    txtBoardBattleLocked: "نبرد میدانی پس از قفل شدن سرمایه‌گذاری هر دو کشور باز می‌شود.",
+    txtBoardActionsAvailable: "یک اقدام در دسترس برای این کشور انتخاب کنید.",
     txtBoardTotalInvestment: "مجموع سرمایه‌گذاری میدان: {total} سکه",
     txtBoardTotalPending: "مجموع سرمایه‌گذاری میدان: در انتظار",
     txtBoardAlliance: "ائتلاف",
+    txtStatusKicker: "وضعیت فرمانده",
+    txtNextMove: "حرکت بعدی",
+    txtStatusRound: "دور",
+    txtStatusClear: "ندارد",
+    ariaRoundProgress: "پیشرفت دور",
+    ariaCommanderSummary: "خلاصه فرمانده",
+    ariaRoundReadiness: "آمادگی دور",
+    ariaCommandBoard: "برد تعاملی فرماندهی کشورها",
+    txtStatusCountry: "کشور",
+    txtStatusCoins: "سکه",
+    txtStatusUnallocated: "قابل استفاده",
+    txtStatusLoan: "وام",
+    txtStatusTrades: "معامله باقی‌مانده",
+    txtStatusBattles: "نبرد باقی‌مانده",
+    txtPrepareSection: "آماده‌سازی",
+    txtPrepareSectionDesc: "اقتصاد خود را تنظیم و سرمایه‌گذاری‌ها را قفل کنید",
+    txtFlowPrepare: "آماده‌سازی",
+    txtFlowAct: "اقدام",
+    txtFlowReview: "بررسی",
+    txtActSection: "اقدام",
+    txtActSectionDesc: "معامله کنید، بجنگید یا از کارت مهارت استفاده کنید",
+    txtReviewSection: "بررسی",
+    txtReviewSectionDesc: "میز را بررسی و دور را تمام کنید",
+    txtStatusLock: "قفل کردن سرمایه‌گذاری‌ها",
+    txtStatusAct: "معامله، نبرد یا کارت",
+    txtStatusReady: "اعلام آمادگی",
+    txtStatusWaiting: "در انتظار میزبان",
+    txtStatusComplete: "بررسی نتایج نهایی",
     btnHostDealUsed: "✓ کارت‌ها در این دور توزیع شدند",
     btnHostEventLocked: "ابتدا کارت‌ها را توزیع کنید",
     btnHostEventUsed: "✓ رویداد جهانی کشیده شد"
@@ -331,6 +430,13 @@ window.changeLanguage = function(lang) {
     }
   }
 
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === "fa" ? "rtl" : "ltr";
+  document.querySelector(".round-progress")?.setAttribute("aria-label", dict.ariaRoundProgress);
+  document.querySelector(".status-metrics")?.setAttribute("aria-label", dict.ariaCommanderSummary);
+  document.getElementById("round-readiness-meter")?.setAttribute("aria-label", dict.ariaRoundReadiness);
+  document.getElementById("command-board-surface")?.setAttribute("aria-label", dict.ariaCommandBoard);
+
   if (lang === "fa") {
     document.body.style.direction = "rtl";
   } else {
@@ -343,6 +449,7 @@ window.changeLanguage = function(lang) {
   renderRoundSettlement();
   updateAllianceUI();
   renderCommandBoard();
+  syncCommanderStatus();
   logAction(`🌐 Language changed to ${lang.toUpperCase()}.`, "SYSTEM");
 };
 
@@ -1963,9 +2070,24 @@ function renderCommandBoardDetails(player) {
       ? "Both countries must lock investments before a field battle."
       : "Open a Field Battle against this country.";
   battle.onclick = window.openCommandBoardBattle;
+  const guidance = document.createElement("p");
+  guidance.className = "command-board-action-guidance";
+  guidance.id = "command-board-action-guidance";
+  guidance.setAttribute("role", "status");
+  guidance.textContent = blockedByLoan
+    ? copy.txtBoardBattleLoanLocked
+    : battlesRemaining === 0
+      ? copy.txtBoardBattleUsed
+      : trade.disabled
+        ? copy.txtBoardTradeUsed
+        : battle.disabled
+          ? copy.txtBoardBattleLocked
+          : copy.txtBoardActionsAvailable;
+  trade.setAttribute("aria-describedby", guidance.id);
+  battle.setAttribute("aria-describedby", guidance.id);
   actions.append(trade, battle);
 
-  details.append(title, commander, resources, context, actions);
+  details.append(title, commander, resources, context, actions, guidance);
 }
 
 function renderCommandBoard() {
@@ -2185,6 +2307,7 @@ function updateReadyConsensusUI() {
   );
   document.querySelector(".ready-consensus-card")?.classList.toggle("is-complete", readyPlayersSet.size >= total);
   document.querySelector(".phase-badge")?.classList.toggle("is-ready", isLocalPlayerReadyToClose);
+  syncCommanderStatus();
   updateTvRoundStatus();
 }
 
@@ -2642,6 +2765,53 @@ function updateUI() {
   updateAllianceUI();
   syncFieldBattleLoanGate();
   renderCommandBoard();
+  syncCommanderStatus(totalAllocated);
+}
+
+function syncCommanderStatus(totalAllocated = investments.agri + investments.oil + investments.mines) {
+  const strip = document.getElementById("commander-status-strip");
+  if (!strip) return;
+
+  const copy = translations[currentLang] || translations.en;
+  const unallocated = Math.max(0, coins - totalAllocated);
+  const loanDue = bankerRepaymentDue();
+  const tradesRemaining = Math.max(0, fieldTradeAttemptLimit - fieldTradeAttemptsUsed);
+  const battlesRemaining = Math.max(0, skirmishMaxAllowedAttacks - skirmishAttacksExecuted);
+
+  let phase = "prepare";
+  let nextAction = copy.txtStatusLock;
+  if (gameFinished) {
+    phase = "review";
+    nextAction = copy.txtStatusComplete;
+  } else if (investmentsLocked && isLocalPlayerReadyToClose) {
+    phase = "review";
+    nextAction = copy.txtStatusWaiting;
+  } else if (investmentsLocked) {
+    phase = "act";
+    nextAction = copy.txtStatusAct;
+  } else if (loanDue > 0 && unallocated >= loanDue) {
+    nextAction = copy.btnRepayLoan;
+  }
+
+  setTxt("status-round-label", `${copy.txtStatusRound} ${currentRound}`);
+  setTxt("status-country", assignedCountry?.name || "—");
+  setTxt("status-coins", coins);
+  setTxt("status-unallocated", unallocated);
+  setTxt("status-loan", loanDue > 0 ? loanDue : copy.txtStatusClear);
+  setTxt("status-trades", tradesRemaining);
+  setTxt("status-battles", battlesRemaining);
+  setTxt("status-next-action", nextAction);
+
+  strip.dataset.phase = phase;
+  strip.classList.toggle("has-loan", loanDue > 0);
+  strip.classList.toggle("is-ready", isLocalPlayerReadyToClose);
+
+  const steps = ["prepare", "act", "review"];
+  document.querySelectorAll("[data-round-step]").forEach(step => {
+    const stepName = step.dataset.roundStep;
+    step.classList.toggle("is-current", stepName === phase);
+    step.classList.toggle("is-complete", steps.indexOf(stepName) < steps.indexOf(phase));
+  });
 }
 
 function bankerRepaymentDue(principal = loans, persistedInterest = loanInterest) {

@@ -51,6 +51,57 @@
 
     <main class="dashboard-container">
 
+      <!-- COMMANDER STATUS -->
+      <section id="commander-status-strip" class="commander-status-strip full-width" aria-labelledby="txt-status-kicker">
+        <div class="status-strip-heading">
+          <div>
+            <p class="section-kicker" id="txt-status-kicker">COMMANDER STATUS</p>
+            <h2><span id="status-round-label">Round 1</span><span class="status-round-total"> / 3</span></h2>
+          </div>
+          <div class="status-next-action" aria-live="polite">
+            <span id="txt-next-move">NEXT MOVE</span>
+            <strong id="status-next-action">Lock your investments</strong>
+          </div>
+        </div>
+        <ol class="round-progress" aria-label="Round progress">
+          <li class="is-current" data-round-step="prepare"><span>1</span><strong id="txt-flow-prepare">Prepare</strong></li>
+          <li data-round-step="act"><span>2</span><strong id="txt-flow-act">Act</strong></li>
+          <li data-round-step="review"><span>3</span><strong id="txt-flow-review">Review</strong></li>
+        </ol>
+        <div class="status-metrics" role="list" aria-label="Commander summary">
+          <div class="status-metric" role="listitem">
+            <span id="txt-status-country">Country</span>
+            <strong id="status-country">—</strong>
+          </div>
+          <div class="status-metric status-metric-emphasis" role="listitem">
+            <span id="txt-status-coins">Coins</span>
+            <strong id="status-coins">0</strong>
+          </div>
+          <div class="status-metric" role="listitem">
+            <span id="txt-status-unallocated">Free to use</span>
+            <strong id="status-unallocated">0</strong>
+          </div>
+          <div class="status-metric" role="listitem">
+            <span id="txt-status-loan">Loan</span>
+            <strong id="status-loan">Clear</strong>
+          </div>
+          <div class="status-metric" role="listitem">
+            <span id="txt-status-trades">Trades left</span>
+            <strong id="status-trades">2</strong>
+          </div>
+          <div class="status-metric" role="listitem">
+            <span id="txt-status-battles">Battles left</span>
+            <strong id="status-battles">1</strong>
+          </div>
+        </div>
+      </section>
+
+      <div class="flow-section-label flow-prepare-label" role="heading" aria-level="2">
+        <span>01</span>
+        <strong id="txt-prepare-section">Prepare</strong>
+        <small id="txt-prepare-section-desc">Set your economy and lock investments</small>
+      </div>
+
       <!-- HOST ONLY CONSOLE -->
       <section id="host-panel" class="card full-width host-card hidden">
         <div class="card-header-flex">
@@ -93,24 +144,6 @@
           <button id="btn-proposal-accept" class="btn btn-success btn-large" onclick="respondToGenericProposal(true)">✅ ACCEPT</button>
           <button id="btn-proposal-reject" class="btn btn-danger btn-large" onclick="respondToGenericProposal(false)">❌ REJECT</button>
         </div>
-      </section>
-
-      <!-- 2.5D COMMAND BOARD -->
-      <section class="card full-width command-board-card" aria-labelledby="txt-command-board-title">
-        <div class="command-board-header">
-          <div>
-            <p class="section-kicker" id="txt-command-board-kicker">LIVE STRATEGIC MAP</p>
-            <h2 id="txt-command-board-title">Command Board</h2>
-            <p id="txt-command-board-desc">Select an opposing country to inspect its multipliers, total investment, and available actions.</p>
-          </div>
-          <span id="command-board-condition" class="command-board-condition">No active condition</span>
-        </div>
-        <div id="command-board-surface" class="command-board-surface" role="region" aria-label="Interactive country command board">
-          <p id="command-board-empty" class="command-board-empty">Awaiting other seated commanders…</p>
-        </div>
-        <aside id="command-board-details" class="command-board-details" aria-live="polite">
-          <p id="command-board-details-empty">Select an opposing country to view its command profile.</p>
-        </aside>
       </section>
 
       <!-- PLAYER OVERVIEW -->
@@ -170,46 +203,6 @@
         <p id="field-battle-loan-gate" class="field-battle-loan-gate" role="status">Loan settled — Field Battle available.</p>
       </section>
 
-      <!-- ROUND CLOSING CONSENSUS STATUS -->
-      <section class="card full-width ready-consensus-card compact-round-card">
-        <div class="round-close-layout">
-          <div>
-            <h2 id="txt-ready-title">🏁 Round Closure Consensus</h2>
-            <p id="txt-ready-desc">Finish your actions, then mark yourself ready.</p>
-          </div>
-          <div class="round-ready-actions">
-            <div class="round-ready-progress">
-              <span>Ready:</span>
-              <strong><span id="val-ready-count">0</span> / <span id="val-total-players">1</span></strong>
-            </div>
-            <button id="btn-player-ready" class="btn btn-success" onclick="togglePlayerReadyToClose()">🏁 Ready for Next Round</button>
-          </div>
-        </div>
-        <div id="round-readiness-meter" class="round-readiness-meter" role="progressbar" aria-label="Round readiness" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0">
-          <span id="round-readiness-fill"></span>
-        </div>
-        <p id="round-readiness-label" class="round-readiness-label">0 of 1 commanders ready</p>
-      </section>
-
-      <section id="final-placements-panel" class="card full-width final-placements-panel hidden" aria-live="polite" aria-hidden="true">
-        <p class="section-kicker">GAME COMPLETE</p>
-        <h2>🏆 Final Player Placements</h2>
-        <p>Three rounds are complete. Review the rankings together and decide the winner at your table.</p>
-        <ol id="final-placements-list" class="final-placements-list"></ol>
-      </section>
-
-      <!-- ROUND ANNOUNCEMENTS -->
-      <section class="card full-width announcement-card">
-        <div class="card-header-flex">
-          <div>
-            <h2 id="txt-announcements">📣 Round Announcements</h2>
-            <p class="announcement-subtitle">Current round activity only</p>
-          </div>
-          <span class="round-live-indicator">LIVE</span>
-        </div>
-        <div id="round-announcements" class="announcement-feed" aria-live="polite"></div>
-      </section>
-
       <!-- FIELD INVESTMENTS -->
       <section class="resource-workspace full-width">
         <section class="card investment-card">
@@ -267,6 +260,30 @@
         </section>
       </section>
 
+      <div class="flow-section-label flow-act-label" role="heading" aria-level="2">
+        <span>02</span>
+        <strong id="txt-act-section">Act</strong>
+        <small id="txt-act-section-desc">Trade, battle, or use a proficiency card</small>
+      </div>
+
+      <!-- 2.5D COMMAND BOARD -->
+      <section class="card full-width command-board-card" aria-labelledby="txt-command-board-title">
+        <div class="command-board-header">
+          <div>
+            <p class="section-kicker" id="txt-command-board-kicker">LIVE STRATEGIC MAP</p>
+            <h2 id="txt-command-board-title">Command Board</h2>
+            <p id="txt-command-board-desc">Select an opposing country to inspect its multipliers, total investment, and available actions.</p>
+          </div>
+          <span id="command-board-condition" class="command-board-condition">No active condition</span>
+        </div>
+        <div id="command-board-surface" class="command-board-surface" role="region" aria-label="Interactive country command board">
+          <p id="command-board-empty" class="command-board-empty">Awaiting other seated commanders…</p>
+        </div>
+        <aside id="command-board-details" class="command-board-details" aria-live="polite">
+          <p id="command-board-details-empty">Select an opposing country to view its command profile.</p>
+        </aside>
+      </section>
+
       <!-- ACTIVE COALITION & MERGER DISPLAY -->
       <section id="coalition-panel" class="card full-width hidden" style="border: 2px solid var(--gold-color); display: none;">
         <div class="card-header-flex">
@@ -307,6 +324,52 @@
           <span id="txt-click-card" class="lock-indicator">👆 Click Card to Action</span>
         </div>
         <div id="cards-container" class="cards-grid"></div>
+      </section>
+
+      <div class="flow-section-label flow-review-label" role="heading" aria-level="2">
+        <span>03</span>
+        <strong id="txt-review-section">Review</strong>
+        <small id="txt-review-section-desc">Check the table and finish the round</small>
+      </div>
+
+      <!-- ROUND CLOSING CONSENSUS STATUS -->
+      <section class="card full-width ready-consensus-card compact-round-card">
+        <div class="round-close-layout">
+          <div>
+            <h2 id="txt-ready-title">🏁 Round Closure Consensus</h2>
+            <p id="txt-ready-desc">Finish your actions, then mark yourself ready.</p>
+          </div>
+          <div class="round-ready-actions">
+            <div class="round-ready-progress">
+              <span>Ready:</span>
+              <strong><span id="val-ready-count">0</span> / <span id="val-total-players">1</span></strong>
+            </div>
+            <button id="btn-player-ready" class="btn btn-success" onclick="togglePlayerReadyToClose()">🏁 Ready for Next Round</button>
+          </div>
+        </div>
+        <div id="round-readiness-meter" class="round-readiness-meter" role="progressbar" aria-label="Round readiness" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0">
+          <span id="round-readiness-fill"></span>
+        </div>
+        <p id="round-readiness-label" class="round-readiness-label">0 of 1 commanders ready</p>
+      </section>
+
+      <section id="final-placements-panel" class="card full-width final-placements-panel hidden" aria-live="polite" aria-hidden="true">
+        <p class="section-kicker">GAME COMPLETE</p>
+        <h2>🏆 Final Player Placements</h2>
+        <p>Three rounds are complete. Review the rankings together and decide the winner at your table.</p>
+        <ol id="final-placements-list" class="final-placements-list"></ol>
+      </section>
+
+      <!-- ROUND ANNOUNCEMENTS -->
+      <section class="card full-width announcement-card">
+        <div class="card-header-flex">
+          <div>
+            <h2 id="txt-announcements">📣 Round Announcements</h2>
+            <p class="announcement-subtitle">Current round activity only</p>
+          </div>
+          <span class="round-live-indicator">LIVE</span>
+        </div>
+        <div id="round-announcements" class="announcement-feed" aria-live="polite"></div>
       </section>
 
     </main>
@@ -527,7 +590,7 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260821-command-board-2"></script>
+  <script src="script.js?v=20260823-ui-modernization-1"></script>
   <script>
     window.addEventListener("DOMContentLoaded", () => {
       initMobilePlayerSession();
