@@ -95,6 +95,32 @@
         </div>
       </section>
 
+      <!-- GAME CARDS -->
+      <section class="game-cards-panel full-width" aria-labelledby="txt-game-cards-title">
+        <div class="game-cards-heading">
+          <div>
+            <p class="section-kicker" id="txt-game-cards-kicker">ROUND DECK</p>
+            <h2 id="txt-game-cards-title">Game Cards</h2>
+            <p id="txt-game-cards-desc">Live conditions and your available proficiency cards.</p>
+          </div>
+          <span class="game-cards-badge">LIVE</span>
+        </div>
+        <div class="game-cards-grid">
+          <section id="global-event-banner" class="card global-event-card hidden" style="display: none;">
+            <h3 id="txt-global-event-title" style="color: var(--secondary-color); margin-bottom: 5px;">🌍 Active Global Event</h3>
+            <strong id="global-event-name" style="font-size: 1.1rem; color: white;"></strong>
+            <p id="global-event-desc" style="color: var(--text-muted); margin-top: 5px;"></p>
+          </section>
+          <section class="card hand-card">
+            <div class="card-header-flex">
+              <h3 id="txt-hand-title">Your Proficiency Hand (2 Cards)</h3>
+              <span id="txt-click-card" class="lock-indicator">👆 Click Card to Action</span>
+            </div>
+            <div id="cards-container" class="cards-grid"></div>
+          </section>
+        </div>
+      </section>
+
       <div class="flow-section-label flow-prepare-label" role="heading" aria-level="2">
         <span>01</span>
         <strong id="txt-prepare-section">Prepare</strong>
@@ -126,13 +152,6 @@
             <p style="color: var(--text-muted); font-size: 0.9rem;">No pending coin purchase requests.</p>
           </div>
         </div>
-      </section>
-
-      <!-- GLOBAL EVENT BANNER -->
-      <section id="global-event-banner" class="card full-width global-event-card hidden" style="display: none;">
-        <h2 id="txt-global-event-title" style="color: var(--secondary-color); margin-bottom: 5px;">🌍 Active Global Event</h2>
-        <strong id="global-event-name" style="font-size: 1.1rem; color: white;"></strong>
-        <p id="global-event-desc" style="color: var(--text-muted); margin-top: 5px;"></p>
       </section>
 
       <!-- PENDING TRADE & ALLIANCE BANNER -->
@@ -302,15 +321,6 @@
         <h2 id="txt-counter-union-title" style="color: var(--danger-color); margin-bottom: 5px;">⚠️ Superpower Mega-Merger Formed!</h2>
         <p id="txt-counter-union-desc" style="color: var(--text-muted); margin-bottom: 15px;">Up to 3 unaligned powers can propose a Counter-Union to pool resources and defend against the Merger.</p>
         <button id="btn-counter-union" class="btn btn-danger btn-large" onclick="openCounterUnionModal()">🛡️ Propose Defensive Counter-Union</button>
-      </section>
-
-      <!-- PROFICIENCY CARDS HAND -->
-      <section class="card hand-card full-width">
-        <div class="card-header-flex">
-          <h2 id="txt-hand-title">Your Proficiency Hand (2 Cards)</h2>
-          <span id="txt-click-card" class="lock-indicator">👆 Click Card to Action</span>
-        </div>
-        <div id="cards-container" class="cards-grid"></div>
       </section>
 
       <div class="flow-section-label flow-review-label" role="heading" aria-level="2">
