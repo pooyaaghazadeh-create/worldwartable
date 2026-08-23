@@ -1420,7 +1420,6 @@ function applyHostEvent(event) {
     pendingTradeProposal = null;
     pendingOutgoingTrade = null;
     updateAllianceUI();
-    showTradeResultNotification(event.payload);
     publishGameResult({
       id: Number.isFinite(event.id)
         ? `trade-response-${event.id}`
@@ -1676,25 +1675,6 @@ function activateGlobalCondition(condition) {
 
 function clearActiveGlobalCondition() {
   activateGlobalCondition(null);
-}
-
-function showTradeResultNotification(payload) {
-  const panel = document.getElementById("trade-result-notification");
-  if (!panel || !payload) return;
-  const approved = Boolean(payload.approved);
-  setTxt(
-    "trade-result-notification-title",
-    approved ? "🤝 Field Trade Accepted" : "❌ Field Trade Rejected"
-  );
-  setTxt(
-    "trade-result-notification-message",
-    approved
-      ? `${payload.proposerCountry} and ${payload.targetCountry} completed their field trade.`
-      : `${payload.targetCountry} rejected the field trade from ${payload.proposerCountry}.`
-  );
-  panel.classList.toggle("is-approved", approved);
-  panel.classList.toggle("is-rejected", !approved);
-  panel.classList.remove("hidden");
 }
 
 // ==========================================
