@@ -85,6 +85,16 @@
         <p id="global-event-desc" style="color: var(--text-muted); margin-top: 5px;"></p>
       </section>
 
+      <!-- PENDING TRADE & ALLIANCE BANNER -->
+      <section id="pending-proposal-banner" class="card full-width pending-proposal-banner hidden" style="border: 2px solid var(--gold-color); text-align: center; display: none;">
+        <h2 id="txt-proposal-title" style="color: var(--gold-color); margin-bottom: 5px;">📜 Invitation Received</h2>
+        <p id="txt-proposal-desc" style="color: var(--text-muted); margin-bottom: 15px;"></p>
+        <div class="button-group" style="justify-content: center;">
+          <button id="btn-proposal-accept" class="btn btn-success btn-large" onclick="respondToGenericProposal(true)">✅ ACCEPT</button>
+          <button id="btn-proposal-reject" class="btn btn-danger btn-large" onclick="respondToGenericProposal(false)">❌ REJECT</button>
+        </div>
+      </section>
+
       <!-- 2.5D COMMAND BOARD -->
       <section class="card full-width command-board-card" aria-labelledby="txt-command-board-title">
         <div class="command-board-header">
@@ -255,16 +265,6 @@
             <button id="btn-lock-invest" class="btn btn-primary btn-large" onclick="confirmInvestments()">Lock In Investments</button>
           </div>
         </section>
-      </section>
-
-      <!-- PENDING TRADE & ALLIANCE BANNER -->
-      <section id="pending-proposal-banner" class="card full-width hidden" style="border: 2px solid var(--gold-color); text-align: center; display: none;">
-        <h2 id="txt-proposal-title" style="color: var(--gold-color); margin-bottom: 5px;">📜 Invitation Received</h2>
-        <p id="txt-proposal-desc" style="color: var(--text-muted); margin-bottom: 15px;"></p>
-        <div class="button-group" style="justify-content: center;">
-          <button id="btn-proposal-accept" class="btn btn-success btn-large" onclick="respondToGenericProposal(true)">✅ ACCEPT</button>
-          <button id="btn-proposal-reject" class="btn btn-danger btn-large" onclick="respondToGenericProposal(false)">❌ REJECT</button>
-        </div>
       </section>
 
       <!-- ACTIVE COALITION & MERGER DISPLAY -->
