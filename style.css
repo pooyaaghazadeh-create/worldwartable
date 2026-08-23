@@ -1582,6 +1582,72 @@ input[type="range"] {
   }
 }
 
+@media (max-width: 480px) {
+  body:not(.tv-body) {
+    padding: 8px;
+  }
+
+  body:not(.tv-body) .game-header {
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 3px 0 10px;
+  }
+
+  body:not(.tv-body) .game-header h1 {
+    font-size: clamp(1.15rem, 6vw, 1.45rem);
+    line-height: 1.05;
+  }
+
+  body:not(.tv-body) .header-controls {
+    align-items: start;
+    display: grid;
+    gap: 6px;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  body:not(.tv-body) .lang-selector {
+    align-items: center;
+    display: flex;
+    gap: 4px;
+  }
+
+  body:not(.tv-body) .lang-selector select {
+    font-size: 0.74rem;
+    min-height: 34px;
+    padding: 4px 6px;
+    width: auto;
+  }
+
+  body:not(.tv-body) .role-switcher {
+    display: flex;
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    gap: 5px;
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  body:not(.tv-body) .role-switcher > label {
+    color: var(--text-muted);
+    flex: 0 0 100%;
+    font-size: 0.68rem;
+    line-height: 1;
+  }
+
+  body:not(.tv-body) .role-switcher > .btn,
+  body:not(.tv-body) .role-switcher > .rulebook-link {
+    flex: 1 1 calc(33.333% - 5px);
+    font-size: 0.69rem;
+    line-height: 1.1;
+    min-height: 34px;
+    min-width: 0;
+    overflow: hidden;
+    padding: 5px 6px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
 .tv-header {
   align-items: center;
   display: flex;
