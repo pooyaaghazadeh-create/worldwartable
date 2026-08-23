@@ -50,6 +50,7 @@ let hostEventPollingStarted = false;
 const seenGameResultAlertIds = new Set();
 const soundPreferenceKey = "world_war_sound_enabled";
 const visualPulseTimers = new WeakMap();
+const MAX_COIN_REQUESTS = 5;
 
 const GLOBAL_CONDITION_CARDS = [
   {
@@ -177,6 +178,8 @@ const translations = {
     txtStatusLoan: "Loan",
     txtStatusTrades: "Trades left",
     txtStatusBattles: "Battles left",
+    txtCoinRequests: "Coin requests",
+    txtCoinRequestsUsed: "{used} / {limit} used this game",
     txtPrepareSection: "Prepare",
     txtPrepareSectionDesc: "Set your economy and lock investments",
     txtFlowPrepare: "Prepare",
@@ -289,6 +292,8 @@ const translations = {
     txtStatusLoan: "Kredi",
     txtStatusTrades: "Kalan ticaret",
     txtStatusBattles: "Kalan savaş",
+    txtCoinRequests: "Coin talepleri",
+    txtCoinRequestsUsed: "Bu oyunda {used} / {limit} kullanıldı",
     txtPrepareSection: "Hazırlık",
     txtPrepareSectionDesc: "Ekonominizi kurun ve yatırımları kilitleyin",
     txtFlowPrepare: "Hazırlık",
@@ -401,6 +406,8 @@ const translations = {
     txtStatusLoan: "وام",
     txtStatusTrades: "معامله باقی‌مانده",
     txtStatusBattles: "نبرد باقی‌مانده",
+    txtCoinRequests: "درخواست سکه",
+    txtCoinRequestsUsed: "{used} / {limit} استفاده در این بازی",
     txtPrepareSection: "آماده‌سازی",
     txtPrepareSectionDesc: "اقتصاد خود را تنظیم و سرمایه‌گذاری‌ها را قفل کنید",
     txtFlowPrepare: "آماده‌سازی",
@@ -459,6 +466,7 @@ window.changeLanguage = function(lang) {
   updateAllianceUI();
   renderCommandBoard();
   syncCommanderStatus();
+  syncCoinPurchaseControl();
   logAction(`🌐 Language changed to ${lang.toUpperCase()}.`, "SYSTEM");
 };
 
@@ -513,6 +521,13 @@ if (gameBroadcast) {
       logAction(`❌ Trade Proposal Rejected by target nation!`, "TRADE");
     } else if (data.type === "REQUEST_COINS") {
       pendingCoinRequests.push(data.payload);
+      if (
+        assignedCountry &&
+        cleanStr(data.payload?.country) === cleanStr(assignedCountry.name) &&
+        Number.isFinite(Number(data.payload?.requestCount))
+      ) {
+        coinRequestsUsed = Number(data.payload.requestCount);
+      }
       renderHostCoinRequests();
       syncCoinPurchaseControl();
     } else if (data.type === "SKIRMISH_DEFEAT") {
@@ -557,6 +572,7 @@ let investments = { agri: 0, oil: 0, mines: 0 };
 let activeRoomPlayers = [];
 let pendingServerTrades = [];
 let fieldTradeAttemptsUsed = 0;
+let coinRequestsUsed = 0;
 const fieldTradeAttemptLimit = 2;
 let hostPollInFlight = false;
 let selectedBoardCountry = "";
@@ -673,6 +689,7 @@ async function refreshPlayerEconomy() {
     coins = Number(session.economy.coins) || 0;
     loans = Number(session.economy.loans) || 0;
     loanInterest = Number(session.economy.loanInterest) || 0;
+    coinRequestsUsed = Math.max(0, Number(session.economy.coinRequestsUsed) || 0);
     if (session.economy.battleAllowance) {
       skirmishAttacksExecuted = Number(session.economy.battleAllowance.attacksUsed) || 0;
       skirmishMaxAllowedAttacks = Number(session.economy.battleAllowance.maxAttacks) || 1;
@@ -1525,6 +1542,13 @@ function applyHostEvent(event) {
     window.setTimeout(() => pulseTvSeat(event.payload?.country, "is-ready-highlight"), 120);
   } else if (event.type === "REQUEST_COINS") {
     pendingCoinRequests.push(event.payload);
+    if (
+      assignedCountry &&
+      cleanStr(event.payload?.country) === cleanStr(assignedCountry.name) &&
+      Number.isFinite(Number(event.payload?.requestCount))
+    ) {
+      coinRequestsUsed = Number(event.payload.requestCount);
+    }
     renderHostCoinRequests();
     syncCoinPurchaseControl();
   } else if (event.type === "ACTIVATE_GENERAL") {
@@ -1919,6 +1943,7 @@ async function initMobilePlayerSession() {
     coins = Number(session.economy.coins) || 0;
     loans = Number(session.economy.loans) || 0;
     loanInterest = Number(session.economy.loanInterest) || 0;
+    coinRequestsUsed = Math.max(0, Number(session.economy.coinRequestsUsed) || 0);
     if (session.economy.lastSettlement?.fieldYields) {
       lastRoundSettlement = session.economy.lastSettlement;
     }
@@ -2652,6 +2677,14 @@ window.drawGlobalCondition = async function() {
 // COIN PURCHASE REQUEST ENGINE
 // ==========================================
 window.requestBuyCoins = async function() {
+  if (coinRequestsUsed >= MAX_COIN_REQUESTS) {
+    logAction(
+      `🛑 Request limit reached: you can make up to ${MAX_COIN_REQUESTS} coin purchase requests per game.`,
+      "BANK"
+    );
+    return;
+  }
+
   const reservedCoins = getPendingCoinPurchaseAmount();
   if (coins + reservedCoins + 100 > MAX_PURCHASE_CAP) {
     logAction(
@@ -2682,10 +2715,22 @@ function syncCoinPurchaseControl() {
 
   const reservedCoins = getPendingCoinPurchaseAmount();
   const capped = coins + reservedCoins + 100 > MAX_PURCHASE_CAP;
-  button.disabled = capped;
-  button.title = capped
-    ? `Approved coins plus pending purchase requests cannot exceed ${MAX_PURCHASE_CAP} coins.`
-    : "Request 100 coins from the host.";
+  const requestLimitReached = coinRequestsUsed >= MAX_COIN_REQUESTS;
+  button.disabled = capped || requestLimitReached || gameFinished;
+  button.title = requestLimitReached
+    ? `You have reached the ${MAX_COIN_REQUESTS}-request limit for this game.`
+    : capped
+      ? `Approved coins plus pending purchase requests cannot exceed ${MAX_PURCHASE_CAP} coins.`
+      : "Request 100 coins from the host.";
+
+  setTxt("status-coin-requests", `${coinRequestsUsed} / ${MAX_COIN_REQUESTS}`);
+  const copy = translations[currentLang] || translations.en;
+  setTxt(
+    "status-coin-requests-help",
+    (copy.txtCoinRequestsUsed || "{used} / {limit} used this game")
+      .replace("{used}", coinRequestsUsed)
+      .replace("{limit}", MAX_COIN_REQUESTS)
+  );
 }
 
 function renderHostCoinRequests() {

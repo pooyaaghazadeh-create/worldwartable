@@ -1421,6 +1421,51 @@ body:not(.tv-body) .card {
   color: #fca5a5;
 }
 
+.status-purchase {
+  align-items: center;
+  border-top: 1px solid rgba(148, 163, 184, 0.24);
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin-top: 10px;
+  padding-top: 10px;
+}
+
+.status-purchase-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.status-purchase-copy > span {
+  color: #a8bbd1;
+  font-size: 0.66rem;
+  font-weight: 750;
+  line-height: 1.1;
+}
+
+.status-purchase-copy strong {
+  color: #fde68a;
+  font-size: 1rem;
+  line-height: 1.1;
+}
+
+.status-purchase-copy small {
+  color: var(--text-muted);
+  font-size: 0.67rem;
+  line-height: 1.2;
+}
+
+.status-purchase .btn {
+  flex: 0 1 210px;
+  font-size: 0.79rem;
+  min-height: 40px;
+}
+
+.status-purchase .btn:disabled {
+  cursor: not-allowed;
+}
+
 .flow-section-label {
   align-items: baseline;
   border-bottom: 1px solid rgba(148, 163, 184, 0.28);
@@ -1616,6 +1661,17 @@ input[type="range"] {
 }
 
 @media (max-width: 480px) {
+  .status-purchase {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .status-purchase .btn {
+    flex-basis: auto;
+    width: 100%;
+  }
+
   .status-strip-heading {
     align-items: stretch;
     flex-direction: column;

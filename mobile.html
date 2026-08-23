@@ -93,6 +93,14 @@
             <strong id="status-battles">1</strong>
           </div>
         </div>
+        <div class="status-purchase">
+          <div class="status-purchase-copy">
+            <span id="txt-coin-requests">Coin requests</span>
+            <strong id="status-coin-requests">0 / 5</strong>
+            <small id="status-coin-requests-help">Requests used this game</small>
+          </div>
+          <button id="btn-buy-coins" class="btn btn-primary" onclick="requestBuyCoins()">Buy 100 Coins (Max 500)</button>
+        </div>
       </section>
 
       <!-- GAME CARDS -->
@@ -203,7 +211,6 @@
           <strong id="merchant-status" style="color: var(--gold-color);">No ❌</strong>
         </div>
         <div class="player-overview-actions">
-          <button id="btn-buy-coins" class="btn btn-primary" onclick="requestBuyCoins()">Buy 100 Coins (Max 500)</button>
           <button id="btn-repay-loan" class="btn btn-danger" type="button" onclick="repayBankerLoan()" disabled>Repay Loan + Interest</button>
         </div>
         <p id="field-battle-loan-gate" class="field-battle-loan-gate" role="status">Loan settled — Field Battle available.</p>

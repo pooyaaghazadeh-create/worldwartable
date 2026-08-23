@@ -40,6 +40,7 @@ RESOURCE_FIELDS = ("agri", "oil", "mines")
 ROUND_MULTIPLIER_VALUES = (1, 2, 3)
 COIN_PURCHASE_AMOUNT = 100
 MAX_PURCHASE_CAP = 500
+MAX_COIN_REQUESTS = 5
 GLOBAL_CONDITIONS = (
     {"id": "economic-recession"},
     {"id": "global-warming"},
@@ -504,6 +505,9 @@ class GameHandler(SimpleHTTPRequestHandler):
             wallet_row = connection.execute(
                 "SELECT coins, loans, loan_interest FROM player_wallets WHERE player_id = ?", (player["id"],)
             ).fetchone()
+            coin_request_count = connection.execute(
+                "SELECT COUNT(*) FROM coin_requests WHERE player_id = ?", (player["id"],)
+            ).fetchone()[0]
             lock_row = connection.execute(
                 "SELECT agri, oil, mines FROM player_round_resources WHERE player_id = ?", (player["id"],)
             ).fetchone()
@@ -533,6 +537,8 @@ class GameHandler(SimpleHTTPRequestHandler):
                     "coins": wallet_row["coins"] if wallet_row else 0,
                     "loans": wallet_row["loans"] if wallet_row else 0,
                     "loanInterest": wallet_row["loan_interest"] if wallet_row else 0,
+                    "coinRequestsUsed": coin_request_count,
+                    "coinRequestLimit": MAX_COIN_REQUESTS,
                     "investments": {field: lock_row[field] for field in ("agri", "oil", "mines")} if lock_row else None,
                     "lastSettlement": last_settlement,
                     "battleAllowance": {
@@ -1837,6 +1843,19 @@ class GameHandler(SimpleHTTPRequestHandler):
                 """,
                 (player["id"],),
             ).fetchone()[0]
+            request_count = connection.execute(
+                "SELECT COUNT(*) FROM coin_requests WHERE player_id = ?", (player["id"],)
+            ).fetchone()[0]
+            if request_count >= MAX_COIN_REQUESTS:
+                self.send_json(
+                    {
+                        "error": (
+                            f"You have reached the limit of {MAX_COIN_REQUESTS} coin purchase requests."
+                        )
+                    },
+                    HTTPStatus.CONFLICT,
+                )
+                return
             if not wallet or wallet["coins"] + pending_amount + COIN_PURCHASE_AMOUNT > MAX_PURCHASE_CAP:
                 self.send_json(
                     {
@@ -1859,6 +1878,8 @@ class GameHandler(SimpleHTTPRequestHandler):
                     "requestId": cursor.lastrowid,
                     "country": player["country"],
                     "amount": COIN_PURCHASE_AMOUNT,
+                    "requestCount": request_count + 1,
+                    "requestLimit": MAX_COIN_REQUESTS,
                 },
             )
         self.send_json({"event": event}, HTTPStatus.CREATED)
