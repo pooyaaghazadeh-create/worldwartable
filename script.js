@@ -97,7 +97,7 @@ const translations = {
     btnHostAdvance: "Close & Calculate Round",
     txtGlobalEventTitle: "🌍 Active Global Event",
     txtPendingRequestsTitle: "📥 Pending Coin Purchase Requests",
-    txtOverviewTitle: "Player Overview",
+    txtEconomyTitle: "Economy & Banker",
     lblCountry: "Country:",
     lblCoins: "Total Coins Balance:",
     lblLoan: "Active Loan:",
@@ -206,7 +206,7 @@ const translations = {
     btnHostAdvance: "Raundu Kapat ve Hesapla",
     txtGlobalEventTitle: "🌍 Aktif Küresel Etkinlik",
     txtPendingRequestsTitle: "📥 Bekleyen Coin Satın Alım İstekleri",
-    txtOverviewTitle: "Oyuncu Özeti",
+    txtEconomyTitle: "Ekonomi ve Banker",
     lblCountry: "Ülke:",
     lblCoins: "Toplam Coin Bakiyesi:",
     lblLoan: "Aktif Kredi:",
@@ -315,7 +315,7 @@ const translations = {
     btnHostAdvance: "بستن و محاسبه نتایج دور",
     txtGlobalEventTitle: "🌍 رویداد جهانی فعال",
     txtPendingRequestsTitle: "📥 درخواست‌های معلق خرید سکه",
-    txtOverviewTitle: "نمای کلی بازیکن",
+    txtEconomyTitle: "اقتصاد و Banker",
     lblCountry: "کشور:",
     lblCoins: "موجودی کل سکه:",
     lblLoan: "وام فعال:",
@@ -1939,7 +1939,6 @@ async function initMobilePlayerSession() {
   syncHostAccessUI();
   syncHostButtonsUI();
   updateReadyConsensusUI();
-  setTxt("player-country", `${assignedCountry.name} (${handleName})`);
   logAction(`Welcome ${handleName}! Your wallet is synchronized with the game server.`, "SYSTEM");
   startHostEventPolling();
 }
@@ -2306,7 +2305,6 @@ function updateReadyConsensusUI() {
       : `${readyPlayersSet.size} of ${total} commanders ready`
   );
   document.querySelector(".ready-consensus-card")?.classList.toggle("is-complete", readyPlayersSet.size >= total);
-  document.querySelector(".phase-badge")?.classList.toggle("is-ready", isLocalPlayerReadyToClose);
   syncCommanderStatus();
   updateTvRoundStatus();
 }
@@ -2737,8 +2735,6 @@ async function resolveCoinRequest(requestId, approved) {
 }
 
 function updateUI() {
-  setTxt("player-coins", coins);
-  setTxt("player-loan", bankerRepaymentDue());
   setTxt("total-budget", coins);
   setTxt("merchant-status", isMerchantActive ? "Yes (+10%) ✅" : "No ❌");
   updateLoanCalculator();
@@ -3731,7 +3727,6 @@ function calculateAndAdvanceRound(canonicalResult = null, roundResult = {}) {
   renderFinalPlacements();
   syncFinishedGameControls();
 
-  setTxt("current-phase", gameFinished ? "Game Complete" : `Round ${currentRound} / 3`);
   const conditionSummary = completedCondition
     ? ` Global Condition resolved: ${completedCondition.title}.`
     : "";

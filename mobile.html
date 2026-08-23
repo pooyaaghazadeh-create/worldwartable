@@ -45,7 +45,6 @@
           <a class="btn btn-small rulebook-link" href="rulebook.html" target="_blank" rel="noopener">📖 Rulebook</a>
           <button id="btn-exit-game" class="btn btn-small btn-danger" type="button" onclick="exitGame()">⏻ Exit Game</button>
         </div>
-        <div class="phase-badge"><span id="lbl-status">Status</span>: <span id="current-phase">Round 1 / 3</span></div>
       </div>
     </header>
 
@@ -146,21 +145,9 @@
         </div>
       </section>
 
-      <!-- PLAYER OVERVIEW -->
+      <!-- ECONOMY & BANKER -->
       <section class="card player-card">
-        <h2 id="txt-overview-title">Player Overview</h2>
-        <div class="info-row">
-          <span id="lbl-country">Country:</span>
-          <strong id="player-country">Loading Country...</strong>
-        </div>
-        <div class="info-row highlight">
-          <span id="lbl-coins">Total Coins Balance:</span>
-          <strong><span id="player-coins">0</span> / 500 Max Coins</strong>
-        </div>
-        <div class="info-row">
-          <span id="lbl-loan">Active Loan:</span>
-          <strong><span id="player-loan">0</span> Coins</strong>
-        </div>
+        <h2 id="txt-economy-title">Economy &amp; Banker</h2>
         <section class="loan-calculator" aria-labelledby="txt-loan-calculator-title">
           <h3 id="txt-loan-calculator-title">Banker Loan Calculator</h3>
           <div class="loan-calculator-grid">
