@@ -440,6 +440,8 @@ let roundResourceMultipliers = {};
 let investments = { agri: 0, oil: 0, mines: 0 };
 let activeRoomPlayers = [];
 let pendingServerTrades = [];
+let fieldTradeAttemptsUsed = 0;
+const fieldTradeAttemptLimit = 2;
 let hostPollInFlight = false;
 let selectedBoardCountry = "";
 let commandBoardStateSignature = "";
@@ -487,6 +489,14 @@ function applyRoomSnapshot(room) {
   updateCountryUI();
   activeRoomPlayers = room.players;
   pendingServerTrades = Array.isArray(room.pendingTrades) ? room.pendingTrades : [];
+  const localPlayer = activeRoomPlayers.find(player =>
+    cleanStr(player.country) === cleanStr(assignedCountry?.name || "")
+  );
+  if (localPlayer) {
+    fieldTradeAttemptsUsed = Number(localPlayer.tradeAttemptsUsed) || 0;
+    skirmishAttacksExecuted = Number(localPlayer.soloAttacksUsed) || 0;
+    skirmishMaxAllowedAttacks = Number(localPlayer.soloMaxAttacks) || 1;
+  }
   registeredPlayersCount = activeRoomPlayers.length || 1;
   lockedPlayersSet = new Set(
     activeRoomPlayers.filter(player => player.locked).map(player => cleanStr(player.country))
@@ -1344,6 +1354,7 @@ function applyHostEvent(event) {
     syncCoinPurchaseControl();
   } else if (event.type === "ACTIVATE_GENERAL") {
     applyGeneralAllowance(event.payload);
+    renderCommandBoard();
   } else if (event.type === "TAKE_BANKER_LOAN") {
     if (assignedCountry && cleanStr(event.payload?.country) === cleanStr(assignedCountry.name)) {
       coins = Number(event.payload.coins) || 0;
@@ -1867,18 +1878,27 @@ function renderCommandBoardDetails(player) {
   const trade = document.createElement("button");
   trade.type = "button";
   trade.className = "btn btn-secondary btn-small";
-  trade.textContent = copy.txtBoardTrade;
-  trade.disabled = gameFinished;
+  const tradesRemaining = Math.max(0, fieldTradeAttemptLimit - fieldTradeAttemptsUsed);
+  trade.textContent = `${copy.txtBoardTrade} (${tradesRemaining} left)`;
+  trade.disabled = gameFinished || tradesRemaining === 0;
+  trade.title = tradesRemaining === 0
+    ? "You have used both Field Trade proposals for this round."
+    : "Open a Field Trade proposal.";
   trade.onclick = window.openCommandBoardTrade;
 
   const battle = document.createElement("button");
   battle.type = "button";
   battle.className = "btn btn-danger btn-small";
   const blockedByLoan = bankerRepaymentDue() > 0;
-  battle.textContent = blockedByLoan ? copy.txtBoardBattleLoanLocked : copy.txtBoardBattle;
-  battle.disabled = gameFinished || !investmentsLocked || !player.locked || blockedByLoan;
+  const battlesRemaining = Math.max(0, skirmishMaxAllowedAttacks - skirmishAttacksExecuted);
+  battle.textContent = blockedByLoan
+    ? copy.txtBoardBattleLoanLocked
+    : `${copy.txtBoardBattle} (${battlesRemaining} left)`;
+  battle.disabled = gameFinished || !investmentsLocked || !player.locked || blockedByLoan || battlesRemaining === 0;
   battle.title = blockedByLoan
     ? copy.txtBattleLoanGate
+    : battlesRemaining === 0
+      ? "You have used all Field Battles allowed this round."
     : battle.disabled
       ? "Both countries must lock investments before a field battle."
       : "Open a Field Battle against this country.";
@@ -2163,6 +2183,10 @@ window.updateTradePreview = function() {
 };
 
 window.openTradeModal = function() {
+  if (fieldTradeAttemptsUsed >= fieldTradeAttemptLimit) {
+    logAction("⚠️ You have used both Field Trade proposals for this round.", "TRADE");
+    return;
+  }
   const selectPartner = document.getElementById("select-trade-partner");
   if (selectPartner) {
     selectPartner.innerHTML = "";
@@ -2180,6 +2204,11 @@ window.openTradeModal = function() {
 
   updateOfferSliderCapacity();
   updateTradePreview();
+  const tradeButton = document.getElementById("btn-send-trade-proposal");
+  if (tradeButton) {
+    tradeButton.textContent = `🤝 Send Trade Proposal (${Math.max(0, fieldTradeAttemptLimit - fieldTradeAttemptsUsed)} left)`;
+    tradeButton.disabled = fieldTradeAttemptsUsed >= fieldTradeAttemptLimit;
+  }
   document.getElementById("trade-modal")?.classList.remove("hidden");
   playSound("ui");
 };
@@ -2271,6 +2300,8 @@ window.sendBilateralTradeProposal = async function() {
   };
   const sent = await submitRoomEvent("PROPOSE_TRADE", proposal);
   if (!sent) return;
+  fieldTradeAttemptsUsed = Math.min(fieldTradeAttemptLimit, fieldTradeAttemptsUsed + 1);
+  renderCommandBoard();
   pendingOutgoingTrade = { proposalId: proposal.id };
   closeTradeModal();
   logAction(`🤝 Sent a server-validated trade proposal to ${partner}.`, "TRADE");
@@ -3096,8 +3127,12 @@ function updateAllianceUI() {
 
   if (pendingTradeProposal && cleanStr(pendingTradeProposal.targetCountry) === myCountryClean) {
     if (proposalBanner) {
+      const wasHidden = proposalBanner.classList.contains("hidden");
       proposalBanner.classList.remove("hidden");
       proposalBanner.style.display = "block";
+      if (wasHidden) {
+        proposalBanner.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     }
     setTxt("txt-proposal-title", `🤝 Trade Proposal Received`);
     const targetSettlement = calculateTradeSettlement(
@@ -3117,8 +3152,12 @@ function updateAllianceUI() {
 
     if (isTarget) {
       if (proposalBanner) {
+        const wasHidden = proposalBanner.classList.contains("hidden");
         proposalBanner.classList.remove("hidden");
         proposalBanner.style.display = "block";
+        if (wasHidden) {
+          proposalBanner.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
       }
       setTxt("txt-proposal-title", `📜 ${pendingAllianceProposal.allianceType} Invitation`);
       setTxt("txt-proposal-desc", `${pendingAllianceProposal.initiator} wants to form a ${pendingAllianceProposal.allianceType} with you! Members: ${pendingAllianceProposal.members.join(", ")}`);

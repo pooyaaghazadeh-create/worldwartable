@@ -573,6 +573,10 @@ class GameHandler(SimpleHTTPRequestHandler):
                     (row["agri"] or 0) + (row["oil"] or 0) + (row["mines"] or 0)
                     if row["agri"] is not None else None
                 ),
+                "tradeAttemptsUsed": row["trade_attempts_used"],
+                "tradeAttemptsRemaining": max(0, 2 - row["trade_attempts_used"]),
+                "soloAttacksUsed": row["solo_attacks_used"],
+                "soloMaxAttacks": row["solo_max_attacks"],
             }
             for row in connection.execute(
                 """
@@ -581,11 +585,21 @@ class GameHandler(SimpleHTTPRequestHandler):
                        player_round_resources.player_id IS NOT NULL AS locked,
                        player_round_resources.agri, player_round_resources.oil,
                        player_round_resources.mines,
-                       player_round_readiness.player_id IS NOT NULL AS ready
+                       player_round_readiness.player_id IS NOT NULL AS ready,
+                       (
+                         SELECT COUNT(*)
+                         FROM trade_proposals
+                         WHERE trade_proposals.proposer_id = players.id
+                           AND trade_proposals.round_number = round_state.round_number
+                       ) AS trade_attempts_used,
+                       COALESCE(solo_skirmish_state.attacks_used, 0) AS solo_attacks_used,
+                       COALESCE(solo_skirmish_state.max_attacks, 1) AS solo_max_attacks
                 FROM players
                 JOIN room_state ON room_state.id = 1
+                JOIN round_state ON round_state.id = 1
                 LEFT JOIN player_round_resources ON player_round_resources.player_id = players.id
                 LEFT JOIN player_round_readiness ON player_round_readiness.player_id = players.id
+                LEFT JOIN solo_skirmish_state ON solo_skirmish_state.player_id = players.id
                 ORDER BY players.id
                 """
             )
