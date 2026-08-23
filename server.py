@@ -507,6 +507,10 @@ class GameHandler(SimpleHTTPRequestHandler):
             lock_row = connection.execute(
                 "SELECT agri, oil, mines FROM player_round_resources WHERE player_id = ?", (player["id"],)
             ).fetchone()
+            skirmish_row = connection.execute(
+                "SELECT attacks_used, max_attacks FROM solo_skirmish_state WHERE player_id = ?",
+                (player["id"],),
+            ).fetchone()
             settlement_row = connection.execute(
                 "SELECT settlement FROM player_round_settlements WHERE player_id = ?", (player["id"],)
             ).fetchone()
@@ -531,6 +535,10 @@ class GameHandler(SimpleHTTPRequestHandler):
                     "loanInterest": wallet_row["loan_interest"] if wallet_row else 0,
                     "investments": {field: lock_row[field] for field in ("agri", "oil", "mines")} if lock_row else None,
                     "lastSettlement": last_settlement,
+                    "battleAllowance": {
+                        "attacksUsed": skirmish_row["attacks_used"] if skirmish_row else 0,
+                        "maxAttacks": skirmish_row["max_attacks"] if skirmish_row else 1,
+                    },
                 },
             }
         )
@@ -717,11 +725,14 @@ class GameHandler(SimpleHTTPRequestHandler):
                 "INSERT INTO sessions (token_hash, player_id, created_at) VALUES (?, ?, ?)",
                 (token_hash(token), cursor.lastrowid, int(time.time())),
             )
+            cards_dealt = self.deal_round_cards(connection)
             self.publish_room_event(
                 connection,
                 "PLAYER_JOINED",
                 {"handle": handle, "country": seat["country"]},
             )
+            if cards_dealt:
+                self.publish_room_event(connection, "HOST_DEAL_CARDS", {"automatic": True})
             room_snapshot = self.room_snapshot(connection)
 
         cookie = f"world_war_session={token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=86400"
@@ -832,50 +843,17 @@ class GameHandler(SimpleHTTPRequestHandler):
                 )
                 return
             if event_type == "HOST_DRAW_EVENT":
-                state = connection.execute("SELECT cards_dealt, event_drawn FROM round_state WHERE id = 1").fetchone()
-                if not state["cards_dealt"] or state["event_drawn"]:
-                    self.send_json({"error": "Deal cards first, then draw exactly one Global Condition."}, HTTPStatus.CONFLICT)
-                    return
-                player_count = connection.execute("SELECT COUNT(*) FROM players").fetchone()[0]
-                locked_count = connection.execute("SELECT COUNT(*) FROM player_round_resources").fetchone()[0]
-                if not player_count or locked_count != player_count:
-                    self.send_json(
-                        {"error": "Every seated player must lock investments before the Global Condition is drawn."},
-                        HTTPStatus.CONFLICT,
-                    )
-                    return
-                event_payload = secrets.choice(GLOBAL_CONDITIONS)
-                connection.execute(
-                    "UPDATE room_state SET active_condition = ? WHERE id = 1",
-                    (json.dumps(event_payload),),
+                self.send_json(
+                    {"error": "Global Conditions are drawn automatically once all investments are locked."},
+                    HTTPStatus.CONFLICT,
                 )
-                connection.execute("UPDATE round_state SET event_drawn = 1 WHERE id = 1")
+                return
             elif event_type == "HOST_DEAL_CARDS":
-                if connection.execute(
-                    "SELECT 1 FROM player_round_cards LIMIT 1"
-                ).fetchone():
-                    self.send_json(
-                        {"error": "Proficiency cards have already been dealt this round."},
-                        HTTPStatus.CONFLICT,
-                    )
-                    return
-                state = connection.execute("SELECT cards_dealt FROM round_state WHERE id = 1").fetchone()
-                if state["cards_dealt"]:
-                    self.send_json({"error": "Proficiency cards have already been dealt this round."}, HTTPStatus.CONFLICT)
-                    return
-                players = connection.execute("SELECT id FROM players ORDER BY id").fetchall()
-                for seated_player in players:
-                    hand = secrets.SystemRandom().sample(CARD_TITLES, 2)
-                    connection.execute(
-                        """
-                        INSERT INTO player_round_cards (player_id, cards, dealt_at)
-                        VALUES (?, ?, ?)
-                        ON CONFLICT(player_id) DO UPDATE SET cards = excluded.cards, dealt_at = excluded.dealt_at
-                        """,
-                        (seated_player["id"], json.dumps(hand), int(time.time())),
-                    )
-                connection.execute("UPDATE round_state SET cards_dealt = 1 WHERE id = 1")
-                event_payload = {}
+                self.send_json(
+                    {"error": "Proficiency cards are dealt automatically when each round starts."},
+                    HTTPStatus.CONFLICT,
+                )
+                return
             elif event_type == "RESOLVE_COIN_REQUEST":
                 request_id = event_payload.get("requestId") if isinstance(event_payload, dict) else None
                 approved = event_payload.get("approved") if isinstance(event_payload, dict) else None
@@ -1134,6 +1112,7 @@ class GameHandler(SimpleHTTPRequestHandler):
                         """,
                         (completed_round + 1, json.dumps(next_round_multipliers)),
                     )
+                    event_payload["cardsDealt"] = self.deal_round_cards(connection)
             cursor = connection.execute(
                 "INSERT INTO host_events (event_type, payload, created_at) VALUES (?, ?, ?)",
                 (event_type, json.dumps(event_payload), int(time.time())),
@@ -1225,8 +1204,72 @@ class GameHandler(SimpleHTTPRequestHandler):
         return True
 
     @staticmethod
+    def deal_round_cards(connection: sqlite3.Connection) -> bool:
+        """Deal the fresh two-card hand automatically when a round begins."""
+        state = connection.execute(
+            "SELECT cards_dealt, game_finished FROM round_state WHERE id = 1"
+        ).fetchone()
+        if not state or state["game_finished"]:
+            return False
+        players = connection.execute(
+            """
+            SELECT players.id
+            FROM players
+            LEFT JOIN player_round_cards ON player_round_cards.player_id = players.id
+            WHERE player_round_cards.player_id IS NULL
+            ORDER BY players.id
+            """
+        ).fetchall()
+        if not players:
+            return False
+        randomizer = secrets.SystemRandom()
+        for seated_player in players:
+            hand = randomizer.sample(CARD_TITLES, 2)
+            connection.execute(
+                """
+                INSERT INTO player_round_cards (player_id, cards, dealt_at)
+                VALUES (?, ?, ?)
+                ON CONFLICT(player_id) DO UPDATE SET cards = excluded.cards, dealt_at = excluded.dealt_at
+                """,
+                (seated_player["id"], json.dumps(hand), int(time.time())),
+            )
+        if not state["cards_dealt"]:
+            connection.execute("UPDATE round_state SET cards_dealt = 1 WHERE id = 1")
+        return True
+
+    def draw_global_condition_if_ready(self, connection: sqlite3.Connection) -> dict | None:
+        """Draw one condition as soon as every seated commander has locked."""
+        state = connection.execute(
+            "SELECT cards_dealt, event_drawn FROM round_state WHERE id = 1"
+        ).fetchone()
+        player_count = connection.execute("SELECT COUNT(*) FROM players").fetchone()[0]
+        locked_count = connection.execute(
+            "SELECT COUNT(*) FROM player_round_resources"
+        ).fetchone()[0]
+        if (
+            not state
+            or not state["cards_dealt"]
+            or state["event_drawn"]
+            or not player_count
+            or locked_count != player_count
+        ):
+            return None
+        condition = secrets.choice(GLOBAL_CONDITIONS)
+        connection.execute(
+            "UPDATE room_state SET active_condition = ? WHERE id = 1",
+            (json.dumps(condition),),
+        )
+        connection.execute("UPDATE round_state SET event_drawn = 1 WHERE id = 1")
+        return self.publish_room_event(connection, "HOST_DRAW_EVENT", condition)
+
+    @staticmethod
     def banker_interest(loan_principal: int) -> int:
         return int(max(0, loan_principal) * 0.20)
+
+    @staticmethod
+    def atomic_destruction_amount(investment: int) -> int:
+        """Destroy 20% of a live field allocation, rounded up to whole coins."""
+        return (max(0, investment) + 4) // 5
 
     @classmethod
     def banker_repayment_due(cls, loan_principal: int, loan_interest: int | None = None) -> int:
@@ -1340,13 +1383,11 @@ class GameHandler(SimpleHTTPRequestHandler):
                 self.send_json({"error": "You do not have an active Banker loan."}, HTTPStatus.CONFLICT)
                 return
             repayment_due = self.banker_repayment_due(wallet["loans"], wallet["loan_interest"])
-            available_coins = self.unallocated_wallet_coins(
-                connection, player["id"], wallet["coins"]
-            )
+            available_coins = wallet["coins"]
             if available_coins < repayment_due:
                 self.send_json(
                     {
-                        "error": f"You need {repayment_due} unallocated coins to settle your loan and interest, but only have {available_coins}.",
+                        "error": f"You need {repayment_due} total wallet coins to settle your loan and interest, but only have {available_coins}.",
                         "repaymentDue": repayment_due,
                         "availableCoins": available_coins,
                         "shortfall": repayment_due - available_coins,
@@ -1398,6 +1439,20 @@ class GameHandler(SimpleHTTPRequestHandler):
             return
         with database() as connection:
             connection.execute("BEGIN IMMEDIATE")
+            condition_row = connection.execute(
+                "SELECT active_condition FROM room_state WHERE id = 1"
+            ).fetchone()
+            condition = (
+                json.loads(condition_row["active_condition"])
+                if condition_row and condition_row["active_condition"]
+                else None
+            )
+            if isinstance(condition, dict) and condition.get("id") == "pandemic":
+                self.send_json(
+                    {"error": "Pandemic deactivates Atomic Bomb cards for this round."},
+                    HTTPStatus.CONFLICT,
+                )
+                return
             attacker_resources = connection.execute(
                 "SELECT 1 FROM player_round_resources WHERE player_id = ?", (player["id"],)
             ).fetchone()
@@ -1419,7 +1474,7 @@ class GameHandler(SimpleHTTPRequestHandler):
             if not self.consume_card(connection, player["id"], "Atomic Bomb"):
                 self.send_json({"error": "You need an unplayed Atomic Bomb card."}, HTTPStatus.FORBIDDEN)
                 return
-            destroyed = (resources[field] + 1) // 2
+            destroyed = self.atomic_destruction_amount(resources[field])
             remaining = resources[field] - destroyed
             connection.execute(
                 f"UPDATE player_round_resources SET {field} = ? WHERE player_id = ?",
@@ -1446,6 +1501,19 @@ class GameHandler(SimpleHTTPRequestHandler):
                 "SELECT round_number FROM round_state WHERE id = 1"
             ).fetchone()
             current_round = round_state["round_number"] if round_state else 1
+            attempts = connection.execute(
+                """
+                SELECT COUNT(*) FROM trade_proposals
+                WHERE proposer_id = ? AND round_number = ?
+                """,
+                (player["id"], current_round),
+            ).fetchone()[0]
+            if attempts >= 2:
+                self.send_json(
+                    {"error": "You have used both Field Trade proposals for this round."},
+                    HTTPStatus.CONFLICT,
+                )
+                return
             target = connection.execute("SELECT id, country FROM players WHERE country = ?", (target_country,)).fetchone()
             if not target:
                 self.send_json({"error": "That trade partner is no longer seated in this room."}, HTTPStatus.CONFLICT)
@@ -1734,7 +1802,9 @@ class GameHandler(SimpleHTTPRequestHandler):
                 "LOCK_RESOURCES",
                 {"country": player["country"], **values},
             )
-        self.send_json({"event": event}, HTTPStatus.CREATED)
+            condition_event = self.draw_global_condition_if_ready(connection)
+        events = [event] + ([condition_event] if condition_event else [])
+        self.send_json({"event": event, "events": events}, HTTPStatus.CREATED)
 
     def request_coins(self, player: sqlite3.Row, payload: dict) -> None:
         if payload:

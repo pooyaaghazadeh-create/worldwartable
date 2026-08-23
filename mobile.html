@@ -62,8 +62,7 @@
           <div class="host-box full-width">
             <h3 id="txt-master-ctrl">Master Game Controls</h3>
             <div class="button-group">
-              <button id="btn-host-deal" class="btn btn-primary" onclick="hostDealCards()">Deal Cards (2 per player)</button>
-              <button id="btn-host-event" class="btn btn-secondary round-action-locked" onclick="drawGlobalCondition()" disabled>Draw Global Event</button>
+              <p class="host-auto-flow">🃏 Cards are dealt automatically at round start. 🌍 The Global Condition is revealed automatically after every investment is locked.</p>
               <button id="btn-host-advance" class="btn btn-success" onclick="hostAdvanceRound()">Close & Calculate Round</button>
               <button id="btn-host-restart" class="btn btn-danger hidden" onclick="restartCompletedGame()">Restart Game</button>
             </div>
@@ -87,6 +86,10 @@
       </section>
 
       <!-- 2.5D COMMAND BOARD -->
+      <section id="trade-result-notification" class="card full-width trade-result-notification hidden" aria-live="polite">
+        <strong id="trade-result-notification-title">Trade update</strong>
+        <p id="trade-result-notification-message"></p>
+      </section>
       <section class="card full-width command-board-card" aria-labelledby="txt-command-board-title">
         <div class="command-board-header">
           <div>
@@ -330,7 +333,7 @@
 
   <!-- ASYMMETRIC FIELD TRADE MODAL -->
   <div id="trade-modal" class="modal-overlay hidden">
-    <div class="modal-card">
+    <div class="modal-card trade-modal-card">
       <h2 id="txt-modal-trade-title">🤝 Asymmetric Trade Exchange</h2>
       <p id="txt-modal-trade-desc">Trade coins/field investments with another nation on custom terms.</p>
       
@@ -508,7 +511,7 @@
   <div id="atomic-modal" class="modal-overlay hidden">
     <div class="modal-card alert-card">
       <h2 style="color: var(--danger-color);">☢️ Atomic Bomb Targeting</h2>
-      <p>Select a rival nation and resource field to destroy half of its current investment for this round.</p>
+      <p>Select a rival nation and resource field to destroy 20% of its current investment for this round. Pandemic deactivates this card.</p>
       <div class="field-box modal-input-box">
         <label class="modal-label">Target Power:</label>
         <select id="select-atomic-target-country" class="modal-select"></select>

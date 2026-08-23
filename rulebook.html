@@ -85,10 +85,10 @@
       <h2>How one round works</h2>
       <p>The server controls the round state. A host cannot skip the required setup, and the calculation cannot run until every seated commander has completed the shared checklist.</p>
       <div class="rulebook-timeline">
-        <article><span>1</span><div><h3>Deal two proficiency cards</h3><p>The host deals exactly two cards to every seated player. Cards are private until you choose to reveal an action. Cards are discarded or reset at the end of the round according to the game state.</p></div></article>
+        <article><span>1</span><div><h3>Receive two proficiency cards</h3><p>The server automatically deals exactly two cards to every seated player when the round starts. Cards are private until you choose to reveal an action. Cards are discarded or reset at the end of the round according to the game state.</p></div></article>
         <article><span>2</span><div><h3>Request and plan your coins</h3><p>Request 100-coin purchases one at a time, ask the host to approve them, take a Banker loan if you have that card, and decide how much cash to invest versus reserve.</p></div></article>
         <article><span>3</span><div><h3>Lock your investments</h3><p>Allocate whole coins among Agriculture, Oil, and Mines. The total cannot exceed your server-approved wallet balance. Locking is permanent for the round and is required before battles, Atomic Bombs, and readiness.</p></div></article>
-        <article><span>4</span><div><h3>Draw one Global Condition</h3><p>After cards are dealt and every seated player has locked investments, the host draws exactly one condition. Its effect applies to this round’s trades, payouts, card restrictions, and battle multipliers as described below.</p></div></article>
+        <article><span>4</span><div><h3>Reveal one Global Condition</h3><p>After every seated player has locked investments, the server automatically reveals exactly one Global Condition to all players. Its effect applies to this round’s trades, payouts, card restrictions, and battle multipliers as described below.</p></div></article>
         <article><span>5</span><div><h3>Negotiate and act</h3><p>Make bilateral trades, activate cards, propose or approve alliances, and launch eligible Field Battles. You can still keep unallocated coins for a deal. The command board shows opponents and shared status without exposing private field breakdowns.</p></div></article>
         <article><span>6</span><div><h3>Mark ready</h3><p>After locking investments and finishing the actions you want to take, mark yourself ready. You may withdraw readiness if you need to review the round before calculation, but you cannot edit locked investments.</p></div></article>
         <article><span>7</span><div><h3>Close and calculate</h3><p>When every seated player is locked and ready, the host closes the round. Pending trade escrow is refunded, field income is calculated, loans are collected, temporary cards/effects/alliances are cleared, and the next round begins. The third calculation ends the game.</p></div></article>
@@ -114,7 +114,7 @@
       </div>
       <div class="rulebook-two-column">
         <article class="rulebook-mini-card"><h3>🪙 Buy 100 Coins</h3><p>Each click creates a 100-coin request for the host. Approved purchases and pending requests together cannot exceed 500 purchased coins for that player. A rejected request frees that allowance. Payouts, loans, and trade transfers can still change the balance beyond 500.</p></article>
-        <article class="rulebook-mini-card"><h3>🏦 Banker loan</h3><p>The Banker card automatically lends exactly 20% of your currently available unallocated cash and is consumed immediately. At settlement, the server collects the principal plus its one-time 20% interest. A 100-coin loan therefore requires 120 coins. Unallocated cash is used first; any unpaid principal and interest remain due next round without receiving additional interest.</p></article>
+        <article class="rulebook-mini-card"><h3>🏦 Banker loan</h3><p>The Banker card automatically lends exactly 20% of your currently available unallocated cash and is consumed immediately. At settlement, the server collects the principal plus its one-time 20% interest. A 100-coin loan therefore requires 120 coins. Any unpaid principal and interest remain due next round without receiving additional interest. You may also manually repay a loan using your total wallet coins, including coins currently assigned to a field.</p></article>
       </div>
       <h3>Worked income example</h3>
       <p>You lock 30 Agriculture, 20 Oil, and 10 Mines. Your multipliers are ×2, ×1, and ×3. Your gross income is (30×2) + (20×1) + (10×3) = <strong>100 coins</strong>. If Global Warming is active, Agriculture and Oil use 90% of their normal multiplier, so the server rounds each field result down separately before adding them.</p>
@@ -123,7 +123,7 @@
     <section id="trades" class="rulebook-section">
       <p class="section-number">04 — TRADES &amp; AGREEMENTS</p>
       <h2>Negotiate safely</h2>
-      <p>A Field Trade is a bilateral exchange between two countries. An offer names the field or wallet amount you are offering and the field or wallet amount you request. Only the proposer’s offered asset is reserved when the offer is sent; the target’s requested asset is checked again when they approve.</p>
+      <p>A Field Trade is a bilateral exchange between two countries. Each player may send at most two proposals per round; every submitted proposal counts, including offers that are rejected, canceled, or expire. An offer names the field or wallet amount you are offering and the field or wallet amount you request. Only the proposer’s offered asset is reserved when the offer is sent; the target’s requested asset is checked again when they approve.</p>
       <ol class="rulebook-steps">
         <li><strong>Propose.</strong> Choose a seated opponent, select the offered and requested assets, and send the offer. The server validates that your offered amount exists and places it in escrow.</li>
         <li><strong>Respond.</strong> The target may approve or reject. If they cannot provide the requested amount at approval time, the trade is rejected safely and your escrow is returned.</li>
@@ -147,7 +147,7 @@
         <article><span>🎖️</span><h3>General</h3><p>Activate to increase your solo Field Battle allowance from one attack to two for the round. It is consumed when activated.</p></article>
         <article><span>🕵️</span><h3>Spy</h3><p>Interrupt a current-round pending or accepted trade. Pending trades are refunded; accepted trades are reversed only when the original received assets can be returned. Cold War blocks the operation.</p></article>
         <article><span>💰</span><h3>Merchant</h3><p>Activate for +10% received trade income this round. The bonus is applied before an Economic Recession reduction and is consumed when activated.</p></article>
-        <article><span>☢️</span><h3>Atomic Bomb</h3><p>After locking investments, select a rival and field. The strike destroys half of that field’s current investment, rounding the destroyed amount up. It transfers no coins.</p></article>
+        <article><span>☢️</span><h3>Atomic Bomb</h3><p>After locking investments, select a rival and field. The strike destroys 20% of that field’s current investment, rounding the destroyed amount up. It transfers no coins. Pandemic deactivates Atomic Bomb cards.</p></article>
       </div>
     </section>
 
@@ -174,7 +174,7 @@
       <div class="rulebook-two-column">
         <article class="rulebook-mini-card"><h3>⚔️ Solo Field Battle</h3><p>Choose an unaligned rival and one field. Power equals your current contested resource multiplied by your country’s effective multiplier. You may attack once per round, or twice after activating General. A victory transfers the defender’s entire current field resource to you and sets the defender’s field to zero. A defeat transfers your entire current field resource to the defender. A tie transfers nothing.</p></article>
         <article class="rulebook-mini-card"><h3>🏛️ Alliance Field Battle</h3><p>Only a confirmed alliance initiator may attack, once per round. Target a locked, unaligned country or another confirmed alliance. Compare the two sides’ contested pool × effective multiplier. The higher side takes the losing side’s contested resource into its own pool; a tie is a stalemate.</p></article>
-        <article class="rulebook-mini-card"><h3>☢️ Atomic strike</h3><p>After you lock, choose a rival and field. The target loses half of its current field allocation, rounded up. The lost amount is destroyed rather than transferred, and the target’s wallet is unaffected.</p></article>
+        <article class="rulebook-mini-card"><h3>☢️ Atomic strike</h3><p>After you lock, choose a rival and field. The target loses 20% of its current field allocation, rounded up. The lost amount is destroyed rather than transferred, and the target’s wallet is unaffected. Atomic strikes are unavailable during Pandemic.</p></article>
       </div>
       <div class="rulebook-callout"><strong>Battle example:</strong> 40 Oil at ×2 has 80 power. It defeats 50 Oil at ×1 (50 power), so the winner takes the defender’s 50 Oil. Under Pandemic, both sides use ×1, which can change the result.</div>
     </section>
@@ -182,7 +182,7 @@
     <section id="events" class="rulebook-section">
       <p class="section-number">08 — GLOBAL CONDITIONS</p>
       <h2>One world state changes the round</h2>
-      <p>The host draws one condition after every player locks. It stays active through trades, actions, battles, and calculation, then clears when the round closes.</p>
+      <p>The server automatically reveals one condition to every player after every player locks. It stays active through trades, actions, battles, and calculation, then clears when the round closes.</p>
       <div class="rulebook-event-grid">
         <article><span>📉</span><h3>Economic Recession</h3><p>Received trade income is reduced by 20% and rounded down. Trades are still permitted. Merchant’s +10% adjustment is applied before this reduction.</p></article>
         <article><span>🌡️</span><h3>Global Warming</h3><p>Agriculture and Oil use an effective multiplier reduced by 10% for income and Field Battles. Mines are unaffected.</p></article>
@@ -200,7 +200,7 @@
         <table class="rulebook-table">
           <thead><tr><th>Host control</th><th>When it works</th><th>What it does</th></tr></thead>
           <tbody>
-            <tr><td>Deal Cards</td><td>Once per round</td><td>Deals two private proficiency cards to every seated commander</td></tr>
+            <tr><td>Automatic cards</td><td>Once per round</td><td>The server deals two private proficiency cards to every seated commander as the round starts</td></tr>
             <tr><td>Draw Global Condition</td><td>After cards and every investment lock</td><td>Sets one condition for the round</td></tr>
             <tr><td>Resolve Coin Request</td><td>While a request is pending</td><td>Approves or rejects one 100-coin request</td></tr>
             <tr><td>Close &amp; Calculate</td><td>After every player locks and marks ready</td><td>Settles income, loans, temporary effects, and the round state</td></tr>

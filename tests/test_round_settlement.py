@@ -53,6 +53,18 @@ class RoundSettlementTests(unittest.TestCase):
         self.assertEqual(GameHandler.calculate_field_yield(0, 3), 0)  # lost in a battle
         self.assertEqual(GameHandler.calculate_field_yield(24, 3), 72)  # Atomic Bomb remainder
 
+    def test_atomic_bomb_destroys_twenty_percent_rounded_up(self):
+        self.assertEqual(GameHandler.atomic_destruction_amount(500), 100)
+        self.assertEqual(GameHandler.atomic_destruction_amount(24), 5)
+        self.assertEqual(GameHandler.atomic_destruction_amount(1), 1)
+        self.assertEqual(GameHandler.atomic_destruction_amount(0), 0)
+
+    def test_pandemic_keeps_battle_and_income_multiplier_at_one(self):
+        pandemic = {"id": "pandemic"}
+        self.assertEqual(self.multiplier("agri", pandemic), 1)
+        self.assertEqual(self.multiplier("oil", pandemic), 1)
+        self.assertEqual(self.multiplier("mines", pandemic), 1)
+
     def test_full_loan_payment_collects_principal_and_one_time_interest(self):
         settlement = GameHandler.settle_banker_debt(70, 50, 100, 20)
         self.assertEqual(settlement["repaymentDue"], 120)

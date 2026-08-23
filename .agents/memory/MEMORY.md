@@ -1,3 +1,4 @@
 - [Reversible trade settlements](reversible-trade-settlements.md) — Trade reversals must restore persisted settlement receipts, not recalculate live modifiers.
 - [Banker loan policy](banker-loan-policy.md) — Banker loans are fixed at 20% of currently unallocated cash, then settled at principal plus 20% interest.
 - [Round balance basis](round-balance-basis.md) — Locked field coins fund their payout once; ending balance starts from unallocated cash, not the full pre-close wallet.
+- [Round action caps](round-action-caps.md) — Trade proposals and solo battles have server-enforced per-round allowances, including attempted offers.

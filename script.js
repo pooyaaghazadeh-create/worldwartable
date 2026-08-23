@@ -698,7 +698,7 @@ const cardDeck = [
   { title: "General", icon: "🎖️", desc: "Grants 2 skirmish attacks per round." },
   { title: "Spy", icon: "🕵️", desc: "Interrupt rival deal agreements." },
   { title: "Merchant", icon: "💰", desc: "Generates +10% extra profit on all field buy/sell transactions." },
-  { title: "Atomic Bomb", icon: "☢️", desc: "Destroy half of 1 target field's investment." }
+  { title: "Atomic Bomb", icon: "☢️", desc: "Destroy 20% of 1 target field's investment. Disabled during Pandemic." }
 ];
 
 function setTxt(id, text) {
@@ -1276,6 +1276,15 @@ function applyHostEvent(event) {
     syncHostButtonsUI();
     const eventTitle = activeGlobalCondition?.title || event.payload?.id || "Unknown Event";
     logAction(`🎲 Host drawn Global Event Card: ${eventTitle}!`, "EVENT");
+    publishGameResult({
+      id: Number.isFinite(event.id) ? `global-condition-${event.id}` : `global-condition-${event.payload?.id}`,
+      icon: "🌍",
+      category: "GLOBAL CONDITION",
+      tone: "neutral",
+      title: eventTitle,
+      summary: activeGlobalCondition?.desc || "A new Global Condition applies to this round.",
+      details: "This condition was drawn automatically after every seated commander locked investments."
+    });
     playSound("event");
     pulseVisual(document.getElementById("global-event-banner"), "is-event-updated", 620);
     pulseVisual(document.querySelector(".table-center-pot"), "is-global-highlight", 620);
@@ -1283,6 +1292,7 @@ function applyHostEvent(event) {
     const result = assignedCountry ? event.payload?.results?.[assignedCountry.name] : null;
     calculateAndAdvanceRound(result || null, event.payload || {});
     void refreshPlayerEconomy();
+    if (event.payload?.cardsDealt) void refreshCurrentHand();
     if (event.payload?.gameFinished && !document.body?.classList.contains("tv-body")) {
       publishGameResult({
         id: Number.isFinite(event.id) ? `final-placements-${event.id}` : "final-placements",
@@ -1410,6 +1420,7 @@ function applyHostEvent(event) {
     pendingTradeProposal = null;
     pendingOutgoingTrade = null;
     updateAllianceUI();
+    showTradeResultNotification(event.payload);
     publishGameResult({
       id: Number.isFinite(event.id)
         ? `trade-response-${event.id}`
@@ -1486,7 +1497,7 @@ async function submitHostCommand(type, payload) {
       syncHostAccessUI();
       return false;
     }
-    applyHostEvent(data.event);
+    (Array.isArray(data.events) ? data.events : [data.event]).forEach(applyHostEvent);
     return true;
   } catch (e) {
     logAction("⛔ Could not contact the game server for this host action.", "HOST");
@@ -1511,7 +1522,7 @@ async function submitRoomEvent(type, payload) {
       playSound("warning");
       return false;
     }
-    applyHostEvent(data.event);
+    (Array.isArray(data.events) ? data.events : [data.event]).forEach(applyHostEvent);
     return true;
   } catch (e) {
     logAction("⛔ Could not contact the game server for this alliance action.", "ALLIANCE");
@@ -1548,36 +1559,11 @@ function syncHostButtonsUI() {
   const labels = translations[currentLang] || translations.en;
 
   if (dealBtn) {
-    dealBtn.disabled = !isRoomCreator || cardsDealtThisRound || gameFinished;
-    dealBtn.classList.toggle("round-action-used", cardsDealtThisRound);
-    dealBtn.classList.remove("round-action-locked");
-    dealBtn.textContent = gameFinished
-      ? "Game Complete"
-      : cardsDealtThisRound ? labels.btnHostDealUsed : labels.btnHostDeal;
-    dealBtn.setAttribute("aria-label", dealBtn.textContent);
+    dealBtn.classList.add("hidden");
   }
 
   if (eventBtn) {
-    const seatedPlayers = activeRoomPlayers.length || registeredPlayersCount;
-    const allInvestmentsLocked = seatedPlayers > 0 && lockedPlayersSet.size >= seatedPlayers;
-    const eventLocked = !cardsDealtThisRound || !allInvestmentsLocked;
-    const eventUsed = eventDrawnThisRound;
-    eventBtn.disabled = !isRoomCreator || eventLocked || eventUsed || gameFinished;
-    eventBtn.classList.toggle("round-action-locked", eventLocked);
-    eventBtn.classList.toggle("round-action-used", eventUsed);
-    eventBtn.textContent = gameFinished
-      ? "Game Complete"
-      : eventUsed
-      ? labels.btnHostEventUsed
-      : eventLocked
-        ? !cardsDealtThisRound
-          ? labels.btnHostEventLocked
-          : "Awaiting Investment Locks"
-        : labels.btnHostEvent;
-    eventBtn.setAttribute("aria-label", eventBtn.textContent);
-    eventBtn.title = eventLocked && cardsDealtThisRound
-      ? "Every seated player must lock investments before drawing the Global Condition."
-      : "";
+    eventBtn.classList.add("hidden");
   }
 
   if (advanceBtn) {
@@ -1692,6 +1678,25 @@ function clearActiveGlobalCondition() {
   activateGlobalCondition(null);
 }
 
+function showTradeResultNotification(payload) {
+  const panel = document.getElementById("trade-result-notification");
+  if (!panel || !payload) return;
+  const approved = Boolean(payload.approved);
+  setTxt(
+    "trade-result-notification-title",
+    approved ? "🤝 Field Trade Accepted" : "❌ Field Trade Rejected"
+  );
+  setTxt(
+    "trade-result-notification-message",
+    approved
+      ? `${payload.proposerCountry} and ${payload.targetCountry} completed their field trade.`
+      : `${payload.targetCountry} rejected the field trade from ${payload.proposerCountry}.`
+  );
+  panel.classList.toggle("is-approved", approved);
+  panel.classList.toggle("is-rejected", !approved);
+  panel.classList.remove("hidden");
+}
+
 // ==========================================
 // SESSION SETUP
 // ==========================================
@@ -1753,6 +1758,10 @@ async function initMobilePlayerSession() {
     if (session.economy.investments) {
       investments = { ...session.economy.investments };
       investmentsLocked = true;
+    }
+    if (session.economy.battleAllowance) {
+      skirmishAttacksExecuted = Number(session.economy.battleAllowance.attacksUsed) || 0;
+      skirmishMaxAllowedAttacks = Number(session.economy.battleAllowance.maxAttacks) || 1;
     }
   }
 
@@ -2579,7 +2588,7 @@ function updateLoanCalculator() {
   const principal = Math.max(0, Number(loans) || 0);
   const interest = Math.max(0, Number(loanInterest) || 0);
   const totalDue = bankerRepaymentDue(principal, interest);
-  const availableCash = getAvailableTradeAmount("unallocated");
+  const availableCash = coins;
   const shortfall = Math.max(0, totalDue - availableCash);
   const canRepay = totalDue > 0 && shortfall === 0 && !gameFinished;
 
@@ -2655,6 +2664,10 @@ function renderRoundSettlement() {
     details.appendChild(row);
   });
 
+  const opening = document.createElement("p");
+  opening.textContent = `Unallocated cash before field income: ${Number(settlement.balanceBefore) || 0}`;
+  details.appendChild(opening);
+
   const gross = document.createElement("p");
   gross.className = "round-settlement-total";
   gross.textContent = `${copy.txtSettlementGross}: +${Number(settlement.grossFieldIncome) || 0}`;
@@ -2671,7 +2684,10 @@ function renderRoundSettlement() {
 
   const balance = document.createElement("p");
   balance.className = "round-settlement-total";
-  balance.textContent = `${copy.txtSettlementBalance}: ${Number(settlement.endingBalance) || 0}`;
+  const reconciliation = (Number(settlement.balanceBefore) || 0)
+    + (Number(settlement.grossFieldIncome) || 0)
+    - loanCollected;
+  balance.textContent = `${copy.txtSettlementBalance}: ${Number(settlement.endingBalance) || 0} (${Number(settlement.balanceBefore) || 0} + ${Number(settlement.grossFieldIncome) || 0} − ${loanCollected} = ${reconciliation})`;
   details.appendChild(balance);
   card.classList.remove("hidden");
 }
@@ -2693,10 +2709,10 @@ window.repayBankerLoan = async function() {
     logAction("⚠️ You do not have an active Banker loan to repay.", "BANK");
     return;
   }
-  const availableCash = getAvailableTradeAmount("unallocated");
+  const availableCash = coins;
   if (availableCash < repaymentDue) {
     const shortfall = repaymentDue - availableCash;
-    logAction(`⚠️ Loan repayment requires ${repaymentDue} unallocated coins; you need ${shortfall} more.`, "BANK");
+    logAction(`⚠️ Loan repayment requires ${repaymentDue} total wallet coins; you need ${shortfall} more.`, "BANK");
     return;
   }
   const repaid = await submitRoomEvent("REPAY_BANKER_LOAN", {});
@@ -3424,7 +3440,7 @@ function calculateAndAdvanceRound(canonicalResult = null, roundResult = {}) {
   activeCounterUnion = null;
   pendingAllianceProposal = null;
   pendingTradeProposal = null;
-  cardsDealtThisRound = false;
+  cardsDealtThisRound = Boolean(roundResult.cardsDealt);
   eventDrawnThisRound = false;
   clearActiveGlobalCondition();
   currentHand = [];
@@ -3653,6 +3669,10 @@ window.closeSpyModal = function() {
 };
 
 window.openAtomicModal = function(cardIndex) {
+  if (isGlobalConditionActive("pandemic")) {
+    logAction("🦠 Pandemic is active: Atomic Bomb cards are deactivated this round.", "EVENT");
+    return;
+  }
   if (!investmentsLocked) {
     logAction("⚠️ Atomic Bomb requires round investments to be locked first!", "ATOMIC");
     return;
