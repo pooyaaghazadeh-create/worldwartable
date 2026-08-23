@@ -168,6 +168,17 @@ const translations = {
     txtGameCardsKicker: "ROUND DECK",
     txtGameCardsTitle: "Game Cards",
     txtGameCardsDesc: "Live conditions and your available proficiency cards.",
+    ariaGameTabs: "Game phases",
+    txtTabStatus: "Status & Cards",
+    txtTabPrepare: "Prepare",
+    txtTabAct: "Act",
+    txtTabReview: "Review",
+    txtTabNow: "NOW",
+    txtTabDone: "DONE",
+    txtTabPending: "PENDING",
+    txtTabActions: "{count} actions",
+    txtTabReady: "READY",
+    txtTabOpen: "OPEN",
     ariaRoundProgress: "Round progress",
     ariaCommanderSummary: "Commander summary",
     ariaRoundReadiness: "Round readiness",
@@ -282,6 +293,17 @@ const translations = {
     txtGameCardsKicker: "RAUND DESTESİ",
     txtGameCardsTitle: "Oyun Kartları",
     txtGameCardsDesc: "Canlı koşullar ve kullanılabilir uzmanlık kartlarınız.",
+    ariaGameTabs: "Oyun aşamaları",
+    txtTabStatus: "Durum ve Kartlar",
+    txtTabPrepare: "Hazırlık",
+    txtTabAct: "Hamle",
+    txtTabReview: "Kontrol",
+    txtTabNow: "ŞİMDİ",
+    txtTabDone: "TAMAM",
+    txtTabPending: "BEKLİYOR",
+    txtTabActions: "{count} hamle",
+    txtTabReady: "HAZIR",
+    txtTabOpen: "AÇIK",
     ariaRoundProgress: "Raund ilerlemesi",
     ariaCommanderSummary: "Komutan özeti",
     ariaRoundReadiness: "Raund hazırlık durumu",
@@ -396,6 +418,17 @@ const translations = {
     txtGameCardsKicker: "دسته کارت دور",
     txtGameCardsTitle: "کارت‌های بازی",
     txtGameCardsDesc: "شرایط زنده و کارت‌های مهارت در دسترس شما.",
+    ariaGameTabs: "مراحل بازی",
+    txtTabStatus: "وضعیت و کارت‌ها",
+    txtTabPrepare: "آماده‌سازی",
+    txtTabAct: "اقدام",
+    txtTabReview: "بررسی",
+    txtTabNow: "اکنون",
+    txtTabDone: "انجام شد",
+    txtTabPending: "در انتظار",
+    txtTabActions: "{count} اقدام",
+    txtTabReady: "آماده",
+    txtTabOpen: "باز",
     ariaRoundProgress: "پیشرفت دور",
     ariaCommanderSummary: "خلاصه فرمانده",
     ariaRoundReadiness: "آمادگی دور",
@@ -450,6 +483,7 @@ window.changeLanguage = function(lang) {
   document.documentElement.dir = lang === "fa" ? "rtl" : "ltr";
   document.querySelector(".round-progress")?.setAttribute("aria-label", dict.ariaRoundProgress);
   document.querySelector(".status-metrics")?.setAttribute("aria-label", dict.ariaCommanderSummary);
+  document.querySelector(".game-tabs")?.setAttribute("aria-label", dict.ariaGameTabs);
   document.getElementById("round-readiness-meter")?.setAttribute("aria-label", dict.ariaRoundReadiness);
   document.getElementById("command-board-surface")?.setAttribute("aria-label", dict.ariaCommandBoard);
 
@@ -573,6 +607,9 @@ let activeRoomPlayers = [];
 let pendingServerTrades = [];
 let fieldTradeAttemptsUsed = 0;
 let coinRequestsUsed = 0;
+let activeGameTab = "status";
+let lastAutoGamePhase = null;
+let gameTabsInitialized = false;
 const fieldTradeAttemptLimit = 2;
 let hostPollInFlight = false;
 let selectedBoardCountry = "";
@@ -587,6 +624,102 @@ function liveCountryNames(excludeSelf = false) {
 
 function activeCountryCard(country) {
   return countryCards.find(card => cleanStr(card.name) === cleanStr(country));
+}
+
+function setGameTabBadge(tabName, text) {
+  const badge = document.getElementById(`tab-${tabName}-badge`);
+  if (!badge) return;
+  badge.textContent = text || "";
+  badge.classList.toggle("hidden", !text);
+}
+
+function gameTabActionCount() {
+  return Math.max(0, fieldTradeAttemptLimit - fieldTradeAttemptsUsed)
+    + Math.max(0, skirmishMaxAllowedAttacks - skirmishAttacksExecuted);
+}
+
+function syncGameTabBadges(phase) {
+  const copy = translations[currentLang] || translations.en;
+  const hasPendingProposal = Boolean(pendingTradeProposal || pendingAllianceProposal);
+
+  setGameTabBadge("status", hasPendingProposal ? copy.txtTabPending : "");
+  setGameTabBadge(
+    "prepare",
+    phase === "prepare"
+      ? copy.txtTabNow
+      : investmentsLocked
+        ? copy.txtTabDone
+        : ""
+  );
+  setGameTabBadge(
+    "act",
+    hasPendingProposal
+      ? copy.txtTabPending
+      : phase === "act"
+        ? copy.txtTabActions.replace("{count}", gameTabActionCount())
+        : ""
+  );
+  setGameTabBadge(
+    "review",
+    isLocalPlayerReadyToClose
+      ? copy.txtTabReady
+      : phase === "review"
+        ? copy.txtTabOpen
+        : gameFinished
+          ? copy.txtTabDone
+          : ""
+  );
+}
+
+window.selectGameTab = function(tabName, shouldFocus = false) {
+  const validTabs = ["status", "prepare", "act", "review"];
+  if (!validTabs.includes(tabName)) return;
+
+  const tab = document.getElementById(`tab-${tabName}`);
+  const panel = document.getElementById(`tab-panel-${tabName}`);
+  if (!tab || !panel) return;
+
+  activeGameTab = tabName;
+  document.querySelectorAll(".game-tab").forEach(button => {
+    const isActive = button === tab;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-selected", String(isActive));
+    button.tabIndex = isActive ? 0 : -1;
+  });
+  document.querySelectorAll(".game-tab-panel").forEach(panelElement => {
+    const isActive = panelElement === panel;
+    panelElement.classList.toggle("is-active", isActive);
+    panelElement.hidden = !isActive;
+    panelElement.setAttribute("aria-hidden", String(!isActive));
+  });
+
+  if (shouldFocus) tab.focus();
+};
+
+function initializeGameTabs() {
+  const tablist = document.querySelector(".game-tabs");
+  if (!tablist || gameTabsInitialized) return;
+
+  gameTabsInitialized = true;
+  tablist.addEventListener("keydown", event => {
+    if (!["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp", "Home", "End"].includes(event.key)) {
+      return;
+    }
+    event.preventDefault();
+    const tabs = Array.from(tablist.querySelectorAll('[role="tab"]'));
+    const currentIndex = tabs.indexOf(document.activeElement);
+    if (currentIndex < 0) return;
+
+    let nextIndex = currentIndex;
+    if (event.key === "Home") nextIndex = 0;
+    else if (event.key === "End") nextIndex = tabs.length - 1;
+    else if (event.key === "ArrowRight" || event.key === "ArrowDown") nextIndex = (currentIndex + 1) % tabs.length;
+    else nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+
+    selectGameTab(tabs[nextIndex].dataset.gameTab, true);
+  });
+
+  selectGameTab(activeGameTab);
 }
 
 function getCountryRoundMultipliers(country, fallbackCard = null) {
@@ -2862,6 +2995,16 @@ function syncCommanderStatus(totalAllocated = investments.agri + investments.oil
     step.classList.toggle("is-current", stepName === phase);
     step.classList.toggle("is-complete", steps.indexOf(stepName) < steps.indexOf(phase));
   });
+
+  if (!gameTabsInitialized) initializeGameTabs();
+  if (lastAutoGamePhase !== null && lastAutoGamePhase !== phase) {
+    selectGameTab(phase);
+  }
+  lastAutoGamePhase = phase;
+  document.querySelectorAll(".game-tab").forEach(tab => {
+    tab.classList.toggle("is-current-phase", tab.dataset.gameTab === phase);
+  });
+  syncGameTabBadges(phase);
 }
 
 function bankerRepaymentDue(principal = loans, persistedInterest = loanInterest) {
@@ -3398,7 +3541,10 @@ function updateAllianceUI() {
   const allianceAttackButton = document.getElementById("btn-alliance-skirmish");
 
   if (coalitionPanel) coalitionPanel.style.display = "none";
-  if (unionBanner) unionBanner.style.display = "none";
+  if (unionBanner) {
+    unionBanner.style.display = "none";
+    unionBanner.classList.add("hidden");
+  }
   if (proposalBanner) {
     proposalBanner.style.display = "none";
     proposalBanner.classList.add("hidden");
@@ -3472,12 +3618,18 @@ function updateAllianceUI() {
           : "";
       }
     } else if (!activeCounterUnion) {
-      if (unionBanner) unionBanner.style.display = "block";
+      if (unionBanner) {
+        unionBanner.classList.remove("hidden");
+        unionBanner.style.display = "block";
+      }
     }
   }
 
   if (activeCounterUnion && Array.isArray(activeCounterUnion.members)) {
-    if (unionBanner) unionBanner.style.display = "none";
+    if (unionBanner) {
+      unionBanner.style.display = "none";
+      unionBanner.classList.add("hidden");
+    }
 
     const isDefender = activeCounterUnion.members.some(m => cleanStr(m) === myCountryClean);
 
@@ -3507,6 +3659,8 @@ function updateAllianceUI() {
       }
     }
   }
+
+  syncGameTabBadges(lastAutoGamePhase || "prepare");
 }
 
 function currentInitiatedAlliance() {

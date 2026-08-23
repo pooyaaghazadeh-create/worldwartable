@@ -103,6 +103,49 @@
         </div>
       </section>
 
+      <nav class="game-tabs" role="tablist" aria-label="Game phases">
+        <button id="tab-status" class="game-tab is-active" role="tab" aria-selected="true" aria-controls="tab-panel-status" tabindex="0" data-game-tab="status" onclick="selectGameTab('status')">
+          <span class="game-tab-icon" aria-hidden="true">◎</span>
+          <span id="txt-tab-status">Status &amp; Cards</span>
+          <span class="game-tab-badge hidden" id="tab-status-badge"></span>
+        </button>
+        <button id="tab-prepare" class="game-tab" role="tab" aria-selected="false" aria-controls="tab-panel-prepare" tabindex="-1" data-game-tab="prepare" onclick="selectGameTab('prepare')">
+          <span class="game-tab-icon" aria-hidden="true">01</span>
+          <span id="txt-tab-prepare">Prepare</span>
+          <span class="game-tab-badge hidden" id="tab-prepare-badge"></span>
+        </button>
+        <button id="tab-act" class="game-tab" role="tab" aria-selected="false" aria-controls="tab-panel-act" tabindex="-1" data-game-tab="act" onclick="selectGameTab('act')">
+          <span class="game-tab-icon" aria-hidden="true">02</span>
+          <span id="txt-tab-act">Act</span>
+          <span class="game-tab-badge hidden" id="tab-act-badge"></span>
+        </button>
+        <button id="tab-review" class="game-tab" role="tab" aria-selected="false" aria-controls="tab-panel-review" tabindex="-1" data-game-tab="review" onclick="selectGameTab('review')">
+          <span class="game-tab-icon" aria-hidden="true">03</span>
+          <span id="txt-tab-review">Review</span>
+          <span class="game-tab-badge hidden" id="tab-review-badge"></span>
+        </button>
+      </nav>
+
+      <div class="urgent-game-alerts" aria-live="polite">
+        <!-- PENDING TRADE & ALLIANCE BANNER -->
+        <section id="pending-proposal-banner" class="card full-width pending-proposal-banner hidden" style="border: 2px solid var(--gold-color); text-align: center; display: none;">
+          <h2 id="txt-proposal-title" style="color: var(--gold-color); margin-bottom: 5px;">📜 Invitation Received</h2>
+          <p id="txt-proposal-desc" style="color: var(--text-muted); margin-bottom: 15px;"></p>
+          <div class="button-group" style="justify-content: center;">
+            <button id="btn-proposal-accept" class="btn btn-success btn-large" onclick="respondToGenericProposal(true)">✅ ACCEPT</button>
+            <button id="btn-proposal-reject" class="btn btn-danger btn-large" onclick="respondToGenericProposal(false)">❌ REJECT</button>
+          </div>
+        </section>
+
+        <!-- COUNTER-UNION DEFENSE BANNER -->
+        <section id="counter-union-banner" class="card full-width hidden" style="border: 2px solid var(--danger-color); text-align: center; display: none;">
+          <h2 id="txt-counter-union-title" style="color: var(--danger-color); margin-bottom: 5px;">⚠️ Superpower Mega-Merger Formed!</h2>
+          <p id="txt-counter-union-desc" style="color: var(--text-muted); margin-bottom: 15px;">Up to 3 unaligned powers can propose a Counter-Union to pool resources and defend against the Merger.</p>
+          <button id="btn-counter-union" class="btn btn-danger btn-large" onclick="openCounterUnionModal()">🛡️ Propose Defensive Counter-Union</button>
+        </section>
+      </div>
+
+      <section id="tab-panel-status" class="game-tab-panel is-active" role="tabpanel" aria-labelledby="tab-status" data-panel="status">
       <!-- GAME CARDS -->
       <section class="game-cards-panel full-width" aria-labelledby="txt-game-cards-title">
         <div class="game-cards-heading">
@@ -128,7 +171,9 @@
           </section>
         </div>
       </section>
+      </section>
 
+      <section id="tab-panel-prepare" class="game-tab-panel" role="tabpanel" aria-labelledby="tab-prepare" data-panel="prepare" hidden>
       <div class="flow-section-label flow-prepare-label" role="heading" aria-level="2">
         <span>01</span>
         <strong id="txt-prepare-section">Prepare</strong>
@@ -159,16 +204,6 @@
           <div id="host-requests-container">
             <p style="color: var(--text-muted); font-size: 0.9rem;">No pending coin purchase requests.</p>
           </div>
-        </div>
-      </section>
-
-      <!-- PENDING TRADE & ALLIANCE BANNER -->
-      <section id="pending-proposal-banner" class="card full-width pending-proposal-banner hidden" style="border: 2px solid var(--gold-color); text-align: center; display: none;">
-        <h2 id="txt-proposal-title" style="color: var(--gold-color); margin-bottom: 5px;">📜 Invitation Received</h2>
-        <p id="txt-proposal-desc" style="color: var(--text-muted); margin-bottom: 15px;"></p>
-        <div class="button-group" style="justify-content: center;">
-          <button id="btn-proposal-accept" class="btn btn-success btn-large" onclick="respondToGenericProposal(true)">✅ ACCEPT</button>
-          <button id="btn-proposal-reject" class="btn btn-danger btn-large" onclick="respondToGenericProposal(false)">❌ REJECT</button>
         </div>
       </section>
 
@@ -272,7 +307,9 @@
           </div>
         </section>
       </section>
+      </section>
 
+      <section id="tab-panel-act" class="game-tab-panel" role="tabpanel" aria-labelledby="tab-act" data-panel="act" hidden>
       <div class="flow-section-label flow-act-label" role="heading" aria-level="2">
         <span>02</span>
         <strong id="txt-act-section">Act</strong>
@@ -323,13 +360,9 @@
          </div>
       </section>
 
-      <!-- COUNTER-UNION DEFENSE BANNER -->
-      <section id="counter-union-banner" class="card full-width hidden" style="border: 2px solid var(--danger-color); text-align: center; display: none;">
-        <h2 id="txt-counter-union-title" style="color: var(--danger-color); margin-bottom: 5px;">⚠️ Superpower Mega-Merger Formed!</h2>
-        <p id="txt-counter-union-desc" style="color: var(--text-muted); margin-bottom: 15px;">Up to 3 unaligned powers can propose a Counter-Union to pool resources and defend against the Merger.</p>
-        <button id="btn-counter-union" class="btn btn-danger btn-large" onclick="openCounterUnionModal()">🛡️ Propose Defensive Counter-Union</button>
       </section>
 
+      <section id="tab-panel-review" class="game-tab-panel" role="tabpanel" aria-labelledby="tab-review" data-panel="review" hidden>
       <div class="flow-section-label flow-review-label" role="heading" aria-level="2">
         <span>03</span>
         <strong id="txt-review-section">Review</strong>
@@ -374,6 +407,7 @@
           <span class="round-live-indicator">LIVE</span>
         </div>
         <div id="round-announcements" class="announcement-feed" aria-live="polite"></div>
+      </section>
       </section>
 
     </main>
@@ -594,9 +628,10 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260823-ui-modernization-1"></script>
+  <script src="script.js?v=20260823-phase-tabs-1"></script>
   <script>
     window.addEventListener("DOMContentLoaded", () => {
+      initializeGameTabs();
       initMobilePlayerSession();
       // Ensure language change bindings work safely
       const langSelect = document.getElementById("lang-select");

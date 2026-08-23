@@ -1466,6 +1466,104 @@ body:not(.tv-body) .card {
   cursor: not-allowed;
 }
 
+.game-tabs {
+  background: rgba(15, 23, 42, 0.82);
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 14px;
+  display: grid;
+  gap: 5px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding: 5px;
+  position: sticky;
+  top: 8px;
+  z-index: 20;
+}
+
+.game-tab {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: #94a3b8;
+  display: grid;
+  gap: 3px;
+  justify-items: center;
+  min-height: 54px;
+  min-width: 0;
+  padding: 6px 5px;
+  position: relative;
+  text-align: center;
+}
+
+.game-tab:hover {
+  background: rgba(148, 163, 184, 0.1);
+  color: #e2e8f0;
+}
+
+.game-tab.is-active {
+  background: linear-gradient(145deg, rgba(37, 99, 235, 0.78), rgba(30, 58, 138, 0.78));
+  border-color: rgba(125, 211, 252, 0.58);
+  box-shadow: 0 6px 14px rgba(2, 6, 23, 0.22);
+  color: #f8fafc;
+}
+
+.game-tab.is-current-phase:not(.is-active) {
+  border-color: rgba(245, 158, 11, 0.68);
+  color: #fde68a;
+}
+
+.game-tab-icon {
+  color: #60a5fa;
+  font-size: 0.67rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+
+.game-tab.is-active .game-tab-icon {
+  color: #bae6fd;
+}
+
+.game-tab > span:nth-child(2) {
+  font-size: 0.75rem;
+  font-weight: 850;
+  line-height: 1.1;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-tab-badge {
+  color: #fcd34d;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-tab.is-active .game-tab-badge {
+  color: #fef3c7;
+}
+
+.urgent-game-alerts {
+  display: grid;
+  gap: 12px;
+}
+
+.game-tab-panel {
+  display: grid;
+  gap: 15px;
+}
+
+.game-tab-panel[hidden] {
+  display: none !important;
+}
+
 .flow-section-label {
   align-items: baseline;
   border-bottom: 1px solid rgba(148, 163, 184, 0.28);
@@ -1495,18 +1593,9 @@ body:not(.tv-body) .card {
 }
 
 .dashboard-container > .commander-status-strip { order: 1; }
-.dashboard-container > .game-cards-panel { order: 4; }
-.dashboard-container > .flow-prepare-label { order: 8; }
-.dashboard-container > .host-panel { order: 9; }
-.dashboard-container > .flow-act-label { order: 38; }
-.dashboard-container > .flow-review-label { order: 78; }
-.dashboard-container > .command-board-card { order: 40; }
-.dashboard-container > .hand-card { order: 48; }
-.dashboard-container > #coalition-panel,
-.dashboard-container > #counter-union-banner { order: 47; }
-.dashboard-container > .announcement-card { order: 84; }
-.dashboard-container > .ready-consensus-card { order: 80; }
-.dashboard-container > #final-placements-panel { order: 83; }
+.dashboard-container > .game-tabs { order: 2; }
+.dashboard-container > .urgent-game-alerts { order: 3; }
+.dashboard-container > .game-tab-panel { order: 4; }
 
 .game-cards-panel {
   background:
@@ -1661,6 +1750,19 @@ input[type="range"] {
 }
 
 @media (max-width: 480px) {
+  .game-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    position: static;
+  }
+
+  .game-tab {
+    min-height: 48px;
+  }
+
+  .game-tab > span:nth-child(2) {
+    font-size: 0.72rem;
+  }
+
   .status-purchase {
     align-items: stretch;
     flex-direction: column;
