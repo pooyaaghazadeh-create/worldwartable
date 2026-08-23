@@ -548,6 +548,10 @@ async function refreshPlayerEconomy() {
     coins = Number(session.economy.coins) || 0;
     loans = Number(session.economy.loans) || 0;
     loanInterest = Number(session.economy.loanInterest) || 0;
+    if (session.economy.battleAllowance) {
+      skirmishAttacksExecuted = Number(session.economy.battleAllowance.attacksUsed) || 0;
+      skirmishMaxAllowedAttacks = Number(session.economy.battleAllowance.maxAttacks) || 1;
+    }
     lastRoundSettlement = session.economy.lastSettlement?.fieldYields
       ? session.economy.lastSettlement
       : null;
@@ -1410,6 +1414,7 @@ function applyHostEvent(event) {
       loans = Number(event.payload.loans) || 0;
       loanInterest = Number(event.payload.loanInterest) || 0;
       updateUI();
+      void refreshRoomSnapshot();
       logAction(`🏦 Banker loan settled: ${event.payload.repayment} coins paid, including interest.`, "BANK");
     }
   } else if (event.type === "ACTIVATE_MERCHANT") {
