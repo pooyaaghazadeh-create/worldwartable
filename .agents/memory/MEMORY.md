@@ -3,3 +3,4 @@
 - [Round balance basis](round-balance-basis.md) — Locked field coins fund their payout once; ending balance starts from unallocated cash, not the full pre-close wallet.
 - [Round action caps](round-action-caps.md) — Trade proposals and solo battles have server-enforced per-round allowances, including attempted offers.
 - [Coin purchase request limit](coin-purchase-request-limit.md) — Players may submit up to five coin-purchase requests per game; the cap includes resolved requests.
+- [Game edition rules](game-edition-rules.md) — Simple removes Banker and President cards, so Mega-Merger and Counter-Union are unavailable.
