@@ -10,9 +10,22 @@
 
   <div class="card" style="max-width: 420px; text-align: center; padding: 30px; width: 90%;">
     <h1 style="color: var(--gold-color); font-size: 2rem; margin-bottom: 10px;">🌍 World War Table</h1>
-     <p id="entry-intro" style="color: var(--text-muted); margin-bottom: 20px;">Enter your name to claim a seat. You start with 0 coins and can buy up to a maximum of 500 coins!</p>
+     <p id="entry-intro" style="color: var(--text-muted); margin-bottom: 20px;">Choose an edition, then enter your name to claim a seat. Each edition has its own private table.</p>
     
     <div id="entry-actions">
+       <fieldset style="border: 0; padding: 0; margin: 0 0 20px; text-align: left;">
+         <legend class="modal-label" style="margin-bottom: 8px;">Choose your table edition:</legend>
+         <label style="display: block; padding: 12px; margin-bottom: 8px; border: 1px solid rgba(255,215,0,0.5); border-radius: 8px; cursor: pointer;">
+           <input type="radio" name="edition" value="simple" onchange="selectEdition('simple')">
+           <strong>Simple Edition</strong>
+           <small style="display: block; margin: 5px 0 0 25px; color: var(--text-muted);">Core trades, battles, cards, and Global Conditions. No Banker or President cards.</small>
+         </label>
+         <label style="display: block; padding: 12px; border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; cursor: pointer;">
+           <input type="radio" name="edition" value="advanced" onchange="selectEdition('advanced')" checked>
+           <strong>Advanced Edition</strong>
+           <small style="display: block; margin: 5px 0 0 25px; color: var(--text-muted);">Full table with Banker loans, President Mega-Mergers, and Counter-Unions.</small>
+         </label>
+       </fieldset>
       <div class="field-box modal-input-box" style="text-align: left; margin-bottom: 20px;">
         <label class="modal-label">Commander Name:</label>
         <input type="text" id="input-commander-name" class="modal-select" autofocus autocomplete="nickname" placeholder="Enter commander handle..." />
@@ -66,7 +79,7 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "same-origin",
-          body: JSON.stringify({ handle: pName })
+          body: JSON.stringify({ handle: pName, edition: selectedEdition })
         });
         const data = await response.json();
         if (!response.ok) {
@@ -95,7 +108,7 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "same-origin",
-          body: JSON.stringify({ handle, reconnectCode })
+          body: JSON.stringify({ handle, reconnectCode, edition: selectedEdition })
         });
         const data = await response.json();
         if (!response.ok) {
@@ -124,11 +137,21 @@
     }
 
     function continueToController() {
-      window.location.href = "mobile.html";
+      window.location.href = `mobile.html?edition=${encodeURIComponent(selectedEdition)}`;
+    }
+
+    let selectedEdition = "advanced";
+
+    function selectEdition(edition) {
+      selectedEdition = edition === "simple" ? "simple" : "advanced";
+      document.querySelectorAll('input[name="edition"]').forEach(input => {
+        input.checked = input.value === selectedEdition;
+      });
     }
 
     async function prepareReconnectEntry() {
       const query = new URLSearchParams(window.location.search);
+      selectEdition(query.get("edition"));
       if (query.get("mode") !== "reconnect") return;
 
       const heading = document.getElementById("reconnect-heading");
@@ -138,10 +161,10 @@
       if (description) description.textContent = "Checking whether this phone still has your game session…";
 
       try {
-        const response = await fetch("/api/session", { credentials: "same-origin" });
+        const response = await fetch(`/api/session?edition=${encodeURIComponent(selectedEdition)}`, { credentials: "same-origin" });
         const session = response.ok ? await response.json() : null;
         if (session?.player) {
-          window.location.replace("mobile.html");
+          window.location.replace(`mobile.html?edition=${encodeURIComponent(session.edition || selectedEdition)}`);
           return;
         }
       } catch (e) {}
@@ -159,7 +182,7 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "same-origin",
-          body: "{}"
+          body: JSON.stringify({ edition: selectedEdition })
         });
         const data = await response.json();
         if (!response.ok) {

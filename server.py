@@ -10,6 +10,7 @@ import secrets
 import sqlite3
 import time
 from contextlib import contextmanager
+from contextvars import ContextVar
 from http import HTTPStatus
 from http.cookies import SimpleCookie
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -19,6 +20,19 @@ from urllib.parse import parse_qs, urlparse
 
 ROOT = Path(__file__).resolve().parent
 DATABASE_PATH = Path(os.environ.get("WORLD_WAR_DB_PATH", ROOT / ".world_war_room.sqlite3"))
+EDITIONS = {
+    "advanced": {
+        "label": "Advanced Edition",
+        "database_path": DATABASE_PATH,
+        "card_titles": ("Banker", "President", "General", "Spy", "Merchant", "Atomic Bomb"),
+    },
+    "simple": {
+        "label": "Simple Edition",
+        "database_path": Path(os.environ.get("WORLD_WAR_SIMPLE_DB_PATH", ROOT / ".world_war_room_simple.sqlite3")),
+        "card_titles": ("General", "Spy", "Merchant", "Atomic Bomb"),
+    },
+}
+ACTIVE_EDITION: ContextVar[str] = ContextVar("active_edition", default="advanced")
 SESSION_SECRET = os.environ.get("SESSION_SECRET")
 if not SESSION_SECRET:
     raise RuntimeError("SESSION_SECRET must be configured before starting the game server.")
@@ -35,7 +49,7 @@ COUNTRIES = [
     {"id": 9, "country": "Germany 🇩🇪"},
     {"id": 10, "country": "South Africa 🇿🇦"},
 ]
-CARD_TITLES = ("Banker", "President", "General", "Spy", "Merchant", "Atomic Bomb")
+CARD_TITLES = EDITIONS["advanced"]["card_titles"]
 RESOURCE_FIELDS = ("agri", "oil", "mines")
 ROUND_MULTIPLIER_VALUES = (1, 2, 3)
 COIN_PURCHASE_AMOUNT = 100
@@ -132,9 +146,19 @@ def legacy_fresh_banker_principal(
     return min(max(0, outstanding_debt), fresh_principal)
 
 
+def normalize_edition(value: object) -> str | None:
+    edition = str(value or "").strip().casefold()
+    return edition if edition in EDITIONS else None
+
+
+def database_path_for_edition(edition: str | None = None) -> Path:
+    selected = normalize_edition(edition) or ACTIVE_EDITION.get()
+    return EDITIONS[selected]["database_path"]
+
+
 @contextmanager
-def database():
-    connection = sqlite3.connect(DATABASE_PATH, timeout=10)
+def database(edition: str | None = None):
+    connection = sqlite3.connect(database_path_for_edition(edition), timeout=10)
     connection.row_factory = sqlite3.Row
     try:
         yield connection
@@ -147,8 +171,8 @@ def database():
         connection.close()
 
 
-def initialize_database() -> None:
-    with database() as connection:
+def initialize_database(edition: str | None = None) -> None:
+    with database(edition) as connection:
         connection.executescript(
             """
             CREATE TABLE IF NOT EXISTS players (
@@ -417,6 +441,7 @@ class GameHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
+        self.set_request_edition(parse_qs(parsed.query))
         if parsed.path == "/api/session":
             self.send_session()
             return
@@ -430,9 +455,11 @@ class GameHandler(SimpleHTTPRequestHandler):
 
     def do_POST(self) -> None:
         parsed = urlparse(self.path)
+        self.set_request_edition(parse_qs(parsed.query))
         payload = self.read_json()
         if payload is None:
             return
+        self.set_request_edition(payload=payload)
         if parsed.path == "/api/room/join":
             self.join_room(payload)
             return
@@ -462,13 +489,51 @@ class GameHandler(SimpleHTTPRequestHandler):
             self.send_json({"error": "Invalid JSON request."}, HTTPStatus.BAD_REQUEST)
             return None
 
-    def send_json(self, payload: dict, status: HTTPStatus = HTTPStatus.OK, cookie: str | None = None) -> None:
+    @property
+    def edition(self) -> str:
+        return ACTIVE_EDITION.get()
+
+    def set_request_edition(self, query: dict | None = None, payload: dict | None = None) -> str:
+        requested = None
+        if isinstance(payload, dict):
+            requested = normalize_edition(payload.get("edition"))
+        if not requested and isinstance(query, dict):
+            requested = normalize_edition((query.get("edition") or [None])[0])
+        if not requested:
+            cookie = SimpleCookie()
+            cookie.load(self.headers.get("Cookie", ""))
+            edition_cookie = cookie.get("world_war_edition")
+            requested = normalize_edition(edition_cookie.value if edition_cookie else None)
+        ACTIVE_EDITION.set(requested or "advanced")
+        return self.edition
+
+    @staticmethod
+    def edition_cookie(edition: str) -> str:
+        return f"world_war_edition={edition}; SameSite=Lax; Path=/; Max-Age=86400"
+
+    @staticmethod
+    def session_cookie_name(edition: str) -> str:
+        return f"world_war_session_{edition}"
+
+    def session_cookie(self, token: str, max_age: int = 86400) -> str:
+        return (
+            f"{self.session_cookie_name(self.edition)}={token}; "
+            f"HttpOnly; SameSite=Lax; Path=/; Max-Age={max_age}"
+        )
+
+    def send_json(
+        self,
+        payload: dict,
+        status: HTTPStatus = HTTPStatus.OK,
+        cookie: str | list[str] | None = None,
+    ) -> None:
         encoded = json.dumps(payload).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(encoded)))
         if cookie:
-            self.send_header("Set-Cookie", cookie)
+            for value in ([cookie] if isinstance(cookie, str) else cookie):
+                self.send_header("Set-Cookie", value)
         self.end_headers()
         self.wfile.write(encoded)
 
@@ -476,7 +541,7 @@ class GameHandler(SimpleHTTPRequestHandler):
         raw_cookie = self.headers.get("Cookie", "")
         cookie = SimpleCookie()
         cookie.load(raw_cookie)
-        token = cookie.get("world_war_session")
+        token = cookie.get(self.session_cookie_name(self.edition))
         if not token:
             return None
         with database() as connection:
@@ -495,7 +560,7 @@ class GameHandler(SimpleHTTPRequestHandler):
     def send_session(self) -> None:
         player = self.session_player()
         if not player:
-            self.send_json({"player": None, "playerCount": 0})
+            self.send_json({"player": None, "playerCount": 0, "edition": self.edition})
             return
         with database() as connection:
             count = connection.execute("SELECT COUNT(*) FROM players").fetchone()[0]
@@ -530,6 +595,7 @@ class GameHandler(SimpleHTTPRequestHandler):
                     "country": player["country"],
                     "isHost": bool(player["is_host"]),
                 },
+                "edition": self.edition,
                 "playerCount": count,
                 "hand": json.loads(hand_row["cards"]) if hand_row else [],
                 "room": room,
@@ -659,6 +725,8 @@ class GameHandler(SimpleHTTPRequestHandler):
             )
         ]
         return {
+            "edition": self.edition,
+            "editionLabel": EDITIONS[self.edition]["label"],
             "players": players,
             "activeCondition": json.loads(room["active_condition"]) if room and room["active_condition"] else None,
             "alliances": alliances,
@@ -684,6 +752,7 @@ class GameHandler(SimpleHTTPRequestHandler):
             )
 
     def join_room(self, payload: dict) -> None:
+        self.set_request_edition(payload=payload)
         handle = str(payload.get("handle", "")).strip()
         handle_key = normalize_handle(handle)
         if not handle_key or len(handle) > 40:
@@ -755,7 +824,10 @@ class GameHandler(SimpleHTTPRequestHandler):
                 self.publish_room_event(connection, "HOST_DEAL_CARDS", {"automatic": True})
             room_snapshot = self.room_snapshot(connection)
 
-        cookie = f"world_war_session={token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=86400"
+        cookies = [
+            self.session_cookie(token),
+            self.edition_cookie(self.edition),
+        ]
         self.send_json(
             {
                 "player": {
@@ -764,13 +836,15 @@ class GameHandler(SimpleHTTPRequestHandler):
                     "isHost": is_host,
                 },
                 "reconnectCode": reconnect_code,
+                "edition": self.edition,
                 "room": room_snapshot,
             },
             HTTPStatus.CREATED,
-            cookie,
+            cookies,
         )
 
     def resume_room(self, payload: dict) -> None:
+        self.set_request_edition(payload=payload)
         handle = str(payload.get("handle", "")).strip()
         handle_key = normalize_handle(handle)
         reconnect_code = str(payload.get("reconnectCode", "")).strip()
@@ -824,7 +898,10 @@ class GameHandler(SimpleHTTPRequestHandler):
             )
             room_snapshot = self.room_snapshot(connection)
 
-        cookie = f"world_war_session={token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=86400"
+        cookies = [
+            self.session_cookie(token),
+            self.edition_cookie(self.edition),
+        ]
         self.send_json(
             {
                 "player": {
@@ -833,10 +910,11 @@ class GameHandler(SimpleHTTPRequestHandler):
                     "isHost": bool(player["is_host"]),
                 },
                 "reconnectCode": next_reconnect_code,
+                "edition": self.edition,
                 "room": room_snapshot,
             },
             HTTPStatus.CREATED,
-            cookie,
+            cookies,
         )
 
     def create_host_event(self, payload: dict) -> None:
@@ -1165,6 +1243,19 @@ class GameHandler(SimpleHTTPRequestHandler):
         if event_type not in ROOM_EVENT_TYPES or not isinstance(event_payload, dict):
             self.send_json({"error": "Unsupported room event."}, HTTPStatus.BAD_REQUEST)
             return
+        if self.edition == "simple" and event_type in {
+            "TAKE_BANKER_LOAN",
+            "REPAY_BANKER_LOAN",
+            "PROPOSE_ALLIANCE",
+            "APPROVE_ALLIANCE",
+            "CONFIRM_ALLIANCE",
+            "REJECT_ALLIANCE",
+        }:
+            self.send_json(
+                {"error": "This action is available only in the Advanced Edition."},
+                HTTPStatus.FORBIDDEN,
+            )
+            return
 
         if event_type == "REQUEST_COINS":
             self.request_coins(player, event_payload)
@@ -1223,8 +1314,7 @@ class GameHandler(SimpleHTTPRequestHandler):
         )
         return True
 
-    @staticmethod
-    def deal_round_cards(connection: sqlite3.Connection) -> bool:
+    def deal_round_cards(self, connection: sqlite3.Connection) -> bool:
         """Deal the fresh two-card hand automatically when a round begins."""
         state = connection.execute(
             "SELECT cards_dealt, game_finished FROM round_state WHERE id = 1"
@@ -1244,7 +1334,7 @@ class GameHandler(SimpleHTTPRequestHandler):
             return False
         randomizer = secrets.SystemRandom()
         for seated_player in players:
-            hand = randomizer.sample(CARD_TITLES, 2)
+            hand = randomizer.sample(EDITIONS[self.edition]["card_titles"], 2)
             connection.execute(
                 """
                 INSERT INTO player_round_cards (player_id, cards, dealt_at)
@@ -1346,6 +1436,9 @@ class GameHandler(SimpleHTTPRequestHandler):
         return max(0, wallet_coins - (locked["allocated"] if locked else 0))
 
     def take_banker_loan(self, player: sqlite3.Row, payload: dict) -> None:
+        if self.edition == "simple":
+            self.send_json({"error": "Banker loans are unavailable in the Simple Edition."}, HTTPStatus.FORBIDDEN)
+            return
         if payload:
             self.send_json({"error": "The Banker loan amount is calculated automatically."}, HTTPStatus.BAD_REQUEST)
             return
@@ -1391,6 +1484,9 @@ class GameHandler(SimpleHTTPRequestHandler):
         self.send_json({"event": event}, HTTPStatus.CREATED)
 
     def repay_banker_loan(self, player: sqlite3.Row, payload: dict) -> None:
+        if self.edition == "simple":
+            self.send_json({"error": "Banker loans are unavailable in the Simple Edition."}, HTTPStatus.FORBIDDEN)
+            return
         if payload:
             self.send_json({"error": "Loan repayment does not accept extra data."}, HTTPStatus.BAD_REQUEST)
             return
@@ -2306,6 +2402,12 @@ class GameHandler(SimpleHTTPRequestHandler):
         self.send_json({"event": event}, HTTPStatus.CREATED)
 
     def propose_alliance(self, player: sqlite3.Row, payload: dict) -> None:
+        if self.edition == "simple":
+            self.send_json(
+                {"error": "Mega-Merger and Counter-Union are unavailable in the Simple Edition."},
+                HTTPStatus.FORBIDDEN,
+            )
+            return
         proposal_id = payload.get("proposalId")
         members = payload.get("members")
         targets = payload.get("pendingTargets")
@@ -2732,7 +2834,7 @@ class GameHandler(SimpleHTTPRequestHandler):
 
         self.send_json(
             {"ok": True, "playerCount": remaining_count, "newHostCountry": new_host_country},
-            cookie="world_war_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0",
+            cookie=self.session_cookie("", max_age=0),
         )
 
     def reset_room(self) -> None:
@@ -2777,11 +2879,12 @@ class GameHandler(SimpleHTTPRequestHandler):
                 """,
                 (json.dumps(generate_round_resource_multipliers()),),
             )
-        self.send_json({"ok": True}, cookie="world_war_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0")
+        self.send_json({"ok": True}, cookie=self.session_cookie("", max_age=0))
 
 
 if __name__ == "__main__":
-    initialize_database()
+    for edition in EDITIONS:
+        initialize_database(edition)
     ThreadingHTTPServer.allow_reuse_address = True
     server = ThreadingHTTPServer(("0.0.0.0", 5000), GameHandler)
     print("World War Table server listening on port 5000")

@@ -41,6 +41,8 @@
           <label id="lbl-view-mode">View Mode:</label>
           <button id="btn-mode-player" class="btn btn-small active" onclick="switchMode('player')">Mobile Player 📱</button>
           <button id="btn-mode-host" class="btn btn-small" onclick="switchMode('host')">Host Console 👑</button>
+          <span id="edition-badge" class="lock-indicator" aria-live="polite">Advanced Edition</span>
+          <button id="btn-open-tv-view" class="btn btn-small" type="button" onclick="openEditionTvView()">Open TV Table View</button>
            <button class="btn btn-small sound-toggle" type="button" data-sound-toggle aria-pressed="false" onclick="toggleGameSound()">Sound: Off</button>
           <a class="btn btn-small rulebook-link" href="rulebook.html" target="_blank" rel="noopener">📖 Rulebook</a>
           <button id="btn-exit-game" class="btn btn-small btn-danger" type="button" onclick="exitGame()">⏻ Exit Game</button>
@@ -85,7 +87,7 @@
         </section>
 
         <!-- COUNTER-UNION DEFENSE BANNER -->
-        <section id="counter-union-banner" class="card full-width hidden" style="border: 2px solid var(--danger-color); text-align: center; display: none;">
+        <section id="counter-union-banner" class="card full-width hidden advanced-only" style="border: 2px solid var(--danger-color); text-align: center; display: none;">
           <h2 id="txt-counter-union-title" style="color: var(--danger-color); margin-bottom: 5px;">⚠️ Superpower Mega-Merger Formed!</h2>
           <p id="txt-counter-union-desc" style="color: var(--text-muted); margin-bottom: 15px;">Up to 3 unaligned powers can propose a Counter-Union to pool resources and defend against the Merger.</p>
           <button id="btn-counter-union" class="btn btn-danger btn-large" onclick="openCounterUnionModal()">🛡️ Propose Defensive Counter-Union</button>
@@ -264,7 +266,7 @@
       </section>
 
       <!-- ECONOMY & BANKER -->
-      <section class="card player-card">
+       <section class="card player-card advanced-only">
         <h2 id="txt-economy-title">Economy &amp; Banker</h2>
         <section class="loan-calculator" aria-labelledby="txt-loan-calculator-title">
           <h3 id="txt-loan-calculator-title">Banker Loan Calculator</h3>
@@ -534,7 +536,7 @@
     </div>
   </div>
 
-  <div id="counter-union-modal" class="modal-overlay hidden">
+  <div id="counter-union-modal" class="modal-overlay hidden advanced-only">
     <div class="modal-card alert-card">
       <h2 style="color: var(--danger-color);">🛡️ Propose Defensive Counter-Union</h2>
       <p>Select up to 2 other unaligned powers to invite into defense (Max 3 Nations total).</p>
@@ -567,7 +569,7 @@
     </div>
   </div>
 
-  <div id="president-modal" class="modal-overlay hidden">
+  <div id="president-modal" class="modal-overlay hidden advanced-only">
     <div class="modal-card">
       <h2>🏛️ President Mega-Merger</h2>
       <p>Select allied powers to invite into an alliance merger.</p>
@@ -624,7 +626,7 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260823-phase-tabs-1"></script>
+  <script src="script.js?v=20260824-editions-1"></script>
   <script>
     window.addEventListener("DOMContentLoaded", () => {
       initializeGameTabs();

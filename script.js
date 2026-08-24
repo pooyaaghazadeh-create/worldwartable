@@ -11,6 +11,9 @@ let gameFinished = false;
 let finalPlacements = [];
 let activeMode = 'player';
 let currentLang = 'en';
+let activeEdition = new URLSearchParams(window.location.search).get("edition") === "simple"
+  ? "simple"
+  : "advanced";
 
 let cardsDealtThisRound = false;
 let eventDrawnThisRound = false;
@@ -51,6 +54,26 @@ const seenGameResultAlertIds = new Set();
 const soundPreferenceKey = "world_war_sound_enabled";
 const visualPulseTimers = new WeakMap();
 const MAX_COIN_REQUESTS = 5;
+
+function isSimpleEdition() {
+  return activeEdition === "simple";
+}
+
+function editionQuery() {
+  return `edition=${encodeURIComponent(activeEdition)}`;
+}
+
+function editionApiPath(path) {
+  return `${path}${path.includes("?") ? "&" : "?"}${editionQuery()}`;
+}
+
+function applyEditionUi(edition) {
+  activeEdition = edition === "simple" ? "simple" : "advanced";
+  document.body?.setAttribute("data-edition", activeEdition);
+  const label = activeEdition === "simple" ? "Simple Edition" : "Advanced Edition";
+  setTxt("edition-badge", label);
+  setTxt("tv-room-code", `WW-TABLE · ${activeEdition.toUpperCase()}`);
+}
 
 const GLOBAL_CONDITION_CARDS = [
   {
@@ -747,6 +770,7 @@ function applyRoundResourceMultipliers(multipliers) {
 
 function applyRoomSnapshot(room) {
   if (!room || !Array.isArray(room.players)) return;
+  applyEditionUi(room.edition || activeEdition);
   const serverRound = Number(room.roundNumber);
   const serverGameFinished = Boolean(room.gameFinished);
   const isExplicitGameReset = gameFinished && serverRound === 1 && !serverGameFinished;
@@ -808,7 +832,7 @@ function applyRoomSnapshot(room) {
 async function refreshRoomSnapshot() {
   if (typeof fetch !== "function") return;
   try {
-    const response = await fetch("/api/room/state", { credentials: "same-origin" });
+    const response = await fetch(editionApiPath("/api/room/state"), { credentials: "same-origin" });
     if (!response.ok) return;
     const data = await response.json();
     applyRoomSnapshot(data.room);
@@ -818,7 +842,7 @@ async function refreshRoomSnapshot() {
 async function refreshPlayerEconomy() {
   if (typeof fetch !== "function") return;
   try {
-    const response = await fetch("/api/session", { credentials: "same-origin" });
+    const response = await fetch(editionApiPath("/api/session"), { credentials: "same-origin" });
     if (!response.ok) return;
     const session = await response.json();
     if (!session?.economy) return;
@@ -1381,11 +1405,11 @@ window.exitGame = async function() {
 
   if (exitButton) exitButton.disabled = true;
   try {
-    const response = await fetch("/api/room/leave", {
+    const response = await fetch(editionApiPath("/api/room/leave"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
-      body: "{}"
+      body: JSON.stringify({ edition: activeEdition })
     });
     const data = await response.json();
     if (!response.ok) {
@@ -1395,7 +1419,7 @@ window.exitGame = async function() {
 
     clearPlayerGameMemory();
     gameBroadcast?.close();
-    window.location.replace("index.html");
+    window.location.replace(`index.html?${editionQuery()}`);
   } catch (e) {
     window.alert("Could not reach the game server. Please try again.");
   } finally {
@@ -1830,11 +1854,11 @@ async function submitHostCommand(type, payload) {
   if (!isRoomCreator || typeof fetch !== "function") return false;
 
   try {
-    const response = await fetch("/api/host/command", {
+    const response = await fetch(editionApiPath("/api/host/command"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
-      body: JSON.stringify({ type, payload })
+      body: JSON.stringify({ type, payload, edition: activeEdition })
     });
     const data = await response.json();
     if (!response.ok) {
@@ -1856,7 +1880,7 @@ async function submitRoomEvent(type, payload) {
   if (typeof fetch !== "function") return false;
 
   try {
-    const response = await fetch("/api/room/event", {
+    const response = await fetch(editionApiPath("/api/room/event"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
@@ -1885,7 +1909,7 @@ function startHostEventPolling() {
     if (hostPollInFlight) return;
     hostPollInFlight = true;
     try {
-      const response = await fetch(`/api/events?after=${lastHostEventId}`, { credentials: "same-origin" });
+      const response = await fetch(editionApiPath(`/api/events?after=${lastHostEventId}`), { credentials: "same-origin" });
       if (!response.ok) return;
       const data = await response.json();
       data.events?.forEach(applyHostEvent);
@@ -2032,13 +2056,13 @@ function applyServerHand(hand) {
   if (!Array.isArray(hand)) return;
   currentHand = hand
     .map(title => cardDeck.find(card => card.title === title))
-    .filter(Boolean);
+    .filter(card => card && (!isSimpleEdition() || !["Banker", "President"].includes(card.title)));
   renderHand();
 }
 
 async function refreshCurrentHand() {
   try {
-    const response = await fetch("/api/session", { credentials: "same-origin" });
+    const response = await fetch(editionApiPath("/api/session"), { credentials: "same-origin" });
     if (!response.ok) return;
     const session = await response.json();
     applyServerHand(session.hand);
@@ -2048,14 +2072,14 @@ async function refreshCurrentHand() {
 async function initMobilePlayerSession() {
   let session;
   try {
-    const response = await fetch("/api/session", { credentials: "same-origin" });
+    const response = await fetch(editionApiPath("/api/session"), { credentials: "same-origin" });
     if (!response.ok) {
-      window.location.href = "index.html";
+      window.location.href = `index.html?${editionQuery()}`;
       return;
     }
     session = await response.json();
     if (!session.player) {
-      window.location.href = "index.html";
+      window.location.href = `index.html?${editionQuery()}`;
       return;
     }
   } catch (e) {
@@ -2064,6 +2088,7 @@ async function initMobilePlayerSession() {
   }
 
   const handleName = session.player.handle;
+  applyEditionUi(session.edition || activeEdition);
   assignedCountry = countryCards.find(card => cleanStr(card.name) === cleanStr(session.player.country));
   if (!assignedCountry) return;
 
@@ -3318,6 +3343,10 @@ window.executeSkirmishAttack = async function() {
 // ALLIANCE MUTUAL APPROVAL SYSTEM
 // ==========================================
 window.openPresidentModal = function(cardIndex) {
+  if (isSimpleEdition()) {
+    logAction("Mega-Merger is unavailable in the Simple Edition.", "ALLIANCE");
+    return;
+  }
   if (!investmentsLocked) {
     logAction("⚠️ President card requires field investments to be locked first!", "ALLIANCE");
     return;
@@ -3398,6 +3427,10 @@ window.closePresidentModal = function() {
 };
 
 window.openCounterUnionModal = function() {
+  if (isSimpleEdition()) {
+    logAction("Counter-Union is unavailable in the Simple Edition.", "ALLIANCE");
+    return;
+  }
   const select1 = document.getElementById("select-union-partner-1");
   const select2 = document.getElementById("select-union-partner-2");
   if (!select1 || !select2) return;
@@ -3761,11 +3794,11 @@ window.restartCompletedGame = async function() {
     return;
   }
   try {
-    const response = await fetch("/api/room/reset", {
+    const response = await fetch(editionApiPath("/api/room/reset"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
-      body: "{}"
+      body: JSON.stringify({ edition: activeEdition })
     });
     const data = await response.json();
     if (!response.ok) {
@@ -3773,7 +3806,7 @@ window.restartCompletedGame = async function() {
       return;
     }
     clearPlayerGameMemory();
-    window.location.replace("index.html");
+    window.location.replace(`index.html?${editionQuery()}`);
   } catch (e) {
     logAction("⛔ Could not contact the game server to restart the room.", "HOST");
   }
@@ -4006,6 +4039,10 @@ function renderHand() {
 }
 
 function playCardAction(card, index) {
+  if (isSimpleEdition() && ["Banker", "President"].includes(card.title)) {
+    logAction(`${card.title} is unavailable in the Simple Edition.`, "CARD");
+    return;
+  }
   switch (card.title) {
     case "Banker":
       window.openLoanModal();
@@ -4040,6 +4077,10 @@ function playCardAction(card, index) {
 // OTHER CARD ACTION HANDLERS
 // ------------------------------------------
 window.openLoanModal = function() {
+  if (isSimpleEdition()) {
+    logAction("Banker loans are unavailable in the Simple Edition.", "BANK");
+    return;
+  }
   const hasBankerCard = currentHand.some(card => card.title === "Banker");
 
   if (!hasBankerCard) {
@@ -4191,8 +4232,13 @@ window.closeAtomicModal = function() {
 };
 
 window.initTvView = function() {
+  applyEditionUi(activeEdition);
   soundManager.init();
   void refreshRoomSnapshot();
   renderActiveGlobalCondition();
   startHostEventPolling();
+};
+
+window.openEditionTvView = function() {
+  window.open(`tv.html?${editionQuery()}`, "_blank", "noopener");
 };

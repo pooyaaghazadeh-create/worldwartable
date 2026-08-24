@@ -12,7 +12,7 @@
   <header class="tv-header">
     <h1>🌍 WORLD WAR TABLE ARENA</h1>
     <div class="header-room-box">
-      <div class="room-code-badge">ROOM CODE: <strong>WW-TABLE</strong></div>
+        <div class="room-code-badge">ROOM CODE: <strong id="tv-room-code">WW-TABLE · ADVANCED</strong></div>
        <button class="btn btn-small sound-toggle" type="button" data-sound-toggle aria-pressed="false" onclick="toggleGameSound()">Sound: Off</button>
       <a class="tv-rulebook-link" href="rulebook.html" target="_blank" rel="noopener">📖 Rulebook</a>
       <div id="qr-code-container" class="qr-code-box" aria-label="QR Code to reconnect to the game"></div>
@@ -52,7 +52,7 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260823-ui-modernization-1"></script>
+  <script src="script.js?v=20260824-editions-1"></script>
   <script>
     window.addEventListener("DOMContentLoaded", () => {
       // 1. Initialize TV view listener/state engine
@@ -70,9 +70,10 @@
         // reconnect code on the public TV screen.
         let targetUrl;
         try {
-          targetUrl = new URL("index.html?mode=reconnect", window.location.href).href;
+          const edition = new URLSearchParams(window.location.search).get("edition") === "simple" ? "simple" : "advanced";
+          targetUrl = new URL(`index.html?mode=reconnect&edition=${encodeURIComponent(edition)}`, window.location.href).href;
         } catch (e) {
-          targetUrl = window.location.href.replace(/tv\.html$/, "index.html?mode=reconnect");
+          targetUrl = window.location.href.replace(/tv\.html(?:\?.*)?$/, `index.html?mode=reconnect&edition=${edition}`);
         }
 
         new QRCode(qrBox, {

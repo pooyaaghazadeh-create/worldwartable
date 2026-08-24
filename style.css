@@ -1,4 +1,8 @@
 /* TV poker-table view */
+[data-edition="simple"] .advanced-only {
+  display: none !important;
+}
+
 .tv-body {
   min-height: 100vh;
   background: radial-gradient(circle at center, #172b32 0, #08151d 62%, #050b12 100%);
