@@ -173,6 +173,8 @@ const translations = {
     txtClickCard: "👆 Click Card to Action",
     txtAtomicDisabled: "Disabled during Pandemic",
     txtAnnouncements: "📣 Round Announcements",
+    txtAnnouncementsSubtitle: "Current round activity only",
+    txtGameResultContinue: "Continue",
     txtCommandBoardKicker: "LIVE STRATEGIC MAP",
     txtCommandBoardTitle: "Command Board",
     txtCommandBoardDesc: "Select an opposing country to inspect its multipliers, total investment, and available actions.",
@@ -299,6 +301,8 @@ const translations = {
     txtClickCard: "👆 Eylem İçin Karta Tıklayın",
     txtAtomicDisabled: "Pandemi sırasında devre dışı",
     txtAnnouncements: "📣 Raund Duyuruları",
+    txtAnnouncementsSubtitle: "Yalnızca mevcut raund etkinlikleri",
+    txtGameResultContinue: "Devam",
     txtCommandBoardKicker: "CANLI STRATEJİ HARİTASI",
     txtCommandBoardTitle: "Komuta Panosu",
     txtCommandBoardDesc: "Çarpanlarını, toplam yatırımını ve kullanılabilir eylemlerini incelemek için rakip bir ülke seçin.",
@@ -425,6 +429,8 @@ const translations = {
     txtClickCard: "👆 برای اقدام روی کارت کلیک کنید",
     txtAtomicDisabled: "در زمان همه‌گیری غیرفعال است",
     txtAnnouncements: "📣 اطلاعیه‌های دور",
+    txtAnnouncementsSubtitle: "فقط فعالیت‌های دور جاری",
+    txtGameResultContinue: "ادامه",
     txtCommandBoardKicker: "نقشه زنده راهبردی",
     txtCommandBoardTitle: "برد فرماندهی",
     txtCommandBoardDesc: "برای بررسی ضریب‌ها، مجموع سرمایه‌گذاری و اقدامات در دسترس، یک کشور رقیب را انتخاب کنید.",
@@ -494,6 +500,351 @@ const translations = {
   }
 };
 
+const notificationUiCopy = {
+  en: {
+    empty: "No announcements yet for this round.",
+    moreResults: count => `${count} more result${count === 1 ? "" : "s"} waiting`
+  },
+  tr: {
+    empty: "Bu raund için henüz duyuru yok.",
+    moreResults: count => `${count} sonuç daha bekliyor`
+  },
+  fa: {
+    empty: "هنوز اطلاعیه‌ای برای این دور وجود ندارد.",
+    moreResults: count => `${count} نتیجه دیگر در انتظار است`
+  }
+};
+
+const notificationTagTranslations = {
+  tr: {
+    SYSTEM: "SİSTEM", TRADE: "TİCARET", SKIRMISH: "ÇATIŞMA", ATOMIC: "ATOM",
+    ALLIANCE: "İTTİFAK", HOST: "YÖNETİCİ", EVENT: "ETKİNLİK", BANK: "BANKA",
+    ROUND: "RAUND", INVEST: "YATIRIM", CARD: "KART", SPY: "CASUS"
+  },
+  fa: {
+    SYSTEM: "سیستم", TRADE: "تجارت", SKIRMISH: "نبرد", ATOMIC: "اتمی",
+    ALLIANCE: "ائتلاف", HOST: "میزبان", EVENT: "رویداد", BANK: "بانک",
+    ROUND: "دور", INVEST: "سرمایه‌گذاری", CARD: "کارت", SPY: "جاسوس"
+  }
+};
+
+const notificationExactTranslations = {
+  tr: {
+    "↩️ Trade proposal rejected. Your reserved offer has been returned.": "↩️ Ticaret teklifi reddedildi. Rezerve teklifiniz iade edildi.",
+    "❌ Trade Proposal Rejected by target nation!": "❌ Ticaret teklifi hedef ülke tarafından reddedildi!",
+    "❌ Host Rejected your coin purchase request.": "❌ Yönetici coin satın alma isteğinizi reddetti.",
+    "⛔ Could not contact the game server for this host action.": "⛔ Bu yönetici işlemi için oyun sunucusuna ulaşılamadı.",
+    "⛔ Could not contact the game server for this alliance action.": "⛔ Bu ittifak işlemi için oyun sunucusuna ulaşılamadı.",
+    "⛔ Could not contact the game server to reset the table.": "⛔ Masayı sıfırlamak için oyun sunucusuna ulaşılamadı.",
+    "🔒 Lock your field investments before marking ready for the next round.": "🔒 Bir sonraki raund için hazır olmadan önce saha yatırımlarınızı kilitleyin.",
+    "⚠️ You have used both Field Trade proposals for this round.": "⚠️ Bu raunddaki iki Saha Ticareti teklifinizi de kullandınız.",
+    "⚠️ No other seated country is available to trade.": "⚠️ Ticaret yapılabilecek başka bir oturmuş ülke yok.",
+    "🔒 Lock your investments before offering a field investment in a trade.": "🔒 Ticarette saha yatırımı teklif etmeden önce yatırımlarınızı kilitleyin.",
+    "⚠️ Enter valid offer/request fields and coin amounts.": "⚠️ Geçerli teklif/istek alanları ve coin miktarları girin.",
+    "⚠️ Every seated player must lock investments before the Global Condition is drawn.": "⚠️ Küresel Etkinlik çekilmeden önce tüm oturmuş oyuncular yatırımlarını kilitlemelidir.",
+    "⚠️ You do not have an active Banker loan to repay.": "⚠️ Geri ödenecek aktif bir Banker krediniz yok.",
+    "⚠️ Settle your Banker loan and interest in Player Overview before opening a Field Battle.": "⚠️ Saha Savaşını açmadan önce Oyuncu Genel Bakışı bölümünde Banker kredinizi ve faizini ödeyin.",
+    "⚠️ Skirmish combat requires field investments to be locked first!": "⚠️ Çatışma başlatmadan önce saha yatırımlarının kilitlenmesi gerekir!",
+    "⚠️ No other seated country is available to attack.": "⚠️ Saldırılabilecek başka bir oturmuş ülke yok.",
+    "⚠️ Settle your Banker loan and interest before launching a Field Battle.": "⚠️ Saha Savaşını başlatmadan önce Banker kredinizi ve faizini ödeyin.",
+    "⚠️ Select a valid enemy power and battleground field.": "⚠️ Geçerli bir düşman ülkesi ve savaş alanı seçin.",
+    "Mega-Merger is unavailable in the Simple Edition.": "Mega-Birleşme Basit Sürümde kullanılamaz.",
+    "⚠️ President card requires field investments to be locked first!": "⚠️ Başkan kartı için önce saha yatırımları kilitlenmelidir!",
+    "⚠️ No other seated country is available for a merger.": "⚠️ Birleşme yapılabilecek başka bir oturmuş ülke yok.",
+    "⚠️ Select at least 1 partner power for the President merger.": "⚠️ Başkan birleşmesi için en az 1 ortak güç seçin.",
+    "Counter-Union is unavailable in the Simple Edition.": "Karşı Birlik Basit Sürümde kullanılamaz.",
+    "⚠️ Select at least 1 ally to form the Counter-Union.": "⚠️ Karşı Birlik oluşturmak için en az 1 müttefik seçin.",
+    "⚠️ Only the alliance initiator may launch one coalition skirmish this round.": "⚠️ Bu raundda koalisyon çatışmasını yalnızca ittifak başlatıcısı başlatabilir.",
+    "⚠️ No valid locked solo country or opposing alliance is available to attack.": "⚠️ Saldırılacak geçerli, yatırımları kilitli tek ülke veya karşı ittifak yok.",
+    "🏆 This three-round game is complete. Restart the room to begin a new game.": "🏆 Üç raundluk oyun tamamlandı. Yeni oyun için odayı yeniden başlatın.",
+    "⛔ Could not contact the game server to reset the table.": "⛔ Masayı sıfırlamak için oyun sunucusuna ulaşılamadı.",
+    "↩️ Unresolved trade offer returned before round calculation.": "↩️ Çözülmemiş ticaret teklifi raund hesaplanmadan önce iade edildi.",
+    "Banker loans are unavailable in the Simple Edition.": "Banker kredileri Basit Sürümde kullanılamaz.",
+    "⚠️ Loan Refused: You must hold and click the Banker card in your hand to take a loan!": "⚠️ Kredi reddedildi: Kredi almak için elinizde Banker kartı olmalı ve karta tıklamalısınız!",
+    "⚠️ You need at least 5 unallocated coins to take a Banker loan.": "⚠️ Banker kredisi almak için en az 5 ayrılmamış coin gerekir.",
+    "🎖️ General Card Activated! You now have 2 Skirmish Field Attacks for this round.": "🎖️ General kartı etkinleştirildi! Bu raund için artık 2 Saha Çatışması saldırınız var.",
+    "🕵️ No current-round trade is available to break.": "🕵️ Bozulabilecek mevcut raund ticareti yok.",
+    "🕵️ Spy operation submitted to the server.": "🕵️ Casus operasyonu sunucuya gönderildi.",
+    "🦠 Pandemic is active: Atomic Bomb cards are deactivated this round.": "🦠 Pandemi aktif: Atom Bombası kartları bu raund devre dışı.",
+    "⚠️ Atomic Bomb requires round investments to be locked first!": "⚠️ Atom Bombası için önce raund yatırımları kilitlenmelidir!",
+    "⚠️ No other seated country is available to target.": "⚠️ Hedef alınabilecek başka bir oturmuş ülke yok.",
+    "⚠️ Select a target country and field to detonate!": "⚠️ Patlatmak için bir hedef ülke ve saha seçin!"
+  },
+  fa: {
+    "↩️ Trade proposal rejected. Your reserved offer has been returned.": "↩️ پیشنهاد تجارت رد شد. پیشنهاد رزروشده شما برگردانده شد.",
+    "❌ Trade Proposal Rejected by target nation!": "❌ پیشنهاد تجارت توسط کشور هدف رد شد!",
+    "❌ Host Rejected your coin purchase request.": "❌ میزبان درخواست خرید سکه شما را رد کرد.",
+    "⛔ Could not contact the game server for this host action.": "⛔ ارتباط با سرور بازی برای این اقدام میزبان ممکن نشد.",
+    "⛔ Could not contact the game server for this alliance action.": "⛔ ارتباط با سرور بازی برای این اقدام ائتلاف ممکن نشد.",
+    "⛔ Could not contact the game server to reset the table.": "⛔ ارتباط با سرور بازی برای بازنشانی میز ممکن نشد.",
+    "🔒 Lock your field investments before marking ready for the next round.": "🔒 پیش از اعلام آمادگی برای دور بعد، سرمایه‌گذاری‌های زمین را قفل کنید.",
+    "⚠️ You have used both Field Trade proposals for this round.": "⚠️ هر دو پیشنهاد تجارت میدانی این دور را استفاده کرده‌اید.",
+    "⚠️ No other seated country is available to trade.": "⚠️ کشور نشسته دیگری برای تجارت وجود ندارد.",
+    "🔒 Lock your investments before offering a field investment in a trade.": "🔒 پیش از پیشنهاد سرمایه‌گذاری زمین در تجارت، سرمایه‌گذاری‌ها را قفل کنید.",
+    "⚠️ Enter valid offer/request fields and coin amounts.": "⚠️ زمین‌ها و مقدار سکه معتبر برای پیشنهاد/درخواست وارد کنید.",
+    "⚠️ Every seated player must lock investments before the Global Condition is drawn.": "⚠️ پیش از کشیدن رویداد جهانی، همه بازیکنان نشسته باید سرمایه‌گذاری‌های خود را قفل کنند.",
+    "⚠️ You do not have an active Banker loan to repay.": "⚠️ وام فعال Banker برای بازپرداخت ندارید.",
+    "⚠️ Settle your Banker loan and interest in Player Overview before opening a Field Battle.": "⚠️ پیش از باز کردن نبرد میدانی، وام و بهره Banker را در نمای بازیکن تسویه کنید.",
+    "⚠️ Skirmish combat requires field investments to be locked first!": "⚠️ برای نبرد، ابتدا باید سرمایه‌گذاری‌های زمین قفل شوند!",
+    "⚠️ No other seated country is available to attack.": "⚠️ کشور نشسته دیگری برای حمله وجود ندارد.",
+    "⚠️ Settle your Banker loan and interest before launching a Field Battle.": "⚠️ پیش از آغاز نبرد میدانی، وام و بهره Banker را تسویه کنید.",
+    "⚠️ Select a valid enemy power and battleground field.": "⚠️ یک قدرت دشمن و زمین نبرد معتبر انتخاب کنید.",
+    "Mega-Merger is unavailable in the Simple Edition.": "مگاادغام در نسخه ساده در دسترس نیست.",
+    "⚠️ President card requires field investments to be locked first!": "⚠️ کارت President نیاز دارد که ابتدا سرمایه‌گذاری‌های زمین قفل شوند!",
+    "⚠️ No other seated country is available for a merger.": "⚠️ کشور نشسته دیگری برای ادغام وجود ندارد.",
+    "⚠️ Select at least 1 partner power for the President merger.": "⚠️ برای ادغام President حداقل یک قدرت همکار انتخاب کنید.",
+    "Counter-Union is unavailable in the Simple Edition.": "اتحاد متقابل در نسخه ساده در دسترس نیست.",
+    "⚠️ Select at least 1 ally to form the Counter-Union.": "⚠️ برای تشکیل اتحاد متقابل حداقل یک متحد انتخاب کنید.",
+    "⚠️ Only the alliance initiator may launch one coalition skirmish this round.": "⚠️ در این دور فقط آغازکننده ائتلاف می‌تواند نبرد ائتلافی را آغاز کند.",
+    "⚠️ No valid locked solo country or opposing alliance is available to attack.": "⚠️ کشور مستقل قفل‌شده یا ائتلاف رقیب معتبری برای حمله وجود ندارد.",
+    "🏆 This three-round game is complete. Restart the room to begin a new game.": "🏆 بازی سه‌دوره‌ای تمام شد. برای شروع بازی جدید اتاق را بازنشانی کنید.",
+    "⛔ Could not contact the game server to reset the table.": "⛔ ارتباط با سرور بازی برای بازنشانی میز ممکن نشد.",
+    "↩️ Unresolved trade offer returned before round calculation.": "↩️ پیشنهاد تجارت حل‌نشده پیش از محاسبه دور برگردانده شد.",
+    "Banker loans are unavailable in the Simple Edition.": "وام‌های Banker در نسخه ساده در دسترس نیستند.",
+    "⚠️ Loan Refused: You must hold and click the Banker card in your hand to take a loan!": "⚠️ وام رد شد: برای دریافت وام باید کارت Banker را در دست داشته و روی آن کلیک کنید!",
+    "⚠️ You need at least 5 unallocated coins to take a Banker loan.": "⚠️ برای دریافت وام Banker حداقل ۵ سکه تخصیص‌نیافته لازم است.",
+    "🎖️ General Card Activated! You now have 2 Skirmish Field Attacks for this round.": "🎖️ کارت General فعال شد! اکنون برای این دور ۲ حمله نبرد میدانی دارید.",
+    "🕵️ No current-round trade is available to break.": "🕵️ تجارت فعالی از این دور برای مختل کردن وجود ندارد.",
+    "🕵️ Spy operation submitted to the server.": "🕵️ عملیات جاسوسی به سرور ارسال شد.",
+    "🦠 Pandemic is active: Atomic Bomb cards are deactivated this round.": "🦠 همه‌گیری فعال است: کارت‌های بمب اتم در این دور غیرفعال هستند.",
+    "⚠️ Atomic Bomb requires round investments to be locked first!": "⚠️ برای بمب اتم ابتدا باید سرمایه‌گذاری‌های دور قفل شوند!",
+    "⚠️ No other seated country is available to target.": "⚠️ کشور نشسته دیگری برای هدف‌گیری وجود ندارد.",
+    "⚠️ Select a target country and field to detonate!": "⚠️ برای انفجار، کشور و زمین هدف را انتخاب کنید!"
+  }
+};
+
+function notificationCopy() {
+  return notificationUiCopy[currentLang] || notificationUiCopy.en;
+}
+
+function localizeNotificationTag(tag) {
+  return notificationTagTranslations[currentLang]?.[tag] || tag;
+}
+
+function fieldNotificationLabel(field) {
+  const labels = currentLang === "tr"
+    ? { agri: "TARIM", oil: "PETROL", mines: "MADEN", unallocated: "ayrılmamış bakiye" }
+    : currentLang === "fa"
+      ? { agri: "کشاورزی", oil: "نفت", mines: "معادن", unallocated: "موجودی تخصیص‌نیافته" }
+      : { agri: "AGRI", oil: "OIL", mines: "MINES", unallocated: "unallocated balance" };
+  return labels[field?.toLowerCase()] || field;
+}
+
+function localizeNotificationMessage(message) {
+  if (!message || currentLang === "en") return message;
+  const exact = notificationExactTranslations[currentLang]?.[message];
+  if (exact) return exact;
+  let match;
+
+  if ((match = message.match(/^🌐 Language changed to (.+)\.$/))) {
+    return currentLang === "tr" ? `🌐 Dil ${match[1]} olarak değiştirildi.` : `🌐 زبان به ${match[1]} تغییر کرد.`;
+  }
+  if ((match = message.match(/^💥 SKIRMISH DEFEAT! (.+) invaded your (.+) field! Lost all (.+) invested coins!$/))) {
+    return currentLang === "tr"
+      ? `💥 ÇATIŞMA YENİLGİSİ! ${match[1]} ${fieldNotificationLabel(match[2])} sahanızı işgal etti! Yatırılmış ${match[3]} coin kaybedildi!`
+      : `💥 شکست نبرد! ${match[1]} به زمین ${fieldNotificationLabel(match[2])} شما حمله کرد! همه ${match[3]} سکه سرمایه‌گذاری‌شده از دست رفت!`;
+  }
+  if ((match = message.match(/^☢️ ATOMIC STRIKE! (.+) destroyed (.+) Coins in your (.+) field\. (.+) Coins remain invested\.$/))) {
+    return currentLang === "tr"
+      ? `☢️ ATOM SALDIRISI! ${match[1]}, ${fieldNotificationLabel(match[3])} sahanızdaki ${match[2]} coin'i yok etti. ${match[4]} coin yatırılmış olarak kaldı.`
+      : `☢️ حمله اتمی! ${match[1]} در زمین ${fieldNotificationLabel(match[3])} شما ${match[2]} سکه را نابود کرد. ${match[4]} سکه همچنان سرمایه‌گذاری شده است.`;
+  }
+  if ((match = message.match(/^❌ Alliance Proposal Rejected by (.+)! Alliance cancelled\.$/))) {
+    return currentLang === "tr" ? `❌ İttifak teklifi ${match[1]} tarafından reddedildi! İttifak iptal edildi.` : `❌ پیشنهاد ائتلاف توسط ${match[1]} رد شد! ائتلاف لغو شد.`;
+  }
+  if ((match = message.match(/^👑 Host dealt and locked 2 proficiency cards for Round (.+)!$/))) {
+    return currentLang === "tr" ? `👑 Yönetici Raund ${match[1]} için 2 uzmanlık kartı dağıtıp kilitledi!` : `👑 میزبان ۲ کارت مهارت را برای دور ${match[1]} توزیع و قفل کرد!`;
+  }
+  if ((match = message.match(/^🎲 Host drawn Global Event Card: (.+)!$/))) {
+    return currentLang === "tr" ? `🎲 Yönetici Küresel Etkinlik kartını çekti: ${match[1]}!` : `🎲 میزبان کارت رویداد جهانی را کشید: ${match[1]}!`;
+  }
+  if ((match = message.match(/^✅ Host Approved your coin purchase! Your server wallet now holds (.+) coins\.$/))) {
+    return currentLang === "tr" ? `✅ Yönetici coin satın almanızı onayladı! Sunucu cüzdanınızda artık ${match[1]} coin var.` : `✅ میزبان خرید سکه شما را تأیید کرد! کیف پول سرور شما اکنون ${match[1]} سکه دارد.`;
+  }
+  if ((match = message.match(/^🏦 Banker loan settled: (.+) coins paid, including interest\.$/))) {
+    return currentLang === "tr" ? `🏦 Banker kredisi kapatıldı: faiz dahil ${match[1]} coin ödendi.` : `🏦 وام Banker تسویه شد: ${match[1]} سکه شامل بهره پرداخت شد.`;
+  }
+  if ((match = message.match(/^⛔ Only the room creator can (.+)\.$/))) {
+    return currentLang === "tr" ? `⛔ Bu işlemi yalnızca oda oluşturucusu yapabilir: ${match[1]}.` : `⛔ فقط سازنده اتاق می‌تواند این کار را انجام دهد: ${match[1]}.`;
+  }
+  if ((match = message.match(/^Welcome (.+)! Your wallet is synchronized with the game server\.$/))) {
+    return currentLang === "tr" ? `${match[1]} hoş geldiniz! Cüzdanınız oyun sunucusuyla senkronize edildi.` : `به بازی خوش آمدید ${match[1]}! کیف پول شما با سرور بازی همگام شد.`;
+  }
+  if ((match = message.match(/^🏁 You marked yourself READY to close Round (.+)\.$/))) {
+    return currentLang === "tr" ? `🏁 Raund ${match[1]} kapanışı için HAZIR olduğunuzu belirttiniz.` : `🏁 خود را برای بستن دور ${match[1]} آماده اعلام کردید.`;
+  }
+  if ((match = message.match(/^🔄 You CANCELLED your ready status for Round (.+)\.$/))) {
+    return currentLang === "tr" ? `🔄 آمادگی خود برای بستن Raund ${match[1]} را لغو کردید.` : `🔄 وضعیت آمادگی خود برای دور ${match[1]} را لغو کردید.`;
+  }
+  if ((match = message.match(/^🤝 Sent a server-validated trade proposal to (.+)\.$/))) {
+    return currentLang === "tr" ? `🤝 ${match[1]} ülkesine sunucu doğrulamalı ticaret teklifi gönderildi.` : `🤝 پیشنهاد تجارت تأییدشده توسط سرور به ${match[1]} ارسال شد.`;
+  }
+  if ((match = message.match(/^⚠️ Trade could not settle: (.+) Coins are required from your (.+) field\.$/))) {
+    return currentLang === "tr" ? `⚠️ Ticaret sonuçlandırılamadı: ${match[1]} coin ${fieldNotificationLabel(match[2])} sahanızdan gerekli.` : `⚠️ تجارت تسویه نشد: ${match[1]} سکه از زمین ${fieldNotificationLabel(match[2])} شما لازم است.`;
+  }
+  if ((match = message.match(/^🌍 Global Condition applied to trade — (.+) Coins\.$/))) {
+    return currentLang === "tr" ? `🌍 Ticaret için Küresel Etkinlik uygulandı — ${match[1]} coin.` : `🌍 رویداد جهانی بر تجارت اعمال شد — ${match[1]} سکه.`;
+  }
+  if ((match = message.match(/^🤝 TRADE EXECUTED with (.+)! Exchanged assets successfully\.$/))) {
+    return currentLang === "tr" ? `🤝 ${match[1]} ile TİCARET GERÇEKLEŞTİ! Varlıklar başarıyla takas edildi.` : `🤝 تجارت با ${match[1]} انجام شد! دارایی‌ها با موفقیت مبادله شدند.`;
+  }
+  if ((match = message.match(/^❌ You rejected the trade proposal from (.+)\.$/))) {
+    return currentLang === "tr" ? `❌ ${match[1]} ülkesinin ticaret teklifini reddettiniz.` : `❌ پیشنهاد تجارت ${match[1]} را رد کردید.`;
+  }
+  if ((match = message.match(/^🛑 Request limit reached: you can make up to (.+) coin purchase requests per game\.$/))) {
+    return currentLang === "tr" ? `🛑 İstek sınırına ulaşıldı: oyun başına en fazla ${match[1]} coin satın alma isteği yapabilirsiniz.` : `🛑 به سقف درخواست رسیدید: در هر بازی حداکثر ${match[1]} درخواست خرید سکه می‌توانید ثبت کنید.`;
+  }
+  if ((match = message.match(/^🛑 Purchase Capped: Approved coins and pending requests cannot exceed (.+) coins\.$/))) {
+    return currentLang === "tr" ? `🛑 Satın alma sınırı: onaylanan coinler ve bekleyen istekler ${match[1]} coin'i aşamaz.` : `🛑 سقف خرید: سکه‌های تأییدشده و درخواست‌های معلق نمی‌توانند از ${match[1]} سکه بیشتر شوند.`;
+  }
+  if ((match = message.match(/^⏳ Coin Purchase Request submitted! Waiting for Host Approval \(\+100 Coins\)\.\.\.$/))) {
+    return currentLang === "tr" ? "⏳ Coin satın alma isteği gönderildi! Yönetici onayı bekleniyor (+100 Coin)..." : "⏳ درخواست خرید سکه ارسال شد! در انتظار تأیید میزبان (+۱۰۰ سکه)...";
+  }
+  if ((match = message.match(/^⚠️ Loan repayment requires (.+) total wallet coins; you need (.+) more\.$/))) {
+    return currentLang === "tr" ? `⚠️ Kredi geri ödemesi için toplam ${match[1]} cüzdan coin'i gerekir; ${match[2]} coin daha eksik.` : `⚠️ بازپرداخت وام به ${match[1]} سکه در کیف پول نیاز دارد؛ ${match[2]} سکه دیگر لازم است.`;
+  }
+  if ((match = message.match(/^✅ Locked field investments: Agri\((.+)\), Oil\((.+)\), Mines\((.+)\)\.$/))) {
+    return currentLang === "tr" ? `✅ Saha yatırımları kilitlendi: Tarım(${match[1]}), Petrol(${match[2]}), Maden(${match[3]}).` : `✅ سرمایه‌گذاری‌های زمین قفل شد: کشاورزی(${match[1]})، نفت(${match[2]})، معادن(${match[3]}).`;
+  }
+  if ((match = message.match(/^⚠️ Attack Limit Reached: You have used all \((.+)\) skirmish attacks for this round\.$/))) {
+    return currentLang === "tr" ? `⚠️ Saldırı sınırına ulaşıldı: bu raunddaki tüm (${match[1]}) çatışma saldırısını kullandınız.` : `⚠️ به سقف حمله رسیدید: همه ${match[1]} حمله نبرد این دور را استفاده کرده‌اید.`;
+  }
+  if ((match = message.match(/^🏛️ Sent President Mega-Merger proposal to (.+)\. Waiting for approval\.\.\.$/))) {
+    return currentLang === "tr" ? `🏛️ Başkan Mega-Birleşme teklifi ${match[1]} ülkesine gönderildi. Onay bekleniyor...` : `🏛️ پیشنهاد مگاادغام President به ${match[1]} ارسال شد. در انتظار تأیید...`;
+  }
+  if ((match = message.match(/^🛡️ Sent Defensive Counter-Union proposal to (.+)\. Waiting for approval\.\.\.$/))) {
+    return currentLang === "tr" ? `🛡️ پیشنهاد دفاعی اتحاد متقابل به ${match[1]} ارسال شد. در انتظار تأیید...` : `🛡️ پیشنهاد اتحاد متقابل دفاعی به ${match[1]} ارسال شد. در انتظار تأیید...`;
+  }
+  if ((match = message.match(/^🤝 ALLIANCE MUTUALLY APPROVED! Active powers: (.+)\.$/))) {
+    return currentLang === "tr" ? `🤝 İTTİFAK KARŞILIKLI ONAYLANDI! Aktif güçler: ${match[1]}.` : `🤝 ائتلاف به‌طور متقابل تأیید شد! قدرت‌های فعال: ${match[1]}.`;
+  }
+  if ((match = message.match(/^✅ You accepted the (.+)\. Awaiting final confirmation from the proposal initiator\.\.\.$/))) {
+    return currentLang === "tr" ? `✅ ${match[1]} teklifini kabul ettiniz. Teklifi başlatanın son onayı bekleniyor...` : `✅ پیشنهاد ${match[1]} را پذیرفتید. در انتظار تأیید نهایی آغازکننده پیشنهاد...`;
+  }
+  if ((match = message.match(/^❌ You REJECTED the (.+) proposal!$/))) {
+    return currentLang === "tr" ? `❌ ${match[1]} teklifini REDDETTİNİZ!` : `❌ پیشنهاد ${match[1]} را رد کردید!`;
+  }
+  if ((match = message.match(/^⛔ Round cannot advance yet: (.+)\.$/))) {
+    return currentLang === "tr" ? `⛔ Raund henüz ilerleyemez: ${match[1]}.` : `⛔ دور هنوز نمی‌تواند جلو برود: ${match[1]}.`;
+  }
+  if ((match = message.match(/^Activated (.+)!$/))) {
+    return currentLang === "tr" ? `${match[1]} etkinleştirildi!` : `${match[1]} فعال شد!`;
+  }
+  if ((match = message.match(/^(.+) is unavailable in the Simple Edition\.$/))) {
+    return currentLang === "tr" ? `${match[1]} Basit Sürümde kullanılamaz.` : `${match[1]} در نسخه ساده در دسترس نیست.`;
+  }
+  if ((match = message.match(/^(.+) and (.+) completed their exchange\.$/))) {
+    return currentLang === "tr" ? `${match[1]} ve ${match[2]} takaslarını tamamladı.` : `${match[1]} و ${match[2]} مبادله خود را کامل کردند.`;
+  }
+  if ((match = message.match(/^(.+) declined the trade from (.+)\.$/))) {
+    return currentLang === "tr" ? `${match[1]} ülkesi ${match[2]} ülkesinden gelen ticareti reddetti.` : `کشور ${match[1]} تجارت پیشنهادی ${match[2]} را رد کرد.`;
+  }
+  if ((match = message.match(/^(.+) could not complete the trade with (.+)\.$/))) {
+    return currentLang === "tr" ? `${match[1]} ülkesi ${match[2]} ile ticareti tamamlayamadı.` : `کشور ${match[1]} نتوانست تجارت با ${match[2]} را کامل کند.`;
+  }
+  if ((match = message.match(/^(.+) broke the finalized trade between (.+) and (.+)\.$/))) {
+    return currentLang === "tr" ? `${match[1]} ülkesi ${match[2]} ve ${match[3]} arasındaki kesinleşmiş ticareti bozdu.` : `کشور ${match[1]} تجارت نهایی‌شده بین ${match[2]} و ${match[3]} را مختل کرد.`;
+  }
+  if ((match = message.match(/^(.+) cancelled the pending trade between (.+) and (.+)\.$/))) {
+    return currentLang === "tr" ? `${match[1]} ülkesi ${match[2]} ve ${match[3]} arasındaki bekleyen ticareti iptal etti.` : `کشور ${match[1]} تجارت معلق بین ${match[2]} و ${match[3]} را لغو کرد.`;
+  }
+  if ((match = message.match(/^(.+) and (.+) tied over (.+)\.$/))) {
+    return currentLang === "tr" ? `${match[1]} ve ${match[2]} ${match[3]} sahasında berabere kaldı.` : `${match[1]} و ${match[2]} بر سر ${match[3]} به تساوی رسیدند.`;
+  }
+  if ((match = message.match(/^(.+) won the (.+) (coalition )?(battle|skirmish)\.$/))) {
+    return currentLang === "tr" ? `${match[1]} ${match[2]} koalisyon çatışmasını kazandı.` : `${match[1]} نبرد ائتلافی ${match[2]} را برد.`;
+  }
+  if ((match = message.match(/^Attack power: (.+) · Defense power: (.+) · (.+) (Coins|field resources) transferred\.$/))) {
+    return currentLang === "tr"
+      ? `Saldırı gücü: ${match[1]} · Savunma gücü: ${match[2]} · ${match[3]} ${match[4] === "Coins" ? "coin" : "saha kaynağı"} aktarıldı.`
+      : `قدرت حمله: ${match[1]} · قدرت دفاع: ${match[2]} · ${match[3]} ${match[4] === "Coins" ? "سکه" : "منبع زمین"} منتقل شد.`;
+  }
+  if (message === "Server wallet balances have been updated.") {
+    return currentLang === "tr" ? "Sunucu cüzdan bakiyeleri güncellendi." : "موجودی کیف پول‌های سرور به‌روزرسانی شد.";
+  }
+  if (message === "No server wallet balances changed.") {
+    return currentLang === "tr" ? "Sunucu cüzdan bakiyeleri değişmedi." : "موجودی کیف پول‌های سرور تغییری نکرد.";
+  }
+  if (message === "The proposer’s reserved offer has been returned.") {
+    return currentLang === "tr" ? "Teklif sahibinin rezerve teklifi iade edildi." : "پیشنهاد رزروشده پیشنهاددهنده برگردانده شد.";
+  }
+  if (message === "Both countries' trade assets were restored to their pre-trade state.") {
+    return currentLang === "tr" ? "İki ülkenin ticaret varlıkları işlem öncesi durumuna getirildi." : "دارایی‌های تجاری هر دو کشور به وضعیت پیش از تجارت بازگردانده شد.";
+  }
+  if (message === "The proposer’s escrowed asset was returned.") {
+    return currentLang === "tr" ? "Teklif sahibinin emanetteki varlığı iade edildi." : "دارایی امانی پیشنهاددهنده برگردانده شد.";
+  }
+  if (message === "A new Global Condition applies to this round.") {
+    return currentLang === "tr" ? "Bu raund için yeni bir Küresel Etkinlik geçerli." : "یک رویداد جهانی جدید در این دور اعمال می‌شود.";
+  }
+  if (message === "This condition was drawn automatically after every seated commander locked investments.") {
+    return currentLang === "tr" ? "Bu etkinlik, tüm oturmuş komutanlar yatırımlarını kilitledikten sonra otomatik olarak çekildi." : "این رویداد پس از قفل شدن سرمایه‌گذاری همه فرماندهان به‌طور خودکار کشیده شد.";
+  }
+  if ((match = message.match(/^Shared resources: 🌾 (.+) · 🛢️ (.+) · ⛏️ (.+)\.$/))) {
+    return currentLang === "tr" ? `Paylaşılan kaynaklar: 🌾 ${match[1]} · 🛢️ ${match[2]} · ⛏️ ${match[3]}.` : `منابع مشترک: 🌾 ${match[1]} · 🛢️ ${match[2]} · ⛏️ ${match[3]}.`;
+  }
+  if ((match = message.match(/^(.+) has formed an alliance\.$/))) {
+    return currentLang === "tr" ? `${match[1]} bir ittifak kurdu.` : `${match[1]} یک ائتلاف تشکیل داده‌اند.`;
+  }
+  if ((match = message.match(/^☢️ Atomic Strike submitted to the server against (.+)\.$/))) {
+    return currentLang === "tr" ? `☢️ ${match[1]} ülkesine karşı Atom Saldırısı sunucuya gönderildi.` : `☢️ حمله اتمی علیه ${match[1]} به سرور ارسال شد.`;
+  }
+  return message;
+}
+
+function localizeGameResult(result) {
+  if (!result || currentLang === "en") return result;
+  const localized = { ...result };
+  const tr = currentLang === "tr";
+  const translate = {
+    "ALLIANCE SKIRMISH": tr ? "İTTİFAK ÇATIŞMASI" : "نبرد ائتلافی",
+    "SKIRMISH RESULT": tr ? "ÇATIŞMA SONUCU" : "نتیجه نبرد",
+    "FINAL ROUND COMPLETE": tr ? "SON RAUND TAMAMLANDI" : "دور نهایی کامل شد",
+    "ROUND COMPLETE": tr ? "RAUND TAMAMLANDI" : "دور کامل شد",
+    "NEW ROUND": tr ? "YENİ RAUND" : "دور جدید",
+    "GLOBAL CONDITION": tr ? "KÜRESEL ETKİNLİK" : "رویداد جهانی",
+    "GAME COMPLETE": tr ? "OYUN TAMAMLANDI" : "بازی کامل شد",
+    "ATOMIC BOMB RESULT": tr ? "ATOM BOMBASI SONUCU" : "نتیجه بمب اتم",
+    "TRADE RESULT": tr ? "TİCARET SONUCU" : "نتیجه تجارت",
+    "SPY CARD RESULT": tr ? "CASUS KARTI SONUCU" : "نتیجه کارت جاسوس",
+    "PRESIDENT MERGER RESULT": tr ? "BAŞKAN BİRLEŞMESİ SONUCU" : "نتیجه ادغام President",
+    "UNION MERGER RESULT": tr ? "BİRLİK BİRLEŞMESİ SONUCU" : "نتیجه ادغام اتحاد"
+  };
+  if (translate[localized.category]) localized.category = translate[localized.category];
+
+  const titles = tr
+    ? {
+      "Alliance Skirmish Victory": "İttifak Çatışması Zaferi", "Alliance Skirmish Defeat": "İttifak Çatışması Yenilgisi", "Alliance Skirmish Stalemate": "İttifak Çatışması Beraberliği",
+      "Skirmish Victory": "Çatışma Zaferi", "Skirmish Defeat": "Çatışma Yenilgisi", "Skirmish Stalemate": "Çatışma Beraberliği",
+      "Round Update": "Raund Güncellemesi", "Atomic Strike Detonated": "Atom Saldırısı Patlatıldı", "Trade Completed": "Ticaret Tamamlandı", "Trade Rejected": "Ticaret Reddedildi",
+      "Spy Operation Successful": "Casus Operasyonu Başarılı", "President Mega-Merger Formed": "Başkan Mega-Birleşmesi Kuruldu", "Counter-Union Formed": "Karşı Birlik Kuruldu",
+      "President Merger Rejected": "Başkan Birleşmesi Reddedildi", "Counter-Union Rejected": "Karşı Birlik Reddedildi", "Three Rounds Complete": "Üç Raund Tamamlandı"
+    }
+    : {
+      "Alliance Skirmish Victory": "پیروزی نبرد ائتلافی", "Alliance Skirmish Defeat": "شکست نبرد ائتلافی", "Alliance Skirmish Stalemate": "بن‌بست نبرد ائتلافی",
+      "Skirmish Victory": "پیروزی نبرد", "Skirmish Defeat": "شکست نبرد", "Skirmish Stalemate": "بن‌بست نبرد",
+      "Round Update": "به‌روزرسانی دور", "Atomic Strike Detonated": "حمله اتمی منفجر شد", "Trade Completed": "تجارت کامل شد", "Trade Rejected": "تجارت رد شد",
+      "Spy Operation Successful": "عملیات جاسوسی موفق بود", "President Mega-Merger Formed": "مگاادغام President تشکیل شد", "Counter-Union Formed": "اتحاد متقابل تشکیل شد",
+      "President Merger Rejected": "ادغام President رد شد", "Counter-Union Rejected": "اتحاد متقابل رد شد", "Three Rounds Complete": "سه دور کامل شد"
+    };
+  if (titles[localized.title]) localized.title = titles[localized.title];
+  localized.summary = localizeNotificationMessage(localized.summary);
+  localized.details = localizeNotificationMessage(localized.details);
+
+  let match;
+  if ((match = String(result.title || "").match(/^Round (\d+) Complete$/))) {
+    localized.title = tr ? `Raund ${match[1]} Tamamlandı` : `دور ${match[1]} کامل شد`;
+  } else if ((match = String(result.title || "").match(/^Round (\d+) Started$/))) {
+    localized.title = tr ? `Raund ${match[1]} Başladı` : `دور ${match[1]} آغاز شد`;
+  }
+  if ((match = String(result.summary || "").match(/^Round (\d+) has been settled for every commander\.$/))) {
+    localized.summary = tr ? `Raund ${match[1]} tüm komutanlar için sonuçlandırıldı.` : `دور ${match[1]} برای همه فرماندهان تسویه شد.`;
+  } else if ((match = String(result.summary || "").match(/^Round (\d+) is now open\.$/))) {
+    localized.summary = tr ? `Raund ${match[1]} artık açık.` : `دور ${match[1]} اکنون باز است.`;
+  }
+  return localized;
+}
+
 window.changeLanguage = function(lang) {
   if (!translations[lang]) return;
   currentLang = lang;
@@ -535,6 +886,19 @@ window.changeLanguage = function(lang) {
   renderCommandBoard();
   syncCommanderStatus();
   syncCoinPurchaseControl();
+  renderRoundAnnouncements();
+  document.getElementById("btn-dismiss-game-result")?.replaceChildren(dict.txtGameResultContinue || "Continue");
+  if (activeGameResultAlert) {
+    const displayResult = localizeGameResult(activeGameResultAlert);
+    setTxt("game-result-eyebrow", displayResult.category || "GAME RESULT");
+    setTxt("game-result-title", displayResult.title || "Round Update");
+    setTxt("game-result-summary", displayResult.summary || "");
+    setTxt("game-result-details", displayResult.details || "");
+    setTxt(
+      "game-result-queue-status",
+      gameResultAlertQueue.length > 0 ? notificationCopy().moreResults(gameResultAlertQueue.length) : ""
+    );
+  }
   logAction(`🌐 Language changed to ${lang.toUpperCase()}.`, "SYSTEM");
 };
 
@@ -1373,14 +1737,15 @@ function showNextGameResultAlert() {
   overlay.className = `modal-overlay result-alert-overlay result-alert-${result.tone || "neutral"} result-alert-enter`;
 
   setTxt("game-result-icon", result.icon || "📣");
-  setTxt("game-result-eyebrow", result.category || "GAME RESULT");
-  setTxt("game-result-title", result.title || "Round Update");
-  setTxt("game-result-summary", result.summary || "");
-  setTxt("game-result-details", result.details || "");
+  const displayResult = localizeGameResult(result);
+  setTxt("game-result-eyebrow", displayResult.category || (currentLang === "tr" ? "OYUN SONUCU" : currentLang === "fa" ? "نتیجه بازی" : "GAME RESULT"));
+  setTxt("game-result-title", displayResult.title || (currentLang === "tr" ? "Raund Güncellemesi" : currentLang === "fa" ? "به‌روزرسانی دور" : "Round Update"));
+  setTxt("game-result-summary", displayResult.summary || "");
+  setTxt("game-result-details", displayResult.details || "");
   setTxt(
     "game-result-queue-status",
     gameResultAlertQueue.length > 0
-      ? `${gameResultAlertQueue.length} more result${gameResultAlertQueue.length === 1 ? "" : "s"} waiting`
+      ? notificationCopy().moreResults(gameResultAlertQueue.length)
       : ""
   );
 
@@ -1479,7 +1844,7 @@ window.publishGameResult = function(result) {
 };
 
 window.logAction = function(msg, tag = "INFO") {
-  setTxt("action-log", msg);
+  setTxt("action-log", localizeNotificationMessage(msg));
 
   const entry = {
     round: currentRound,
@@ -1511,7 +1876,7 @@ function renderRoundAnnouncements() {
   if (gameActivityLedger.length === 0) {
     const emptyDiv = document.createElement("div");
     emptyDiv.className = "announcement-empty";
-    emptyDiv.textContent = "No announcements yet for this round.";
+    emptyDiv.textContent = notificationCopy().empty;
     container.appendChild(emptyDiv);
     return;
   }
@@ -1529,11 +1894,11 @@ function renderRoundAnnouncements() {
     meta.textContent = `R${item.round} · ${item.time} · ${item.country}`;
 
     const message = document.createElement("span");
-    message.textContent = item.message;
+    message.textContent = localizeNotificationMessage(item.message);
 
     const tag = document.createElement("span");
     tag.className = "announcement-tag";
-    tag.textContent = item.tag;
+    tag.textContent = localizeNotificationTag(item.tag);
 
     copy.append(meta, message);
     row.append(copy, tag);
