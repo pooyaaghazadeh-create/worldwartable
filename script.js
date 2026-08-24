@@ -70,8 +70,6 @@ function editionApiPath(path) {
 function applyEditionUi(edition) {
   activeEdition = edition === "simple" ? "simple" : "advanced";
   document.body?.setAttribute("data-edition", activeEdition);
-  const label = activeEdition === "simple" ? "Simple Edition" : "Advanced Edition";
-  setTxt("edition-badge", label);
   syncEditionTitle();
   setTxt("tv-room-code", `WW-TABLE · ${activeEdition.toUpperCase()}`);
 }

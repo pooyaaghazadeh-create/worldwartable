@@ -135,11 +135,49 @@ body {
 }
 
 .header-controls {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 10px;
+  width: 100%;
+}
+
+.role-switcher {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.role-switcher > .btn,
+.role-switcher > .rulebook-link {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+#btn-mode-player {
+  background: #0f766e;
+  border: 1px solid #2dd4bf;
+  color: #ecfeff;
+}
+
+#btn-mode-player.active {
+  background: #0d9488;
+  box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.28);
+}
+
+#btn-mode-host {
+  background: #1d4ed8;
+  border: 1px solid #60a5fa;
+  color: #eff6ff;
+}
+
+#btn-open-tv-view {
+  background: #6d28d9;
+  border: 1px solid #a78bfa;
+  color: #f5f3ff;
 }
 
 .dashboard-container {
@@ -1731,6 +1769,21 @@ body:not(.tv-body) .card {
 
   .game-cards-badge {
     align-self: flex-start;
+  }
+}
+
+@media (max-width: 620px) {
+  body:not(.tv-body) .header-controls {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+  }
+
+  body:not(.tv-body) .lang-selector {
+    justify-content: flex-start;
+  }
+
+  body:not(.tv-body) .role-switcher {
+    justify-content: stretch;
   }
 }
 
