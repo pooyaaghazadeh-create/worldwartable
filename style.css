@@ -51,8 +51,51 @@
   background:
     radial-gradient(ellipse at center, rgba(132, 246, 211, 0.13), transparent 33%),
     radial-gradient(ellipse at center, transparent 36%, rgba(2, 6, 23, 0.24) 78%, transparent 100%);
+  animation: arena-felt-breathe 18s ease-in-out infinite;
   z-index: 0;
 }
+
+.tv-felt.is-motion-broadcast::after { animation: arena-broadcast-signal 500ms ease-out both; }
+.tv-felt.is-motion-ready::after { animation: arena-ready-signal 800ms ease-out both; }
+.tv-felt.is-motion-trade::after { animation: arena-trade-signal 680ms ease-out both; }
+.tv-felt.is-motion-combat::after { animation: arena-combat-signal 680ms ease-out both; }
+.tv-felt.is-motion-alliance::after { animation: arena-alliance-signal 680ms ease-out both; }
+.tv-felt.is-motion-global::after { animation: arena-global-signal 620ms ease-out both; }
+
+.table-flight {
+  background: linear-gradient(90deg, transparent 0%, currentColor 18%, currentColor 76%, transparent 100%);
+  border-radius: 999px;
+  color: #fbbf24;
+  height: 3px;
+  left: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  transform: rotate(var(--flight-angle));
+  transform-origin: 0 50%;
+  width: var(--flight-length);
+  z-index: 1;
+}
+
+.table-flight::after {
+  background: currentColor;
+  border-radius: 50%;
+  box-shadow: 0 0 14px currentColor;
+  content: "";
+  height: 8px;
+  left: 0;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+}
+
+.table-flight.is-active { animation: table-flight-pass 820ms cubic-bezier(.2, .8, .25, 1) both; }
+.table-flight-trade { color: #fbbf24; }
+.table-flight-alliance { color: #c4b5fd; }
+.table-flight-combat { color: #fb7185; height: 4px; }
+.table-flight-atomic { color: #fb7185; height: 5px; }
 
 .table-center-pot {
   position: absolute;
@@ -3206,6 +3249,50 @@ input[type="range"]:focus-visible,
   0% { filter: brightness(1); }
   45% { filter: brightness(1.25) hue-rotate(8deg); }
   100% { filter: brightness(1); }
+}
+
+@keyframes arena-felt-breathe {
+  0%, 100% { opacity: .72; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.025); }
+}
+
+@keyframes arena-broadcast-signal {
+  0% { opacity: .45; transform: scale(.98); }
+  45% { opacity: 1; transform: scale(1.04); }
+  100% { opacity: .72; transform: scale(1); }
+}
+
+@keyframes arena-ready-signal {
+  0%, 100% { opacity: .72; transform: scale(1); }
+  42% { background: radial-gradient(ellipse at center, rgba(45, 212, 191, .35), transparent 42%), radial-gradient(ellipse at center, transparent 36%, rgba(2, 6, 23, .24) 78%, transparent 100%); opacity: 1; transform: scale(1.05); }
+}
+
+@keyframes arena-trade-signal {
+  0%, 100% { opacity: .72; transform: scale(1); }
+  45% { background: radial-gradient(ellipse at center, rgba(251, 191, 36, .34), transparent 42%), radial-gradient(ellipse at center, transparent 36%, rgba(2, 6, 23, .24) 78%, transparent 100%); opacity: 1; transform: scale(1.045); }
+}
+
+@keyframes arena-combat-signal {
+  0%, 100% { opacity: .72; transform: scale(1); }
+  40% { background: radial-gradient(ellipse at center, rgba(251, 113, 133, .34), transparent 40%), radial-gradient(ellipse at center, transparent 36%, rgba(2, 6, 23, .24) 78%, transparent 100%); opacity: 1; transform: scale(1.055); }
+}
+
+@keyframes arena-alliance-signal {
+  0%, 100% { opacity: .72; transform: scale(1); }
+  45% { background: radial-gradient(ellipse at center, rgba(196, 181, 253, .34), transparent 42%), radial-gradient(ellipse at center, transparent 36%, rgba(2, 6, 23, .24) 78%, transparent 100%); opacity: 1; transform: scale(1.045); }
+}
+
+@keyframes arena-global-signal {
+  0% { opacity: .5; transform: scale(.98); }
+  38% { background: radial-gradient(ellipse at center, rgba(96, 165, 250, .38), transparent 42%), radial-gradient(ellipse at center, transparent 36%, rgba(2, 6, 23, .24) 78%, transparent 100%); opacity: 1; transform: scale(1.065); }
+  100% { opacity: .72; transform: scale(1); }
+}
+
+@keyframes table-flight-pass {
+  0% { opacity: 0; }
+  14% { opacity: .9; }
+  84% { opacity: .9; }
+  100% { opacity: 0; }
 }
 
 @media (pointer: coarse) {

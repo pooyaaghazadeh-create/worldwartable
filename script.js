@@ -991,16 +991,72 @@ const TV_CENTER_HIGHLIGHT_CLASSES = [
   "is-combat-center-highlight",
   "is-alliance-center-highlight"
 ];
+const TV_TABLE_MOTION_CLASSES = [
+  "is-motion-broadcast",
+  "is-motion-global",
+  "is-motion-ready",
+  "is-motion-trade",
+  "is-motion-combat",
+  "is-motion-alliance"
+];
 
 function clearVisualClasses(element, classNames) {
   if (!element) return;
   element.classList.remove(...classNames);
 }
 
+function tvMotionClassForCenterClass(className) {
+  if (className.includes("global")) return "is-motion-global";
+  if (className.includes("trade")) return "is-motion-trade";
+  if (className.includes("combat")) return "is-motion-combat";
+  if (className.includes("alliance")) return "is-motion-alliance";
+  if (className.includes("ready")) return "is-motion-ready";
+  return "is-motion-broadcast";
+}
+
+function pulseTvTableMotion(className, duration = 680) {
+  const felt = document.querySelector(".tv-felt");
+  clearVisualClasses(felt, TV_TABLE_MOTION_CLASSES);
+  pulseVisual(felt, className, duration);
+}
+
 function pulseTvCenter(className = "is-broadcast-highlight", duration = 680) {
   const center = document.querySelector(".table-center-pot");
   clearVisualClasses(center, TV_CENTER_HIGHLIGHT_CLASSES);
   pulseVisual(center, className, duration);
+  pulseTvTableMotion(tvMotionClassForCenterClass(className), duration);
+}
+
+function playTvTableLink(sourceCountry, targetCountry, kind = "trade") {
+  if (!sourceCountry || !targetCountry || cleanStr(sourceCountry) === cleanStr(targetCountry)) return;
+  const felt = document.querySelector(".tv-felt");
+  const source = Array.from(document.querySelectorAll(".poker-seat")).find(item =>
+    cleanStr(item.dataset.country) === cleanStr(sourceCountry)
+  );
+  const target = Array.from(document.querySelectorAll(".poker-seat")).find(item =>
+    cleanStr(item.dataset.country) === cleanStr(targetCountry)
+  );
+  if (!felt || !source || !target) return;
+
+  const feltRect = felt.getBoundingClientRect();
+  const sourceRect = source.getBoundingClientRect();
+  const targetRect = target.getBoundingClientRect();
+  const startX = sourceRect.left + sourceRect.width / 2 - feltRect.left;
+  const startY = sourceRect.top + sourceRect.height / 2 - feltRect.top;
+  const endX = targetRect.left + targetRect.width / 2 - feltRect.left;
+  const endY = targetRect.top + targetRect.height / 2 - feltRect.top;
+  const length = Math.hypot(endX - startX, endY - startY);
+  if (!Number.isFinite(length) || length < 8) return;
+
+  const link = document.createElement("span");
+  link.className = `table-flight table-flight-${kind}`;
+  link.style.left = `${startX}px`;
+  link.style.top = `${startY}px`;
+  link.style.setProperty("--flight-length", `${length}px`);
+  link.style.setProperty("--flight-angle", `${Math.atan2(endY - startY, endX - startX)}rad`);
+  felt.appendChild(link);
+  window.requestAnimationFrame(() => link.classList.add("is-active"));
+  window.setTimeout(() => link.remove(), 920);
 }
 
 function pulseTvSeat(country, className = "is-broadcast-highlight") {
@@ -1170,14 +1226,24 @@ const soundManager = {
       tick: [[210, 0, 0.035, 0.012]],
       lock: [[440, 0, 0.09, 0.03], [660, 0.1, 0.12, 0.034]],
       ready: [[523, 0, 0.08, 0.028], [784, 0.09, 0.13, 0.032]],
-      trade: [[392, 0, 0.06, 0.024], [587, 0.08, 0.08, 0.028]],
-      alliance: [[330, 0, 0.09, 0.027], [494, 0.1, 0.1, 0.03], [659, 0.21, 0.13, 0.032]],
+      playerJoin: [[523, 0, 0.06, 0.019], [659, 0.08, 0.09, 0.023]],
+      playerLeave: [[330, 0, 0.08, 0.018, "triangle"], [247, 0.09, 0.1, 0.018, "triangle"]],
+      cards: [[740, 0, 0.025, 0.012, "square"], [622, 0.06, 0.03, 0.012, "square"], [740, 0.12, 0.035, 0.014, "square"]],
+      tradeProposal: [[392, 0, 0.06, 0.022], [587, 0.08, 0.08, 0.026]],
+      tradeAccepted: [[523, 0, 0.07, 0.026], [659, 0.08, 0.08, 0.029], [784, 0.17, 0.11, 0.03]],
+      tradeRejected: [[392, 0, 0.08, 0.022, "triangle"], [294, 0.1, 0.12, 0.024, "triangle"]],
+      allianceProposal: [[330, 0, 0.08, 0.022], [440, 0.09, 0.09, 0.025]],
+      allianceConfirmed: [[330, 0, 0.08, 0.026], [494, 0.09, 0.1, 0.03], [659, 0.2, 0.13, 0.032]],
       event: [[262, 0, 0.08, 0.024], [392, 0.1, 0.09, 0.028], [523, 0.2, 0.12, 0.03]],
+      global: [[196, 0, 0.12, 0.024, "triangle"], [294, 0.13, 0.11, 0.026], [392, 0.25, 0.14, 0.029]],
       battle: [[130, 0, 0.11, 0.04, "triangle"], [98, 0.1, 0.13, 0.028, "sawtooth"]],
+      stalemate: [[349, 0, 0.075, 0.023], [349, 0.12, 0.075, 0.023]],
       victory: [[523, 0, 0.08, 0.03], [659, 0.09, 0.09, 0.033], [784, 0.19, 0.14, 0.035]],
       defeat: [[260, 0, 0.1, 0.027, "triangle"], [196, 0.11, 0.14, 0.03, "triangle"]],
+      atomic: [[164, 0, 0.08, 0.03, "square"], [164, 0.13, 0.08, 0.03, "square"], [74, 0.25, 0.22, 0.045, "sawtooth"]],
       warning: [[196, 0, 0.08, 0.025, "triangle"], [196, 0.12, 0.08, 0.025, "triangle"]],
-      round: [[392, 0, 0.08, 0.026], [523, 0.1, 0.1, 0.03], [659, 0.21, 0.16, 0.032]]
+      round: [[392, 0, 0.08, 0.026], [523, 0.1, 0.1, 0.03], [659, 0.21, 0.16, 0.032]],
+      allReady: [[523, 0, 0.07, 0.026], [659, 0.08, 0.08, 0.03], [784, 0.16, 0.1, 0.032], [1047, 0.27, 0.14, 0.03]]
     };
     (cues[category] || cues.ui).forEach(([frequency, offset, duration, volume, type]) => {
       this.tone(frequency, now + offset, duration, volume, type);
@@ -1261,11 +1327,15 @@ function queueGameResultAlert(result) {
   seenGameResultAlertIds.add(normalized.id);
   const category = cleanStr(normalized.category);
   const cue = category.includes("skirmish")
-    ? (normalized.tone === "success" ? "victory" : normalized.tone === "danger" ? "defeat" : "battle")
+    ? (normalized.tone === "success" ? "victory" : normalized.tone === "danger" ? "defeat" : "stalemate")
     : category.includes("atomic")
-      ? "battle"
+      ? "atomic"
+      : category.includes("trade")
+        ? (normalized.tone === "success" ? "tradeAccepted" : normalized.tone === "danger" ? "tradeRejected" : "tradeProposal")
       : category.includes("alliance")
-        ? "alliance"
+        ? "allianceConfirmed"
+        : category.includes("global")
+          ? "global"
         : category.includes("round")
           ? "round"
           : normalized.tone === "success"
@@ -1475,6 +1545,11 @@ function handleAllianceRoomEvent(event) {
     pendingAllianceProposal = event.payload;
     updateAllianceUI();
     pulseTvSeat(event.payload?.initiator, "is-alliance-highlight");
+    (event.payload?.pendingTargets || []).forEach(target => {
+      pulseTvSeat(target, "is-alliance-highlight");
+      playTvTableLink(event.payload?.initiator, target, "alliance");
+    });
+    playSound("allianceProposal");
   } else if (event.type === "APPROVE_ALLIANCE") {
     if (
       pendingAllianceProposal &&
@@ -1492,6 +1567,7 @@ function handleAllianceRoomEvent(event) {
       }
     }
     pulseTvSeat(event.payload?.approvedBy, "is-alliance-highlight");
+    playSound("allianceProposal");
   } else if (event.type === "CONFIRM_ALLIANCE") {
     if (event.payload.allianceType === "Mega-Merger") {
       activePresidentCoalition = event.payload.data;
@@ -1503,6 +1579,9 @@ function handleAllianceRoomEvent(event) {
     (event.payload?.data?.members || []).forEach(country => {
       pulseTvSeat(country, "is-alliance-highlight");
     });
+    const members = event.payload?.data?.members || [];
+    members.slice(1).forEach(country => playTvTableLink(members[0], country, "alliance"));
+    playSound("allianceConfirmed");
   } else if (event.type === "ALLIANCE_SKIRMISH") {
     applyAllianceSkirmishResult(event.payload);
   } else if (event.type === "REJECT_ALLIANCE") {
@@ -1564,6 +1643,7 @@ function applyAllianceSkirmishResult(result) {
   );
   pulseTvSeat(result.attacker.initiator, "is-combat-highlight");
   pulseTvSeat(result.defender.country, "is-combat-highlight");
+  playTvTableLink(result.attacker.initiator, result.defender.country, "combat");
   updateAllianceUI();
 }
 
@@ -1615,6 +1695,9 @@ function applySoloSkirmishResult(result, eventId) {
     `⚔️ Skirmish: ${result.attacker.country} vs ${result.defender.country} on ${fieldLabel}. ${result.outcome.toUpperCase()}${result.transfer ? ` — ${result.transfer} resources transferred.` : "."}`,
     "SKIRMISH"
   );
+  pulseTvSeat(result.attacker.country, "is-combat-highlight");
+  pulseTvSeat(result.defender.country, "is-combat-highlight");
+  playTvTableLink(result.attacker.country, result.defender.country, "combat");
 }
 
 function publishRoundLifecycleAlerts(event) {
@@ -1665,6 +1748,7 @@ function applyHostEvent(event) {
   if (event.type === "PLAYER_JOINED" || event.type === "PLAYER_LEFT") {
     void refreshRoomSnapshot();
     pulseTvCenter("is-broadcast-highlight", 500);
+    playSound(event.type === "PLAYER_JOINED" ? "playerJoin" : "playerLeave");
   } else if (event.type === "HOST_DEAL_CARDS") {
     if (cardsDealtThisRound) return;
     cardsDealtThisRound = true;
@@ -1672,6 +1756,7 @@ function applyHostEvent(event) {
     syncHostButtonsUI();
     logAction(`👑 Host dealt and locked 2 proficiency cards for Round ${currentRound}!`, "HOST");
     pulseTvCenter("is-broadcast-highlight", 500);
+    playSound("cards");
   } else if (event.type === "HOST_DRAW_EVENT") {
     if (eventDrawnThisRound) return;
     eventDrawnThisRound = true;
@@ -1688,7 +1773,6 @@ function applyHostEvent(event) {
       summary: activeGlobalCondition?.desc || "A new Global Condition applies to this round.",
       details: "This condition was drawn automatically after every seated commander locked investments."
     });
-    playSound("event");
     pulseVisual(document.getElementById("global-event-banner"), "is-event-updated", 620);
     pulseTvCenter("is-global-highlight", 620);
   } else if (event.type === "EXECUTE_ROUND_CALCULATION") {
@@ -1696,7 +1780,10 @@ function applyHostEvent(event) {
     calculateAndAdvanceRound(result || null, event.payload || {});
     void refreshPlayerEconomy();
     if (event.payload?.cardsDealt) void refreshCurrentHand();
-    if (!document.body?.classList.contains("tv-body")) {
+    if (document.body?.classList.contains("tv-body")) {
+      pulseTvCenter("is-broadcast-highlight", 820);
+      playSound("round");
+    } else {
       publishRoundLifecycleAlerts(event);
     }
     if (event.payload?.gameFinished && !document.body?.classList.contains("tv-body")) {
@@ -1734,6 +1821,7 @@ function applyHostEvent(event) {
       syncHostButtonsUI();
       void refreshRoomSnapshot();
       window.setTimeout(() => pulseTvSeat(event.payload.country, "is-locked-highlight"), 260);
+      playSound("lock");
     }
   } else if (event.type === "SET_READY") {
     const country = cleanStr(event.payload?.country || "");
@@ -1744,6 +1832,12 @@ function applyHostEvent(event) {
     }
     updateReadyConsensusUI();
     window.setTimeout(() => pulseTvSeat(event.payload?.country, "is-ready-highlight"), 120);
+    if (event.payload?.ready) {
+      const seatedCount = roomSeatsState.filter(player => player.taken).length;
+      const everyoneReady = seatedCount > 0 && readyPlayersSet.size >= seatedCount;
+      playSound(everyoneReady ? "allReady" : "ready");
+      if (everyoneReady) pulseTvCenter("is-ready-center-highlight", 800);
+    }
   } else if (event.type === "REQUEST_COINS") {
     pendingCoinRequests.push(event.payload);
     if (
@@ -1805,6 +1899,8 @@ function applyHostEvent(event) {
       details: `${event.payload.targetField} investments destroyed: ${event.payload.destroyed}. Remaining investment: ${event.payload.remaining}.`
     });
     pulseTvSeat(event.payload.targetCountry, "is-combat-highlight");
+    pulseTvSeat(event.payload.attackerCountry, "is-combat-highlight");
+    playTvTableLink(event.payload.attackerCountry, event.payload.targetCountry, "atomic");
   } else if (event.type === "PROPOSE_TRADE") {
     const myAssets = assignedCountry ? event.payload?.assets?.[assignedCountry.name] : null;
     if (myAssets) {
@@ -1818,6 +1914,8 @@ function applyHostEvent(event) {
     }
     pulseTvSeat(event.payload?.proposerCountry, "is-trade-highlight");
     pulseTvSeat(event.payload?.targetCountry, "is-trade-highlight");
+    playTvTableLink(event.payload?.proposerCountry, event.payload?.targetCountry, "trade");
+    playSound("tradeProposal");
     void refreshRoomSnapshot();
   } else if (event.type === "RESPOND_TRADE") {
     const myAssets = assignedCountry ? event.payload?.assets?.[assignedCountry.name] : null;
@@ -1850,6 +1948,7 @@ function applyHostEvent(event) {
     });
     pulseTvSeat(event.payload.proposerCountry, "is-trade-highlight");
     pulseTvSeat(event.payload.targetCountry, "is-trade-highlight");
+    playTvTableLink(event.payload.proposerCountry, event.payload.targetCountry, "trade");
     void refreshRoomSnapshot();
   } else if (event.type === "SPY_INTERRUPT") {
     const myAssets = assignedCountry ? event.payload?.assets?.[assignedCountry.name] : null;
@@ -2576,7 +2675,6 @@ window.togglePlayerReadyToClose = async function() {
       btn.className = "btn btn-secondary btn-large";
     }
     logAction(`🏁 You marked yourself READY to close Round ${currentRound}.`, "ROUND");
-    playSound("ready");
     pulseVisual(document.querySelector(".ready-consensus-card"), "is-event-updated", 460);
   } else {
     readyPlayersSet.delete(cleanStr(myCountry));
@@ -2810,7 +2908,6 @@ window.sendBilateralTradeProposal = async function() {
   pendingOutgoingTrade = { proposalId: proposal.id };
   closeTradeModal();
   logAction(`🤝 Sent a server-validated trade proposal to ${partner}.`, "TRADE");
-  playSound("trade");
 };
 
 function applyTradeTransfer(deductField, addField, deductAmount, addAmount) {
@@ -3404,7 +3501,6 @@ window.confirmInvestments = async function() {
   updateReadyConsensusUI();
   logAction(`✅ Locked field investments: Agri(${investments.agri}), Oil(${investments.oil}), Mines(${investments.mines}).`, "INVEST");
   pulseVisual(document.querySelector(".investment-card"), "is-confirmed", 620);
-  playSound("lock");
 };
 
 // ==========================================
