@@ -445,6 +445,9 @@ class GameHandler(SimpleHTTPRequestHandler):
         if parsed.path == "/api/session":
             self.send_session()
             return
+        if parsed.path == "/api/player-return-url":
+            self.send_player_return_url()
+            return
         if parsed.path == "/api/room/state":
             self.send_room_state()
             return
@@ -612,6 +615,28 @@ class GameHandler(SimpleHTTPRequestHandler):
                         "maxAttacks": skirmish_row["max_attacks"] if skirmish_row else 1,
                     },
                 },
+            }
+        )
+
+    def public_origin(self) -> str:
+        forwarded_host = self.headers.get("X-Forwarded-Host", "").split(",", 1)[0].strip()
+        host = forwarded_host or self.headers.get("Host", "").strip()
+        hostname = host.partition(":")[0].casefold()
+        if host and hostname not in {"localhost", "127.0.0.1", "::1"}:
+            forwarded_proto = self.headers.get("X-Forwarded-Proto", "").split(",", 1)[0].strip()
+            scheme = forwarded_proto if forwarded_proto in {"http", "https"} else "https"
+            return f"{scheme}://{host}"
+
+        dev_domain = os.environ.get("REPLIT_DEV_DOMAIN", "").strip()
+        if dev_domain:
+            return f"https://{dev_domain}"
+        return f"http://{host or '127.0.0.1:5000'}"
+
+    def send_player_return_url(self) -> None:
+        self.send_json(
+            {
+                "url": f"{self.public_origin()}/mobile.html?edition={self.edition}",
+                "edition": self.edition,
             }
         )
 
@@ -2844,15 +2869,6 @@ class GameHandler(SimpleHTTPRequestHandler):
             return
         with database() as connection:
             connection.execute("BEGIN IMMEDIATE")
-            game_state = connection.execute(
-                "SELECT game_finished FROM round_state WHERE id = 1"
-            ).fetchone()
-            if not game_state or not game_state["game_finished"]:
-                self.send_json(
-                    {"error": "The host can restart the room only after the third round is complete."},
-                    HTTPStatus.CONFLICT,
-                )
-                return
             connection.execute("DELETE FROM sessions")
             connection.execute("DELETE FROM player_round_resources")
             connection.execute("DELETE FROM solo_skirmish_state")

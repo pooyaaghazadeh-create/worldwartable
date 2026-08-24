@@ -16,7 +16,7 @@
        <button class="btn btn-small sound-toggle" type="button" data-sound-toggle aria-pressed="false" onclick="toggleGameSound()">Sound: Off</button>
       <a class="tv-rulebook-link" href="rulebook.html" target="_blank" rel="noopener">📖 Rulebook</a>
       <div id="qr-code-container" class="qr-code-box" aria-label="QR Code to reconnect to the game"></div>
-      <div class="qr-code-caption">📱 Scan to rejoin<br><small>Use your saved reconnect code</small></div>
+      <div class="qr-code-caption">📱 Scan on your player device<br><small>Returns you to your commander automatically</small></div>
     </div>
   </header>
 
@@ -52,9 +52,9 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260824-editions-1"></script>
+  <script src="script.js?v=20260824-session-reset-1"></script>
   <script>
-    window.addEventListener("DOMContentLoaded", () => {
+    window.addEventListener("DOMContentLoaded", async () => {
       // 1. Initialize TV view listener/state engine
       if (typeof initTvView === "function") {
         initTvView();
@@ -65,16 +65,21 @@
       if (qrBox && typeof QRCode !== "undefined") {
         qrBox.innerHTML = "";
 
-        // Construct an absolute reconnect URL safely regardless of origin type.
-        // The QR opens the reconnect form, but never exposes a player's secret
-        // reconnect code on the public TV screen.
-        let targetUrl;
+        // Send players straight to the controller for this edition. Its session
+        // check restores the player's cookie-backed seat; if the cookie is gone,
+        // it redirects to the reconnect-code fallback automatically.
+        const edition = new URLSearchParams(window.location.search).get("edition") === "simple" ? "simple" : "advanced";
+        let targetUrl = new URL(
+          `mobile.html?edition=${encodeURIComponent(edition)}`,
+          window.location.href
+        ).href;
         try {
-          const edition = new URLSearchParams(window.location.search).get("edition") === "simple" ? "simple" : "advanced";
-          targetUrl = new URL(`index.html?mode=reconnect&edition=${encodeURIComponent(edition)}`, window.location.href).href;
-        } catch (e) {
-          targetUrl = window.location.href.replace(/tv\.html(?:\?.*)?$/, `index.html?mode=reconnect&edition=${edition}`);
-        }
+          const response = await fetch(`/api/player-return-url?edition=${encodeURIComponent(edition)}`);
+          const data = response.ok ? await response.json() : null;
+          if (typeof data?.url === "string" && data.url.startsWith("http")) {
+            targetUrl = data.url;
+          }
+        } catch (e) {}
 
         new QRCode(qrBox, {
           text: targetUrl,

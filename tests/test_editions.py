@@ -155,6 +155,41 @@ class EditionTests(unittest.TestCase):
         self.assertEqual(advanced_session["player"]["handle"], "Advanced Commander")
         self.assertEqual(simple_session["player"]["handle"], "Simple Commander")
 
+        reset_status, reset_data = request(
+            "POST",
+            "/api/room/reset",
+            {"edition": "advanced"},
+        )
+        self.assertEqual(reset_status, 200)
+        self.assertTrue(reset_data["ok"])
+
+        advanced_status, advanced_session = request("GET", "/api/session?edition=advanced")
+        simple_status, simple_session = request("GET", "/api/session?edition=simple")
+        self.assertEqual(advanced_status, 200)
+        self.assertIsNone(advanced_session["player"])
+        self.assertEqual(simple_status, 200)
+        self.assertEqual(simple_session["player"]["handle"], "Simple Commander")
+
+    def test_player_return_url_uses_the_requested_edition_and_public_dev_domain(self):
+        self.handler.headers = {"Host": "127.0.0.1:5000"}
+        responses = []
+        self.handler.send_json = lambda payload, status=server.HTTPStatus.OK, cookie=None: responses.append(
+            (payload, status)
+        )
+
+        with patch.dict(os.environ, {"REPLIT_DEV_DOMAIN": "table.example.replit.dev"}):
+            token = server.ACTIVE_EDITION.set("simple")
+            try:
+                self.handler.send_player_return_url()
+            finally:
+                server.ACTIVE_EDITION.reset(token)
+
+        self.assertEqual(responses[0][1], server.HTTPStatus.OK)
+        self.assertEqual(
+            responses[0][0]["url"],
+            "https://table.example.replit.dev/mobile.html?edition=simple",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

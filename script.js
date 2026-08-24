@@ -72,7 +72,16 @@ function applyEditionUi(edition) {
   document.body?.setAttribute("data-edition", activeEdition);
   const label = activeEdition === "simple" ? "Simple Edition" : "Advanced Edition";
   setTxt("edition-badge", label);
+  syncEditionTitle();
   setTxt("tv-room-code", `WW-TABLE · ${activeEdition.toUpperCase()}`);
+}
+
+function syncEditionTitle() {
+  const title = document.getElementById("txt-title");
+  if (!title) return;
+  const copy = translations[currentLang] || translations.en;
+  const label = activeEdition === "simple" ? "Simple Edition" : "Advanced Edition";
+  title.textContent = `${copy.txtTitle} (${label})`;
 }
 
 const GLOBAL_CONDITION_CARDS = [
@@ -512,6 +521,7 @@ window.changeLanguage = function(lang) {
   document.querySelector(".game-tabs")?.setAttribute("aria-label", dict.ariaGameTabs);
   document.getElementById("round-readiness-meter")?.setAttribute("aria-label", dict.ariaRoundReadiness);
   document.getElementById("command-board-surface")?.setAttribute("aria-label", dict.ariaCommandBoard);
+  syncEditionTitle();
 
   if (lang === "fa") {
     document.body.style.direction = "rtl";
@@ -1925,6 +1935,7 @@ function syncHostButtonsUI() {
   const eventBtn = document.getElementById("btn-host-event");
   const advanceBtn = document.getElementById("btn-host-advance");
   const restartBtn = document.getElementById("btn-host-restart");
+  const resetBtn = document.getElementById("btn-host-reset");
 
   const labels = translations[currentLang] || translations.en;
 
@@ -1944,6 +1955,10 @@ function syncHostButtonsUI() {
   if (restartBtn) {
     restartBtn.classList.toggle("hidden", !isRoomCreator || !gameFinished);
     restartBtn.disabled = !isRoomCreator || !gameFinished;
+  }
+
+  if (resetBtn) {
+    resetBtn.disabled = !isRoomCreator;
   }
 }
 
@@ -3790,7 +3805,14 @@ window.hostAdvanceRound = async function() {
 
 window.restartCompletedGame = async function() {
   if (!requireRoomCreator("restart the game") || !gameFinished) return;
-  if (!window.confirm("Restart the game? This clears all seats, balances, cards, and final placements so commanders can join a new game.")) {
+  await resetTableSeats("Restart the game? This clears all seats, balances, cards, and final placements so commanders can join a new game.");
+};
+
+window.resetTableSeats = async function(
+  confirmationMessage = "Reset the table seats? This ends the current game and clears every commander, balance, card, and round for everyone."
+) {
+  if (!requireRoomCreator("reset the table")) return;
+  if (!window.confirm(confirmationMessage)) {
     return;
   }
   try {
@@ -3802,13 +3824,13 @@ window.restartCompletedGame = async function() {
     });
     const data = await response.json();
     if (!response.ok) {
-      logAction(`⛔ ${data.error || "The room could not be restarted."}`, "HOST");
+      logAction(`⛔ ${data.error || "The table could not be reset."}`, "HOST");
       return;
     }
     clearPlayerGameMemory();
     window.location.replace(`index.html?${editionQuery()}`);
   } catch (e) {
-    logAction("⛔ Could not contact the game server to restart the room.", "HOST");
+    logAction("⛔ Could not contact the game server to reset the table.", "HOST");
   }
 };
 

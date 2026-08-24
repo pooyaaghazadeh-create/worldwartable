@@ -27,7 +27,7 @@
 
   <div id="screen-gameplay">
     <header class="game-header">
-      <h1 id="txt-title">Global Domination & Fortune</h1>
+      <h1 id="txt-title">Global Domination &amp; Fortune (Advanced Edition)</h1>
       <div class="header-controls">
         <div class="lang-selector">
           <label for="lang-select">🌐</label>
@@ -161,6 +161,7 @@
               <p class="host-auto-flow">🃏 Cards are dealt automatically at round start. 🌍 The Global Condition is revealed automatically after every investment is locked.</p>
               <button id="btn-host-advance" class="btn btn-success" onclick="hostAdvanceRound()">Close & Calculate Round</button>
               <button id="btn-host-restart" class="btn btn-danger hidden" onclick="restartCompletedGame()">Restart Game</button>
+               <button id="btn-host-reset" class="btn btn-danger" onclick="resetTableSeats()">Reset Table Seats</button>
             </div>
           </div>
         </div>
@@ -626,7 +627,7 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260824-editions-1"></script>
+  <script src="script.js?v=20260824-session-reset-1"></script>
   <script>
     window.addEventListener("DOMContentLoaded", () => {
       initializeGameTabs();
