@@ -2797,7 +2797,14 @@ async function initMobilePlayerSession() {
   soundManager.init();
   renderRoundAnnouncements();
 
-  const savedLang = safeStorageGet("selected_lang", "en");
+  const savedLang = (() => {
+    try {
+      const storedLang = localStorage.getItem("selected_lang");
+      return translations[storedLang] ? storedLang : "en";
+    } catch (e) {
+      return "en";
+    }
+  })();
   const langSelect = document.getElementById("lang-select");
   if (langSelect) langSelect.value = savedLang;
 
