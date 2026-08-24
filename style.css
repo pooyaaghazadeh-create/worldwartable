@@ -1444,6 +1444,27 @@ body:not(.tv-body) .card {
   color: #fde68a;
 }
 
+.status-merchant-bonus {
+  align-items: center;
+  border-top: 1px solid rgba(148, 163, 184, 0.24);
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  margin-top: 10px;
+  padding-top: 10px;
+}
+
+.status-merchant-bonus span {
+  color: #a8bbd1;
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.status-merchant-bonus strong {
+  color: var(--gold-color);
+  font-size: 0.86rem;
+}
+
 .commander-status-strip.has-loan .status-metric:nth-child(4) strong {
   color: #fca5a5;
 }
@@ -1589,6 +1610,14 @@ body:not(.tv-body) .card {
 
 .game-tab-panel[hidden] {
   display: none !important;
+}
+
+.game-tab-panel[data-panel="prepare"] > .resource-workspace {
+  order: 1;
+}
+
+.game-tab-panel[data-panel="prepare"] > .player-card {
+  order: 2;
 }
 
 .flow-section-label {

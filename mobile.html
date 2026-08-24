@@ -131,6 +131,10 @@
             <strong id="status-battles">1</strong>
           </div>
         </div>
+          <div class="status-merchant-bonus">
+            <span id="lbl-merchant-bonus">Merchant Bonus Active:</span>
+            <strong id="merchant-status">No ❌</strong>
+          </div>
         <div class="status-purchase">
           <div class="status-purchase-copy">
             <span id="txt-coin-requests">Coin requests</span>
@@ -202,45 +206,6 @@
         <small id="txt-prepare-section-desc">Set your economy and lock investments</small>
       </div>
 
-      <!-- ECONOMY & BANKER -->
-      <section class="card player-card">
-        <h2 id="txt-economy-title">Economy &amp; Banker</h2>
-        <section class="loan-calculator" aria-labelledby="txt-loan-calculator-title">
-          <h3 id="txt-loan-calculator-title">Banker Loan Calculator</h3>
-          <div class="loan-calculator-grid">
-            <div class="info-row">
-              <span id="lbl-loan-principal">Principal:</span>
-              <strong><span id="loan-principal">0</span> Coins</strong>
-            </div>
-            <div class="info-row">
-              <span id="lbl-loan-interest">Interest (20%):</span>
-              <strong><span id="loan-interest">0</span> Coins</strong>
-            </div>
-            <div class="info-row highlight">
-              <span id="lbl-loan-total">Total repayment:</span>
-              <strong><span id="loan-total">0</span> Coins</strong>
-            </div>
-            <div class="info-row">
-              <span id="lbl-loan-available">Wallet available:</span>
-              <strong><span id="loan-wallet">0</span> Coins</strong>
-            </div>
-            <div class="info-row loan-shortfall-row">
-              <span id="lbl-loan-shortfall">Shortfall:</span>
-              <strong><span id="loan-shortfall">0</span> Coins</strong>
-            </div>
-          </div>
-          <p id="loan-settlement-message" class="loan-settlement-message" role="status">No active Banker loan.</p>
-        </section>
-        <div class="info-row">
-          <span id="lbl-merchant-bonus">Merchant Bonus Active:</span>
-          <strong id="merchant-status" style="color: var(--gold-color);">No ❌</strong>
-        </div>
-        <div class="player-overview-actions">
-          <button id="btn-repay-loan" class="btn btn-danger" type="button" onclick="repayBankerLoan()" disabled>Repay Loan + Interest</button>
-        </div>
-        <p id="field-battle-loan-gate" class="field-battle-loan-gate" role="status">Loan settled — Field Battle available.</p>
-      </section>
-
       <!-- FIELD INVESTMENTS -->
       <section class="resource-workspace full-width">
         <section class="card investment-card">
@@ -296,6 +261,41 @@
             <button id="btn-lock-invest" class="btn btn-primary btn-large" onclick="confirmInvestments()">Lock In Investments</button>
           </div>
         </section>
+      </section>
+
+      <!-- ECONOMY & BANKER -->
+      <section class="card player-card">
+        <h2 id="txt-economy-title">Economy &amp; Banker</h2>
+        <section class="loan-calculator" aria-labelledby="txt-loan-calculator-title">
+          <h3 id="txt-loan-calculator-title">Banker Loan Calculator</h3>
+          <div class="loan-calculator-grid">
+            <div class="info-row">
+              <span id="lbl-loan-principal">Principal:</span>
+              <strong><span id="loan-principal">0</span> Coins</strong>
+            </div>
+            <div class="info-row">
+              <span id="lbl-loan-interest">Interest (20%):</span>
+              <strong><span id="loan-interest">0</span> Coins</strong>
+            </div>
+            <div class="info-row highlight">
+              <span id="lbl-loan-total">Total repayment:</span>
+              <strong><span id="loan-total">0</span> Coins</strong>
+            </div>
+            <div class="info-row">
+              <span id="lbl-loan-available">Wallet available:</span>
+              <strong><span id="loan-wallet">0</span> Coins</strong>
+            </div>
+            <div class="info-row loan-shortfall-row">
+              <span id="lbl-loan-shortfall">Shortfall:</span>
+              <strong><span id="loan-shortfall">0</span> Coins</strong>
+            </div>
+          </div>
+          <p id="loan-settlement-message" class="loan-settlement-message" role="status">No active Banker loan.</p>
+        </section>
+        <div class="player-overview-actions">
+          <button id="btn-repay-loan" class="btn btn-danger" type="button" onclick="repayBankerLoan()" disabled>Repay Loan + Interest</button>
+        </div>
+        <p id="field-battle-loan-gate" class="field-battle-loan-gate" role="status">Loan settled — Field Battle available.</p>
       </section>
       </section>
 
