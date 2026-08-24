@@ -68,6 +68,14 @@ class EditionTests(unittest.TestCase):
         self.assertEqual(snapshot["editionLabel"], "Simple Edition")
         self.assertEqual([player["handle"] for player in snapshot["players"]], ["Simple Commander"])
 
+        with server.database("simple") as connection:
+            tv_snapshot = self.handler.room_snapshot(
+                connection,
+                include_investments=False,
+                include_total_investment=False,
+            )
+        self.assertNotIn("totalInvestment", tv_snapshot["players"][0])
+
     def test_simple_deal_excludes_banker_and_president_while_advanced_keeps_them(self):
         simple_id = self.add_player("simple", "Simple Commander", "USA 🇺🇸")
         advanced_id = self.add_player("advanced", "Advanced Commander", "Canada 🇨🇦")

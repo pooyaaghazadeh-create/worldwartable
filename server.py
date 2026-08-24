@@ -646,6 +646,7 @@ class GameHandler(SimpleHTTPRequestHandler):
         self,
         connection: sqlite3.Connection,
         include_investments: bool = True,
+        include_total_investment: bool = True,
     ) -> dict:
         room = connection.execute(
             """
@@ -668,9 +669,14 @@ class GameHandler(SimpleHTTPRequestHandler):
                     {field: row[field] or 0 for field in RESOURCE_FIELDS}
                     if include_investments and row["locked"] else None
                 ),
-                "totalInvestment": (
-                    (row["agri"] or 0) + (row["oil"] or 0) + (row["mines"] or 0)
-                    if row["agri"] is not None else None
+                **(
+                    {
+                        "totalInvestment": (
+                            (row["agri"] or 0) + (row["oil"] or 0) + (row["mines"] or 0)
+                            if row["agri"] is not None else None
+                        )
+                    }
+                    if include_total_investment else {}
                 ),
                 "tradeAttemptsUsed": row["trade_attempts_used"],
                 "tradeAttemptsRemaining": max(0, 2 - row["trade_attempts_used"]),
@@ -774,6 +780,7 @@ class GameHandler(SimpleHTTPRequestHandler):
                     "room": self.room_snapshot(
                         connection,
                         include_investments=player is not None,
+                        include_total_investment=player is not None,
                     )
                 }
             )

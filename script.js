@@ -909,21 +909,7 @@ function renderTvRoster() {
       item.textContent = `${icon} ×${value}`;
       resources.appendChild(item);
     });
-    const investmentLabel = document.createElement("strong");
-    investmentLabel.className = "tv-seat-investment";
-    investmentLabel.textContent = player.totalInvestment == null
-      ? "💰 Total investment: Not locked"
-      : `💰 Total investment: ${player.totalInvestment} coins`;
-    if (player.totalInvestment != null) {
-      const meter = document.createElement("div");
-      meter.className = "tv-seat-meter";
-      const fill = document.createElement("span");
-      fill.style.width = `${Math.min(100, Math.max(0, Number(player.totalInvestment) / MAX_PURCHASE_CAP * 100))}%`;
-      meter.appendChild(fill);
-      seat.append(stateLabel, countryLabel, handleLabel, resources, investmentLabel, meter, statusLabel);
-    } else {
-      seat.append(stateLabel, countryLabel, handleLabel, resources, investmentLabel, statusLabel);
-    }
+    seat.append(stateLabel, countryLabel, handleLabel, resources, statusLabel);
     if (country) seat.dataset.country = country.name;
     wrapper.appendChild(seat);
   });
@@ -2010,6 +1996,7 @@ function getEffectiveResourceMultiplier(field, baseMultiplier = countryMultiplie
 }
 
 const resourceFieldOptionMeta = {
+  unallocated: { icon: "💰", name: "Unallocated Cash Balance" },
   agri: { icon: "🌾", name: "Agriculture" },
   oil: { icon: "🛢️", name: "Oil" },
   mines: { icon: "⛏️", name: "Mines" }
@@ -2034,6 +2021,10 @@ function updateResourceSelectOptions(selectId, country, suffix = " Field") {
     const field = option.value;
     const meta = resourceFieldOptionMeta[field];
     if (!meta) return;
+    if (field === "unallocated") {
+      option.textContent = `${meta.icon} ${meta.name}`;
+      return;
+    }
     const multiplier = country
       ? ` (×${formatResourceMultiplier(multiplierForCountryField(country, field))})`
       : " (target not selected)";
