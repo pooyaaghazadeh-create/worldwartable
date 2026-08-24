@@ -892,10 +892,13 @@ function renderTvRoster() {
         ? alliance.allianceType === "Mega-Merger" ? "MEGA-MERGER" : "COUNTER-UNION"
         : player.locked ? "LOCKED" : "PLANNING";
     const countryLabel = document.createElement("strong");
+    countryLabel.className = "tv-seat-country";
     countryLabel.textContent = player.country;
     const handleLabel = document.createElement("span");
+    handleLabel.className = "tv-seat-handle";
     handleLabel.textContent = `${player.handle}${player.isHost ? " · Host" : ""}`;
     const statusLabel = document.createElement("small");
+    statusLabel.className = "tv-seat-status";
     statusLabel.textContent = player.locked ? "🔒 Investments locked" : "Planning investments";
     const resources = document.createElement("div");
     resources.className = "tv-seat-resources";

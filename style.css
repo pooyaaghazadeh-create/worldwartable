@@ -85,18 +85,42 @@
 .poker-seat:nth-child(9) { top: 24%; left: 12%; }
 .poker-seat:nth-child(10) { top: 2%; left: 30%; }
 
-.poker-seat strong { color: #ffd36a; font-size: .9rem; }
-.poker-seat span { color: #e2e8f0; font-size: .7rem; overflow-wrap: anywhere; }
-.poker-seat small { color: #a9c2bb; font-size: .62rem; line-height: 1.1; }
+.poker-seat strong { color: #ffd36a; }
+.poker-seat .tv-seat-country {
+  display: block;
+  font-size: clamp(.64rem, .82vw, .84rem);
+  line-height: 1.05;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.poker-seat .tv-seat-handle {
+  color: #e2e8f0;
+  display: block;
+  font-size: clamp(.54rem, .64vw, .68rem);
+  line-height: 1.05;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.poker-seat .tv-seat-status {
+  color: #a9c2bb;
+  display: block;
+  font-size: clamp(.48rem, .54vw, .58rem);
+  line-height: 1.05;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
 .tv-seat-resources {
   display: flex;
   justify-content: center;
   gap: 3px;
   color: #f8d27a;
-  font-size: .67rem;
+  font-size: clamp(.5rem, .6vw, .64rem);
   font-weight: 800;
+  line-height: 1;
+  max-width: 100%;
   white-space: nowrap;
 }
+.tv-seat-resources span { font-size: inherit; }
 
 @media (max-width: 850px) {
   .tv-felt { min-height: 720px; }
@@ -106,10 +130,10 @@
     height: clamp(96px, 17vw, 126px);
     padding: 22px 7px 7px;
   }
-  .poker-seat strong { font-size: .76rem; }
-  .poker-seat span { font-size: .61rem; }
-  .poker-seat small { font-size: .54rem; }
-  .tv-seat-resources { font-size: .57rem; gap: 2px; }
+  .poker-seat .tv-seat-country { font-size: clamp(.56rem, .72vw, .72rem); }
+  .poker-seat .tv-seat-handle { font-size: clamp(.48rem, .56vw, .6rem); }
+  .poker-seat .tv-seat-status { font-size: clamp(.44rem, .48vw, .52rem); }
+  .tv-seat-resources { font-size: clamp(.45rem, .52vw, .56rem); gap: 2px; }
   .table-center-pot { inset-inline: 17%; }
 }
 
@@ -2873,14 +2897,18 @@ input[type="range"]:focus-visible,
   background: rgba(245, 158, 11, 0.18);
   border-bottom: 1px solid rgba(245, 158, 11, 0.32);
   color: #fde68a !important;
-  font-size: .61rem !important;
+  font-size: clamp(.45rem, .52vw, .56rem) !important;
   font-weight: 900;
   left: 0;
-  letter-spacing: .09em;
-  padding: 5px 8px;
+  letter-spacing: .06em;
+  line-height: 1;
+  overflow: hidden;
+  padding: 4px 5px;
   position: absolute;
   right: 0;
+  text-overflow: ellipsis;
   top: 0;
+  white-space: nowrap;
 }
 
 .poker-seat.is-locked .tv-seat-state,
@@ -2896,12 +2924,16 @@ input[type="range"]:focus-visible,
   color: #ede9fe !important;
 }
 
-.poker-seat > strong { margin-top: 8px; }
+.poker-seat > strong { margin-top: 7px; }
 
 .poker-seat .tv-seat-investment {
   color: #f8e0a0;
-  font-size: .86rem;
+  display: block;
+  font-size: clamp(.48rem, .58vw, .6rem);
   font-weight: 800;
+  line-height: 1.05;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .table-center-pot.is-broadcast-highlight,
