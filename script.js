@@ -2011,6 +2011,78 @@ function getEffectiveResourceMultiplier(field, baseMultiplier = countryMultiplie
   return baseMultiplier || 1;
 }
 
+const resourceFieldOptionMeta = {
+  agri: { icon: "🌾", name: "Agriculture" },
+  oil: { icon: "🛢️", name: "Oil" },
+  mines: { icon: "⛏️", name: "Mines" }
+};
+
+function formatResourceMultiplier(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return "—";
+  return Number.isInteger(number) ? String(number) : number.toFixed(1).replace(/\.0$/, "");
+}
+
+function multiplierForCountryField(country, field) {
+  const base = getCountryRoundMultipliers(country, activeCountryCard(country));
+  return getEffectiveResourceMultiplier(field, base[field]);
+}
+
+function updateResourceSelectOptions(selectId, country, suffix = " Field") {
+  const select = document.getElementById(selectId);
+  if (!select) return;
+
+  Array.from(select.options).forEach(option => {
+    const field = option.value;
+    const meta = resourceFieldOptionMeta[field];
+    if (!meta) return;
+    const multiplier = country
+      ? ` (×${formatResourceMultiplier(multiplierForCountryField(country, field))})`
+      : " (target not selected)";
+    option.textContent = `${meta.icon} ${meta.name}${suffix}${multiplier}`;
+  });
+}
+
+function selectedAllianceTargetCountry() {
+  const selected = document.getElementById("select-alliance-skirmish-target")?.value || "";
+  const target = allianceCombatTargets.find(item => `${item.kind}:${item.id}` === selected);
+  if (!target) return "";
+  if (target.kind === "solo") return target.id;
+  return [activePresidentCoalition, activeCounterUnion]
+    .find(alliance => alliance?.proposalId === target.id)
+    ?.initiator || "";
+}
+
+window.updateResourceSelectorLabels = function() {
+  const ownCountry = assignedCountry?.name || "";
+  const tradePartner = document.getElementById("select-trade-partner")?.value || "";
+  const soloTarget = document.getElementById("select-skirmish-target-country")?.value || "";
+  const allianceTarget = selectedAllianceTargetCountry();
+  const atomicTarget = document.getElementById("select-atomic-target-country")?.value || "";
+
+  updateResourceSelectOptions("select-offer-field", ownCountry, " Investment");
+  updateResourceSelectOptions("select-request-field", tradePartner, " Investment");
+  updateResourceSelectOptions("select-skirmish-target-field", soloTarget);
+  updateResourceSelectOptions("select-alliance-skirmish-field", allianceTarget);
+
+  const atomicField = document.getElementById("select-atomic-target-field");
+  if (atomicField) {
+    Array.from(atomicField.options).forEach(option => {
+      const field = {
+        Agriculture: "agri",
+        Oil: "oil",
+        Mines: "mines"
+      }[option.value];
+      const meta = resourceFieldOptionMeta[field];
+      if (!meta) return;
+      const multiplier = atomicTarget
+        ? ` (×${formatResourceMultiplier(multiplierForCountryField(atomicTarget, field))})`
+        : " (target not selected)";
+      option.textContent = `${meta.icon} ${meta.name}${multiplier}`;
+    });
+  }
+};
+
 function renderActiveGlobalCondition() {
   const banner = document.getElementById("global-event-banner");
   const tvTicker = document.getElementById("tv-status-ticker");
@@ -2056,6 +2128,7 @@ function activateGlobalCondition(condition) {
   renderTvRoster();
   renderCommandBoard();
   updateTradePreview();
+  updateResourceSelectorLabels();
   updateCountryUI();
   updateAllianceUI();
 }
@@ -2594,6 +2667,7 @@ window.openTradeModal = function() {
     }
   }
 
+  updateResourceSelectorLabels();
   updateOfferSliderCapacity();
   updateTradePreview();
   const tradeButton = document.getElementById("btn-send-trade-proposal");
@@ -2992,6 +3066,7 @@ function updateUI() {
   updateAllianceUI();
   syncFieldBattleLoanGate();
   renderCommandBoard();
+  updateResourceSelectorLabels();
   syncCommanderStatus(totalAllocated);
 }
 
@@ -3326,6 +3401,7 @@ window.openSkirmishModal = function() {
     }
   }
 
+  updateResourceSelectorLabels();
   setTxt("val-attacks-left", skirmishMaxAllowedAttacks - skirmishAttacksExecuted);
   document.getElementById("skirmish-modal")?.classList.remove("hidden");
 };
@@ -3755,6 +3831,7 @@ window.openAllianceSkirmishModal = function() {
     logAction("⚠️ No valid locked solo country or opposing alliance is available to attack.", "ALLIANCE");
     return;
   }
+  updateResourceSelectorLabels();
   document.getElementById("alliance-skirmish-modal")?.classList.remove("hidden");
 };
 
@@ -4222,6 +4299,7 @@ window.openAtomicModal = function(cardIndex) {
       logAction("⚠️ No other seated country is available to target.", "ATOMIC");
       return;
     }
+    updateResourceSelectorLabels();
   }
 
   window.pendingCardIndex = cardIndex;

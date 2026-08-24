@@ -435,7 +435,7 @@
       
       <div class="field-box modal-input-box">
         <label class="modal-label" id="lbl-partner-nation">Trade Partner Nation:</label>
-        <select id="select-trade-partner" class="modal-select"></select>
+          <select id="select-trade-partner" class="modal-select" onchange="updateResourceSelectorLabels()"></select>
       </div>
 
       <div style="border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
@@ -493,7 +493,7 @@
       <p>Target a rival country's resource field. Defeating them seizes 100% of their targeted field resources!</p>
       <div class="field-box modal-input-box">
         <label class="modal-label">Target Enemy Nation:</label>
-        <select id="select-skirmish-target-country" class="modal-select"></select>
+          <select id="select-skirmish-target-country" class="modal-select" onchange="updateResourceSelectorLabels()"></select>
       </div>
       <div class="field-box modal-input-box">
         <label class="modal-label">Battleground Resource Field:</label>
@@ -520,7 +520,7 @@
       <p>Your coalition gets one attack this round. Battle power uses the live shared pool, country multiplier, and active global condition.</p>
       <div class="field-box modal-input-box">
         <label class="modal-label">Valid enemy target:</label>
-        <select id="select-alliance-skirmish-target" class="modal-select"></select>
+          <select id="select-alliance-skirmish-target" class="modal-select" onchange="updateResourceSelectorLabels()"></select>
       </div>
       <div class="field-box modal-input-box">
         <label class="modal-label">Contested resource:</label>
@@ -610,7 +610,7 @@
       <p>Select a rival nation and resource field to destroy 20% of its current investment for this round. Pandemic deactivates this card.</p>
       <div class="field-box modal-input-box">
         <label class="modal-label">Target Power:</label>
-        <select id="select-atomic-target-country" class="modal-select"></select>
+        <select id="select-atomic-target-country" class="modal-select" onchange="updateResourceSelectorLabels()"></select>
       </div>
       <div class="field-box modal-input-box">
         <label class="modal-label">Target Resource Field:</label>
