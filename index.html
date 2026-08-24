@@ -6,21 +6,21 @@
   <title>World War Game - Entry</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="entry-page" style="display: flex; justify-content: center; align-items: center; min-height: 90vh;">
+<body class="entry-page command-entry" style="display: flex; justify-content: center; align-items: center; min-height: 90vh;">
 
-  <div class="card" style="max-width: 420px; text-align: center; padding: 30px; width: 90%;">
+  <div class="card entry-card" style="max-width: 420px; text-align: center; padding: 30px; width: 90%;">
     <h1 style="color: var(--gold-color); font-size: 2rem; margin-bottom: 10px;">🌍 World War Table</h1>
      <p id="entry-intro" style="color: var(--text-muted); margin-bottom: 20px;">Choose an edition, then enter your name to claim a seat. Each edition has its own private table.</p>
     
     <div id="entry-actions">
-       <fieldset style="border: 0; padding: 0; margin: 0 0 20px; text-align: left;">
+       <fieldset class="entry-edition-picker" style="border: 0; padding: 0; margin: 0 0 20px; text-align: left;">
          <legend class="modal-label" style="margin-bottom: 8px;">Choose your table edition:</legend>
-         <label style="display: block; padding: 12px; margin-bottom: 8px; border: 1px solid rgba(255,215,0,0.5); border-radius: 8px; cursor: pointer;">
+          <label class="edition-option" style="display: block; padding: 12px; margin-bottom: 8px; border: 1px solid rgba(255,215,0,0.5); border-radius: 8px; cursor: pointer;">
            <input type="radio" name="edition" value="simple" onchange="selectEdition('simple')">
            <strong>Simple Edition</strong>
            <small style="display: block; margin: 5px 0 0 25px; color: var(--text-muted);">Core trades, battles, cards, and Global Conditions. No Banker or President cards.</small>
          </label>
-         <label style="display: block; padding: 12px; border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; cursor: pointer;">
+          <label class="edition-option" style="display: block; padding: 12px; border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; cursor: pointer;">
            <input type="radio" name="edition" value="advanced" onchange="selectEdition('advanced')" checked>
            <strong>Advanced Edition</strong>
            <small style="display: block; margin: 5px 0 0 25px; color: var(--text-muted);">Full table with Banker loans, President Mega-Mergers, and Counter-Unions.</small>
@@ -35,7 +35,7 @@
         ⚔️ Enter World War Game
       </button>
 
-      <div style="border-top: 1px solid rgba(255,255,255,0.14); margin: 26px 0 18px; padding-top: 22px;">
+       <div class="entry-reconnect-section" style="border-top: 1px solid rgba(255,255,255,0.14); margin: 26px 0 18px; padding-top: 22px;">
         <h2 id="reconnect-heading" style="font-size: 1.05rem; color: var(--gold-color); margin: 0 0 8px;">Returning after a disconnect?</h2>
          <p id="reconnect-description" style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 14px;">Your browser session will reconnect you automatically. Use the code below only if this browser session was lost.</p>
         <div class="field-box modal-input-box" style="text-align: left; margin-bottom: 10px;">

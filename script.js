@@ -976,12 +976,49 @@ function syncFinishedGameControls() {
   });
 }
 
+const TV_SEAT_HIGHLIGHT_CLASSES = [
+  "is-locked-highlight",
+  "is-ready-highlight",
+  "is-trade-highlight",
+  "is-combat-highlight",
+  "is-alliance-highlight"
+];
+const TV_CENTER_HIGHLIGHT_CLASSES = [
+  "is-broadcast-highlight",
+  "is-global-highlight",
+  "is-ready-center-highlight",
+  "is-trade-center-highlight",
+  "is-combat-center-highlight",
+  "is-alliance-center-highlight"
+];
+
+function clearVisualClasses(element, classNames) {
+  if (!element) return;
+  element.classList.remove(...classNames);
+}
+
+function pulseTvCenter(className = "is-broadcast-highlight", duration = 680) {
+  const center = document.querySelector(".table-center-pot");
+  clearVisualClasses(center, TV_CENTER_HIGHLIGHT_CLASSES);
+  pulseVisual(center, className, duration);
+}
+
 function pulseTvSeat(country, className = "is-broadcast-highlight") {
   const seat = Array.from(document.querySelectorAll(".poker-seat")).find(item =>
     cleanStr(item.dataset.country) === cleanStr(country)
   );
+  clearVisualClasses(seat, TV_SEAT_HIGHLIGHT_CLASSES);
   pulseVisual(seat, className, 680);
-  pulseVisual(document.querySelector(".table-center-pot"), "is-broadcast-highlight", 680);
+  const centerClass = className.includes("combat")
+    ? "is-combat-center-highlight"
+    : className.includes("trade")
+      ? "is-trade-center-highlight"
+      : className.includes("alliance")
+        ? "is-alliance-center-highlight"
+        : className.includes("locked") || className.includes("ready")
+          ? "is-ready-center-highlight"
+          : "is-broadcast-highlight";
+  pulseTvCenter(centerClass, 680);
 }
 
 const roomSeatsState = [
@@ -1437,6 +1474,7 @@ function handleAllianceRoomEvent(event) {
   if (event.type === "PROPOSE_ALLIANCE") {
     pendingAllianceProposal = event.payload;
     updateAllianceUI();
+    pulseTvSeat(event.payload?.initiator, "is-alliance-highlight");
   } else if (event.type === "APPROVE_ALLIANCE") {
     if (
       pendingAllianceProposal &&
@@ -1453,6 +1491,7 @@ function handleAllianceRoomEvent(event) {
         updateAllianceUI();
       }
     }
+    pulseTvSeat(event.payload?.approvedBy, "is-alliance-highlight");
   } else if (event.type === "CONFIRM_ALLIANCE") {
     if (event.payload.allianceType === "Mega-Merger") {
       activePresidentCoalition = event.payload.data;
@@ -1461,6 +1500,9 @@ function handleAllianceRoomEvent(event) {
     }
     pendingAllianceProposal = null;
     updateAllianceUI();
+    (event.payload?.data?.members || []).forEach(country => {
+      pulseTvSeat(country, "is-alliance-highlight");
+    });
   } else if (event.type === "ALLIANCE_SKIRMISH") {
     applyAllianceSkirmishResult(event.payload);
   } else if (event.type === "REJECT_ALLIANCE") {
@@ -1622,14 +1664,14 @@ function applyHostEvent(event) {
 
   if (event.type === "PLAYER_JOINED" || event.type === "PLAYER_LEFT") {
     void refreshRoomSnapshot();
-    pulseVisual(document.querySelector(".table-center-pot"), "is-broadcast-highlight", 500);
+    pulseTvCenter("is-broadcast-highlight", 500);
   } else if (event.type === "HOST_DEAL_CARDS") {
     if (cardsDealtThisRound) return;
     cardsDealtThisRound = true;
     void refreshCurrentHand();
     syncHostButtonsUI();
     logAction(`👑 Host dealt and locked 2 proficiency cards for Round ${currentRound}!`, "HOST");
-    pulseVisual(document.querySelector(".table-center-pot"), "is-broadcast-highlight", 500);
+    pulseTvCenter("is-broadcast-highlight", 500);
   } else if (event.type === "HOST_DRAW_EVENT") {
     if (eventDrawnThisRound) return;
     eventDrawnThisRound = true;
@@ -1648,7 +1690,7 @@ function applyHostEvent(event) {
     });
     playSound("event");
     pulseVisual(document.getElementById("global-event-banner"), "is-event-updated", 620);
-    pulseVisual(document.querySelector(".table-center-pot"), "is-global-highlight", 620);
+    pulseTvCenter("is-global-highlight", 620);
   } else if (event.type === "EXECUTE_ROUND_CALCULATION") {
     const result = assignedCountry ? event.payload?.results?.[assignedCountry.name] : null;
     calculateAndAdvanceRound(result || null, event.payload || {});
