@@ -37,7 +37,7 @@
 
       <div style="border-top: 1px solid rgba(255,255,255,0.14); margin: 26px 0 18px; padding-top: 22px;">
         <h2 id="reconnect-heading" style="font-size: 1.05rem; color: var(--gold-color); margin: 0 0 8px;">Returning after a disconnect?</h2>
-        <p id="reconnect-description" style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 14px;">Use the reconnect code you saved to return to your original country.</p>
+         <p id="reconnect-description" style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 14px;">Your browser session will reconnect you automatically. Use the code below only if this browser session was lost.</p>
         <div class="field-box modal-input-box" style="text-align: left; margin-bottom: 10px;">
           <label class="modal-label">Commander Name:</label>
           <input type="text" id="input-reconnect-name" class="modal-select" placeholder="Your original commander name" />
@@ -56,7 +56,7 @@
 
     <section id="reconnect-code-card" class="field-box hidden" style="display: none; text-align: left; border: 1px solid var(--gold-color); background: rgba(255, 215, 0, 0.08); margin: 18px 0;">
       <h2 id="reconnect-code-title" style="color: var(--gold-color); font-size: 1.15rem; margin: 0 0 8px;">Save Your Reconnect Code</h2>
-      <p style="color: var(--text-muted); margin: 0 0 12px;">Keep this private. It is shown once and is required to reclaim your country if you disconnect.</p>
+       <p style="color: var(--text-muted); margin: 0 0 12px;">Keep this private. It is shown once and is only needed if your browser session is lost.</p>
       <code id="reconnect-code-value" style="display: block; overflow-wrap: anywhere; color: white; font-size: 0.95rem; padding: 10px; border-radius: 6px; background: rgba(0,0,0,0.32);"></code>
       <p style="color: var(--text-muted); font-size: 0.82rem; margin: 12px 0 16px;">Each successful reconnect gives you a new code and invalidates the previous one.</p>
       <button class="btn btn-success btn-large" onclick="continueToController()">I Saved It — Continue</button>
@@ -151,27 +151,36 @@
 
     async function prepareReconnectEntry() {
       const query = new URLSearchParams(window.location.search);
+      const hasExplicitEdition = query.get("edition") === "simple" || query.get("edition") === "advanced";
       selectEdition(query.get("edition"));
-      if (query.get("mode") !== "reconnect") return;
+      const fromTvReconnect = query.get("mode") === "reconnect";
 
       const heading = document.getElementById("reconnect-heading");
       const description = document.getElementById("reconnect-description");
       const reconnectSection = heading?.parentElement;
-      if (heading) heading.textContent = "📱 Rejoin from the TV QR code";
-      if (description) description.textContent = "Checking whether this phone still has your game session…";
+      if (fromTvReconnect) {
+        if (heading) heading.textContent = "📱 Rejoin from the TV QR code";
+        if (description) description.textContent = "Checking whether this device still has your game session…";
+      }
 
       try {
-        const response = await fetch(`/api/session?edition=${encodeURIComponent(selectedEdition)}`, { credentials: "same-origin" });
+        const sessionPath = hasExplicitEdition
+          ? `/api/session?edition=${encodeURIComponent(selectedEdition)}`
+          : "/api/session";
+        const response = await fetch(sessionPath, { credentials: "same-origin" });
         const session = response.ok ? await response.json() : null;
         if (session?.player) {
           window.location.replace(`mobile.html?edition=${encodeURIComponent(session.edition || selectedEdition)}`);
           return;
         }
+        if (!hasExplicitEdition && session?.edition) selectEdition(session.edition);
       } catch (e) {}
 
-      if (description) description.textContent = "Enter the commander name and saved reconnect code for the country you want to reclaim.";
-      if (reconnectSection) reconnectSection.scrollIntoView({ block: "center" });
-      document.getElementById("input-reconnect-name")?.focus();
+      if (fromTvReconnect) {
+        if (description) description.textContent = "Enter the commander name and saved reconnect code for the country you want to reclaim.";
+        if (reconnectSection) reconnectSection.scrollIntoView({ block: "center" });
+        document.getElementById("input-reconnect-name")?.focus();
+      }
     }
 
     window.addEventListener("DOMContentLoaded", prepareReconnectEntry);
