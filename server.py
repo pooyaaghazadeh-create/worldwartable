@@ -62,6 +62,7 @@ GLOBAL_CONDITIONS = (
     {"id": "global-warming"},
     {"id": "pandemic"},
     {"id": "cold-war"},
+    {"id": "blackout"},
 )
 HOST_EVENT_TYPES = {
     "HOST_DEAL_CARDS",
@@ -588,7 +589,7 @@ class GameHandler(SimpleHTTPRequestHandler):
             settlement_row = connection.execute(
                 "SELECT settlement FROM player_round_settlements WHERE player_id = ?", (player["id"],)
             ).fetchone()
-            room = self.room_snapshot(connection)
+            room = self.room_snapshot(connection, viewer_player_id=player["id"])
         try:
             last_settlement = json.loads(settlement_row["settlement"]) if settlement_row else None
         except (TypeError, json.JSONDecodeError):
@@ -646,6 +647,7 @@ class GameHandler(SimpleHTTPRequestHandler):
         self,
         connection: sqlite3.Connection,
         include_investments: bool = True,
+        viewer_player_id: int | None = None,
     ) -> dict:
         room = connection.execute(
             """
@@ -657,52 +659,60 @@ class GameHandler(SimpleHTTPRequestHandler):
             WHERE room_state.id = 1
             """
         ).fetchone()
-        players = [
-            {
-                "handle": row["handle"],
-                "country": row["country"],
-                "isHost": bool(row["is_host"]),
-                "locked": bool(row["locked"]),
-                "ready": bool(row["ready"]),
-                "investments": (
-                    {field: row[field] or 0 for field in RESOURCE_FIELDS}
-                    if include_investments and row["locked"] else None
-                ),
-                "totalInvestment": (
-                    (row["agri"] or 0) + (row["oil"] or 0) + (row["mines"] or 0)
-                    if row["agri"] is not None else None
-                ),
-                "tradeAttemptsUsed": row["trade_attempts_used"],
-                "tradeAttemptsRemaining": max(0, 2 - row["trade_attempts_used"]),
-                "soloAttacksUsed": row["solo_attacks_used"],
-                "soloMaxAttacks": row["solo_max_attacks"],
-            }
-            for row in connection.execute(
-                """
-                SELECT players.handle, players.country,
-                       room_state.host_player_id = players.id AS is_host,
-                       player_round_resources.player_id IS NOT NULL AS locked,
-                       player_round_resources.agri, player_round_resources.oil,
-                       player_round_resources.mines,
-                       player_round_readiness.player_id IS NOT NULL AS ready,
-                       (
-                         SELECT COUNT(*)
-                         FROM trade_proposals
-                         WHERE trade_proposals.proposer_id = players.id
-                           AND trade_proposals.round_number = round_state.round_number
-                       ) AS trade_attempts_used,
-                       COALESCE(solo_skirmish_state.attacks_used, 0) AS solo_attacks_used,
-                       COALESCE(solo_skirmish_state.max_attacks, 1) AS solo_max_attacks
-                FROM players
-                JOIN room_state ON room_state.id = 1
-                JOIN round_state ON round_state.id = 1
-                LEFT JOIN player_round_resources ON player_round_resources.player_id = players.id
-                LEFT JOIN player_round_readiness ON player_round_readiness.player_id = players.id
-                LEFT JOIN solo_skirmish_state ON solo_skirmish_state.player_id = players.id
-                ORDER BY players.id
-                """
+        active_condition = json.loads(room["active_condition"]) if room and room["active_condition"] else None
+        blackout_active = isinstance(active_condition, dict) and active_condition.get("id") == "blackout"
+        players = []
+        viewer_country = None
+        for row in connection.execute(
+            """
+            SELECT players.id, players.handle, players.country,
+                   room_state.host_player_id = players.id AS is_host,
+                   player_round_resources.player_id IS NOT NULL AS locked,
+                   player_round_resources.agri, player_round_resources.oil,
+                   player_round_resources.mines,
+                   player_round_readiness.player_id IS NOT NULL AS ready,
+                   (
+                     SELECT COUNT(*)
+                     FROM trade_proposals
+                     WHERE trade_proposals.proposer_id = players.id
+                       AND trade_proposals.round_number = round_state.round_number
+                   ) AS trade_attempts_used,
+                   COALESCE(solo_skirmish_state.attacks_used, 0) AS solo_attacks_used,
+                   COALESCE(solo_skirmish_state.max_attacks, 1) AS solo_max_attacks
+            FROM players
+            JOIN room_state ON room_state.id = 1
+            JOIN round_state ON round_state.id = 1
+            LEFT JOIN player_round_resources ON player_round_resources.player_id = players.id
+            LEFT JOIN player_round_readiness ON player_round_readiness.player_id = players.id
+            LEFT JOIN solo_skirmish_state ON solo_skirmish_state.player_id = players.id
+            ORDER BY players.id
+            """
+        ):
+            is_viewer = viewer_player_id == row["id"]
+            if is_viewer:
+                viewer_country = row["country"]
+            can_view_private_intel = not blackout_active or is_viewer
+            players.append(
+                {
+                    "handle": row["handle"],
+                    "country": row["country"],
+                    "isHost": bool(row["is_host"]),
+                    "locked": bool(row["locked"]),
+                    "ready": bool(row["ready"]),
+                    "investments": (
+                        {field: row[field] or 0 for field in RESOURCE_FIELDS}
+                        if include_investments and row["locked"] and can_view_private_intel else None
+                    ),
+                    "totalInvestment": (
+                        (row["agri"] or 0) + (row["oil"] or 0) + (row["mines"] or 0)
+                        if row["agri"] is not None and can_view_private_intel else None
+                    ),
+                    "tradeAttemptsUsed": row["trade_attempts_used"],
+                    "tradeAttemptsRemaining": max(0, 2 - row["trade_attempts_used"]),
+                    "soloAttacksUsed": row["solo_attacks_used"],
+                    "soloMaxAttacks": row["solo_max_attacks"],
+                }
             )
-        ]
         alliances = [
             {
                 "proposalId": row["proposal_id"],
@@ -751,19 +761,26 @@ class GameHandler(SimpleHTTPRequestHandler):
                 (current_round,),
             )
         ]
+        resource_multipliers = parse_round_resource_multipliers(
+            room["resource_multipliers"] if room else None
+        )
+        if blackout_active:
+            resource_multipliers = (
+                {viewer_country: resource_multipliers[viewer_country]}
+                if viewer_country in resource_multipliers
+                else {}
+            )
         return {
             "edition": self.edition,
             "editionLabel": EDITIONS[self.edition]["label"],
             "players": players,
-            "activeCondition": json.loads(room["active_condition"]) if room and room["active_condition"] else None,
+            "activeCondition": active_condition,
             "alliances": alliances,
             "pendingTrades": pending_trades,
             "roundNumber": current_round,
             "gameFinished": bool(room["game_finished"]) if room else False,
             "finalPlacements": json.loads(room["final_placements"]) if room and room["final_placements"] else [],
-            "resourceMultipliers": (
-                parse_round_resource_multipliers(room["resource_multipliers"]) if room else {}
-            ),
+            "resourceMultipliers": resource_multipliers,
         }
 
     def send_room_state(self) -> None:
@@ -774,6 +791,7 @@ class GameHandler(SimpleHTTPRequestHandler):
                     "room": self.room_snapshot(
                         connection,
                         include_investments=player is not None,
+                        viewer_player_id=player["id"] if player else None,
                     )
                 }
             )
@@ -862,7 +880,7 @@ class GameHandler(SimpleHTTPRequestHandler):
             )
             if cards_dealt:
                 self.publish_room_event(connection, "HOST_DEAL_CARDS", {"automatic": True})
-            room_snapshot = self.room_snapshot(connection)
+            room_snapshot = self.room_snapshot(connection, viewer_player_id=cursor.lastrowid)
 
         cookies = [
             self.session_cookie(token),
@@ -936,7 +954,7 @@ class GameHandler(SimpleHTTPRequestHandler):
                 "INSERT INTO sessions (token_hash, player_id, created_at) VALUES (?, ?, ?)",
                 (token_hash(token), player["id"], now),
             )
-            room_snapshot = self.room_snapshot(connection)
+            room_snapshot = self.room_snapshot(connection, viewer_player_id=player["id"])
 
         cookies = [
             self.session_cookie(token),
@@ -1407,7 +1425,9 @@ class GameHandler(SimpleHTTPRequestHandler):
             or locked_count != player_count
         ):
             return None
-        condition = secrets.choice(GLOBAL_CONDITIONS)
+        condition = dict(secrets.choice(GLOBAL_CONDITIONS))
+        if condition["id"] == "pandemic":
+            condition["field"] = secrets.choice(RESOURCE_FIELDS)
         connection.execute(
             "UPDATE room_state SET active_condition = ? WHERE id = 1",
             (json.dumps(condition),),
@@ -2058,7 +2078,14 @@ class GameHandler(SimpleHTTPRequestHandler):
         condition: dict | None,
         round_multipliers: dict[str, dict[str, int]],
     ) -> float:
-        if condition and condition.get("id") == "pandemic":
+        if (
+            condition
+            and condition.get("id") == "pandemic"
+            and (
+                condition.get("field") not in RESOURCE_FIELDS
+                or condition.get("field") == field
+            )
+        ):
             return 1
         multiplier = round_multipliers.get(country, {}).get(field, 1)
         if condition and condition.get("id") == "global-warming" and field in {"agri", "oil"}:

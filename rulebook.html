@@ -73,7 +73,7 @@
         <li><strong>Join the room.</strong> Enter a unique commander name. The server assigns the first available country. A country can only have one seated commander.</li>
         <li><strong>Save your reconnect code.</strong> It is shown after joining and is needed to reclaim your country after a disconnect. A successful reconnect creates a new code and invalidates the old one.</li>
         <li><strong>Know your starting position.</strong> Every player begins with 0 coins. The room creator becomes host; later players are regular commanders.</li>
-        <li><strong>Watch the board.</strong> Your own balance, exact field allocations, cards, and loan are private to you. Opponent countries, readiness, multipliers, and total field investment are visible, but individual opponent allocations are not.</li>
+        <li><strong>Watch the board.</strong> Your own balance, exact field allocations, cards, and loan are private to you. Opponent countries, readiness, multipliers, and total field investment are visible, but individual opponent allocations are not. Blackout temporarily hides opponent multipliers and total investment.</li>
       </ol>
       <h3>Countries and multipliers</h3>
       <p>There are ten available countries. At the start of every round, every country receives a fresh random assignment of ×1, ×2, and ×3—one value each for Agriculture, Oil, and Mines. The same assignment is used for income and battle power during that round.</p>
@@ -108,7 +108,7 @@
           <tbody>
             <tr><td>🌾 Agriculture</td><td>Generates income from its locked allocation</td><td>Your country’s round value; Warming reduces it by 10%</td></tr>
             <tr><td>🛢️ Oil</td><td>Generates income from its locked allocation</td><td>Your country’s round value; Warming reduces it by 10%</td></tr>
-            <tr><td>⛏️ Mines</td><td>Generates income from its locked allocation</td><td>Your country’s round value; Pandemic overrides it to ×1</td></tr>
+            <tr><td>⛏️ Mines</td><td>Generates income from its locked allocation</td><td>Your country’s round value; Pandemic can set one drawn field to ×1</td></tr>
           </tbody>
         </table>
       </div>
@@ -176,7 +176,7 @@
         <article class="rulebook-mini-card"><h3>🏛️ Alliance Field Battle</h3><p>Only a confirmed alliance initiator may attack, once per round. Target a locked, unaligned country or another confirmed alliance. Compare the two sides’ contested pool × effective multiplier. The higher side takes the losing side’s contested resource into its own pool; a tie is a stalemate.</p></article>
         <article class="rulebook-mini-card"><h3>☢️ Atomic strike</h3><p>After you lock, choose a rival and field. The target loses 20% of its current field allocation, rounded up. The lost amount is destroyed rather than transferred, and the target’s wallet is unaffected. Atomic strikes are unavailable during Pandemic.</p></article>
       </div>
-      <div class="rulebook-callout"><strong>Battle example:</strong> 40 Oil at ×2 has 80 power. It defeats 50 Oil at ×1 (50 power), so the winner takes the defender’s 50 Oil. Under Pandemic, both sides use ×1, which can change the result.</div>
+      <div class="rulebook-callout"><strong>Battle example:</strong> 40 Oil at ×2 has 80 power. It defeats 50 Oil at ×1 (50 power), so the winner takes the defender’s 50 Oil. If Pandemic selects Oil, both sides use ×1 for Oil, which can change the result.</div>
     </section>
 
     <section id="events" class="rulebook-section">
@@ -186,8 +186,9 @@
       <div class="rulebook-event-grid">
         <article><span>📉</span><h3>Economic Recession</h3><p>Received trade income is reduced by 20% and rounded down. Trades are still permitted. Merchant’s +10% adjustment is applied before this reduction.</p></article>
         <article><span>🌡️</span><h3>Global Warming</h3><p>Agriculture and Oil use an effective multiplier reduced by 10% for income and Field Battles. Mines are unaffected.</p></article>
-        <article><span>🦠</span><h3>Pandemic</h3><p>All Agriculture, Oil, and Mines multipliers are overridden to ×1 for the round, affecting both income and battle power.</p></article>
+        <article><span>🦠</span><h3>Pandemic</h3><p>The server randomly selects one of Agriculture, Oil, or Mines and sets only that field’s multiplier to ×1 for the round, affecting income and Field Battle power.</p></article>
         <article><span>🕊️</span><h3>Cold War</h3><p>Spy cards cannot be played. A blocked Spy is not consumed, so it may remain in the player’s hand for the round’s normal cleanup.</p></article>
+        <article><span>🌑</span><h3>Blackout</h3><p>Opponent multipliers and total field investment are hidden for the round. You can still see your own information, readiness, alliances, and available actions.</p></article>
       </div>
       <div class="rulebook-callout rulebook-finish"><strong>Important:</strong> Global Conditions do not change the country’s displayed base assignment; they change the effective result used by the server for this round.</div>
     </section>
@@ -209,7 +210,7 @@
         </table>
       </div>
       <h3>What other players can see</h3>
-      <p>The command board intentionally shows country names, country multipliers, total field investment when available, alliance status, and readiness. It does not reveal the opponent’s Agriculture, Oil, and Mines breakdown before the round resolves. Your own detailed investments remain visible to you.</p>
+      <p>The command board intentionally shows country names, country multipliers, total field investment when available, alliance status, and readiness. It does not reveal the opponent’s Agriculture, Oil, and Mines breakdown before the round resolves. During Blackout, opponent multipliers and total investments are hidden as well. Your own detailed investments remain visible to you.</p>
       <h3>Leaving and reconnecting</h3>
       <p>Use Exit Game to cleanly release your seat and session. If the host leaves, the room transfers host responsibility to an eligible remaining player. If your connection drops without exiting, use the saved reconnect code and commander name to reclaim your original country before the code expires.</p>
     </section>
@@ -292,19 +293,19 @@
       <p class="section-number">07 — FIELD BATTLE</p><h2>Kilitli kaynakları güce dönüştürün</h2>
       <p>Uygulamada iki saldırı düğmesinin adı da <strong>Field Battle</strong>dır. Siz ve rakip kaynakları kilitlemiş olmalı; seçilen sahada iki tarafın da sıfırdan büyük kaynağı bulunmalıdır. Küresel Koşul ve raund çarpanları savaş gücünü de etkiler.</p>
       <div class="rulebook-two-column"><article class="rulebook-mini-card"><h3>⚔️ Solo Field Battle</h3><p>İttifaksız bir rakip ve saha seçin. Güç, mevcut saha kaynağı × ülkenin etkin çarpanıdır. Raundda bir saldırı, General sonrası iki saldırı hakkınız vardır. Galibiyette rakibin tüm saha kaynağı size geçer ve rakibin sahası sıfırlanır. Mağlubiyette sizin tüm saha kaynağınız rakibe geçer. Beraberlikte transfer olmaz.</p></article><article class="rulebook-mini-card"><h3>🏛️ Alliance Field Battle</h3><p>Yalnızca onaylanmış ittifak başlatanı raundda bir kez saldırabilir. Kilitli ittifaksız ülkeyi veya başka onaylanmış ittifakı hedefler. İki tarafın saha havuzu × etkin çarpanı karşılaştırılır; üstün taraf kaybedenin kaynağını alır, beraberlikte transfer olmaz.</p></article><article class="rulebook-mini-card"><h3>☢️ Atom saldırısı</h3><p>Kilitledikten sonra rakip ve saha seçin. Hedefin mevcut yatırımının yarısı yukarı yuvarlanarak yok edilir. Yok edilen miktar aktarılmaz, cüzdan etkilenmez.</p></article></div>
-      <div class="rulebook-callout"><strong>Savaş örneği:</strong> ×2 çarpanlı 40 Petrolün gücü 80dir. ×1 çarpanlı 50 Petrolü (50 güç) yener ve 50 Petrolü alır. Pandemide iki taraf da ×1 kullanır.</div>
+      <div class="rulebook-callout"><strong>Savaş örneği:</strong> ×2 çarpanlı 40 Petrolün gücü 80dir. ×1 çarpanlı 50 Petrolü (50 güç) yener ve 50 Petrolü alır. Pandemi Petrolü seçerse iki taraf Petrol için ×1 kullanır.</div>
     </section>
     <section id="events" class="rulebook-section">
       <p class="section-number">08 — KÜRESEL KOŞULLAR</p><h2>Tek bir dünya durumu raundu değiştirir</h2>
       <p>Yönetici, herkes kilitledikten sonra bir koşul çeker. Koşul ticaretler, hamleler, savaşlar ve hesaplama boyunca aktif kalır; raund kapanınca temizlenir.</p>
-      <div class="rulebook-event-grid"><article><span>📉</span><h3>Ekonomik Resesyon</h3><p>Alınan ticaret geliri %20 azaltılır ve aşağı yuvarlanır. Ticaret yine yapılabilir. Merchant artışı önce uygulanır.</p></article><article><span>🌡️</span><h3>Küresel Isınma</h3><p>Tarım ve Petrol, gelir ve Field Battle için etkin çarpanlarını %10 azaltılmış şekilde kullanır. Madenler etkilenmez.</p></article><article><span>🦠</span><h3>Pandemi</h3><p>Tarım, Petrol ve Madenler için tüm çarpanlar bu raund ×1 olur. Bu hem geliri hem savaş gücünü etkiler.</p></article><article><span>🕊️</span><h3>Soğuk Savaş</h3><p>Spy kartları kullanılamaz. Engellenen Spy harcanmaz ve normal raund temizliğine kadar elde kalabilir.</p></article></div>
+      <div class="rulebook-event-grid"><article><span>📉</span><h3>Ekonomik Resesyon</h3><p>Alınan ticaret geliri %20 azaltılır ve aşağı yuvarlanır. Ticaret yine yapılabilir. Merchant artışı önce uygulanır.</p></article><article><span>🌡️</span><h3>Küresel Isınma</h3><p>Tarım ve Petrol, gelir ve Field Battle için etkin çarpanlarını %10 azaltılmış şekilde kullanır. Madenler etkilenmez.</p></article><article><span>🦠</span><h3>Pandemi</h3><p>Sunucu Tarım, Petrol veya Madenlerden birini rastgele seçer ve yalnızca o sahanın çarpanını bu raund ×1 yapar. Bu hem geliri hem savaş gücünü etkiler.</p></article><article><span>🕊️</span><h3>Soğuk Savaş</h3><p>Spy kartları kullanılamaz. Engellenen Spy harcanmaz ve normal raund temizliğine kadar elde kalabilir.</p></article><article><span>🌑</span><h3>Karartma</h3><p>Rakip çarpanları ve toplam saha yatırımları bu raund gizlenir. Kendi bilgilerinizi, hazır olma ve ittifak durumunu görmeye devam edersiniz.</p></article></div>
       <div class="rulebook-callout rulebook-finish"><strong>Unutmayın:</strong> Koşul ülkenin görünen temel atamasını değiştirmez; sunucunun bu raund sonucu hesaplamak için kullandığı etkin değeri değiştirir.</div>
     </section>
     <section id="hosting" class="rulebook-section">
       <p class="section-number">09 — YÖNETİCİ VE GÖRÜNÜRLÜK</p><h2>Yöneticinin kontrolleri</h2>
       <p>Yönetici ortak masanın hakemidir; özel stratejilere erişen ayrıcalıklı bir oyuncu değildir. Kontroller sunucu tarafından doğrulanır ve yalnızca mevcut yöneticiye açıktır.</p>
       <div class="rulebook-table-wrap"><table class="rulebook-table"><thead><tr><th>Kontrol</th><th>Ne zaman çalışır?</th><th>Sonuç</th></tr></thead><tbody><tr><td>Kartları Dağıt</td><td>Raundda bir kez</td><td>Her oyuncuya iki gizli uzmanlık kartı verir</td></tr><tr><td>Küresel Koşul Çek</td><td>Kartlardan ve tüm kilitlerden sonra</td><td>Raund için bir koşul belirler</td></tr><tr><td>Coin isteğini çöz</td><td>İstek beklerken</td><td>Bir 100 coin isteğini onaylar veya reddeder</td></tr><tr><td>Kapat ve hesapla</td><td>Herkes kilitleyip hazır olduğunda</td><td>Gelir, krediler, geçici etkiler ve raundu hesaplar</td></tr><tr><td>Odayı yeniden başlat</td><td>Oyun bittikten sonra</td><td>Yeni masa için üç raundu başlatır; kazanan seçmez</td></tr></tbody></table></div>
-      <h3>Diğer oyuncular ne görür?</h3><p>Komuta panosu ülke adlarını, ülke çarpanlarını, hazır olduğunda toplam saha yatırımını, ittifak durumunu ve hazır olma bilgisini gösterir. Rakibin Tarım, Petrol ve Maden dağılımını raund çözülmeden göstermez. Ayrıntılı yatırımlarınızı siz görürsünüz.</p>
+      <h3>Diğer oyuncular ne görür?</h3><p>Komuta panosu ülke adlarını, ülke çarpanlarını, hazır olduğunda toplam saha yatırımını, ittifak durumunu ve hazır olma bilgisini gösterir. Rakibin Tarım, Petrol ve Maden dağılımını raund çözülmeden göstermez. Karartma sırasında rakip çarpanları ve toplam yatırımlar da gizlenir. Ayrıntılı yatırımlarınızı siz görürsünüz.</p>
       <h3>Ayrılma ve yeniden bağlanma</h3><p>Exit Game ile koltuğunuzu ve oturumunuzu temiz biçimde bırakın. Yönetici ayrılırsa sorumluluk uygun kalan oyuncuya aktarılır. Bağlantınız koparsa kayıtlı kod ve komutan adıyla, kod süresi dolmadan ülkenizi geri alın.</p>
     </section>
     <section id="finish" class="rulebook-section">
@@ -377,19 +378,19 @@
       <p class="section-number">۰۷ — نبردهای میدانی</p><h2>منابع قفل‌شده را به قدرت تبدیل کنید</h2>
       <p>در برنامه نام هر دو دکمه حمله <strong>Field Battle</strong> است. شما و رقیب باید منابع را قفل کرده باشید و هر دو در میدان انتخاب‌شده مقدار بیشتر از صفر داشته باشید. شرایط جهانی و ضریب‌های دور بر قدرت نبرد اثر می‌گذارند.</p>
       <div class="rulebook-two-column"><article class="rulebook-mini-card"><h3>⚔️ نبرد میدانی انفرادی</h3><p>یک رقیب آزاد و یک میدان انتخاب کنید. قدرت برابر است با منبع فعلی میدان × ضریب مؤثر کشور. در هر دور یک حمله و پس از فعال‌سازی General دو حمله دارید. پیروزی تمام منبع میدان مدافع را به شما می‌دهد و میدان او صفر می‌شود. در شکست، تمام منبع میدان شما به مدافع منتقل می‌شود. تساوی انتقالی ندارد.</p></article><article class="rulebook-mini-card"><h3>🏛️ نبرد میدانی ائتلافی</h3><p>فقط آغازکننده ائتلاف تأییدشده می‌تواند در هر دور یک‌بار حمله کند. هدف، کشور آزاد قفل‌شده یا ائتلاف تأییدشده دیگر است. استخر میدان × ضریب مؤثر دو طرف مقایسه می‌شود؛ طرف قوی‌تر منبع طرف بازنده را می‌گیرد و در تساوی انتقالی نیست.</p></article><article class="rulebook-mini-card"><h3>☢️ حمله اتمی</h3><p>پس از قفل‌کردن، رقیب و میدان را انتخاب کنید. نیمی از تخصیص فعلی هدف، با گردکردن مقدار نابودی به بالا، از بین می‌رود. مقدار نابودشده منتقل نمی‌شود و کیف پول هدف تغییر نمی‌کند.</p></article></div>
-      <div class="rulebook-callout"><strong>نمونه نبرد:</strong> ۴۰ نفت با ضریب ×۲ قدرت ۸۰ دارد. ۵۰ نفت با ضریب ×۱ قدرت ۵۰ دارد، پس طرف اول پیروز و ۵۰ نفت را می‌گیرد. در همه‌گیری هر دو طرف از ×۱ استفاده می‌کنند.</div>
+      <div class="rulebook-callout"><strong>نمونه نبرد:</strong> ۴۰ نفت با ضریب ×۲ قدرت ۸۰ دارد. ۵۰ نفت با ضریب ×۱ قدرت ۵۰ دارد، پس طرف اول پیروز و ۵۰ نفت را می‌گیرد. اگر همه‌گیری نفت را انتخاب کند، هر دو طرف برای نفت از ×۱ استفاده می‌کنند.</div>
     </section>
     <section id="events" class="rulebook-section">
       <p class="section-number">۰۸ — شرایط جهانی</p><h2>یک وضعیت جهانی دور را تغییر می‌دهد</h2>
       <p>میزبان پس از قفل‌شدن همه سرمایه‌گذاری‌ها یک شرایط می‌کشد. شرایط در معامله، اقدام، نبرد و محاسبه فعال است و هنگام بسته‌شدن دور پاک می‌شود.</p>
-      <div class="rulebook-event-grid"><article><span>📉</span><h3>رکود اقتصادی</h3><p>درآمد دریافتی معامله ۲۰٪ کم و رو به پایین گرد می‌شود. معامله مجاز است. افزایش Merchant ابتدا اعمال می‌شود.</p></article><article><span>🌡️</span><h3>گرمایش جهانی</h3><p>کشاورزی و نفت برای درآمد و نبرد از ضریب مؤثر ۱۰٪ کمتر استفاده می‌کنند. معادن بی‌تأثیر است.</p></article><article><span>🦠</span><h3>همه‌گیری</h3><p>ضریب کشاورزی، نفت و معادن در این دور ×۱ می‌شود و هم درآمد و هم قدرت نبرد را تغییر می‌دهد.</p></article><article><span>🕊️</span><h3>جنگ سرد</h3><p>کارت Spy قابل استفاده نیست. Spy مسدودشده مصرف نمی‌شود و می‌تواند تا پاک‌سازی عادی دور در دست بماند.</p></article></div>
+      <div class="rulebook-event-grid"><article><span>📉</span><h3>رکود اقتصادی</h3><p>درآمد دریافتی معامله ۲۰٪ کم و رو به پایین گرد می‌شود. معامله مجاز است. افزایش Merchant ابتدا اعمال می‌شود.</p></article><article><span>🌡️</span><h3>گرمایش جهانی</h3><p>کشاورزی و نفت برای درآمد و نبرد از ضریب مؤثر ۱۰٪ کمتر استفاده می‌کنند. معادن بی‌تأثیر است.</p></article><article><span>🦠</span><h3>همه‌گیری</h3><p>سرور یکی از کشاورزی، نفت یا معادن را تصادفی انتخاب می‌کند و فقط ضریب همان میدان را در این دور ×۱ می‌کند. این اثر بر درآمد و قدرت نبرد اعمال می‌شود.</p></article><article><span>🕊️</span><h3>جنگ سرد</h3><p>کارت Spy قابل استفاده نیست. Spy مسدودشده مصرف نمی‌شود و می‌تواند تا پاک‌سازی عادی دور در دست بماند.</p></article><article><span>🌑</span><h3>خاموشی</h3><p>ضریب‌ها و مجموع سرمایه‌گذاری میدان حریفان در این دور پنهان است. همچنان اطلاعات خود، آمادگی و وضعیت ائتلاف را می‌بینید.</p></article></div>
       <div class="rulebook-callout rulebook-finish"><strong>توجه:</strong> شرایط جهانی تخصیص پایه نمایش‌داده‌شده کشور را عوض نمی‌کند؛ فقط نتیجه مؤثری را که سرور برای این دور استفاده می‌کند تغییر می‌دهد.</div>
     </section>
     <section id="hosting" class="rulebook-section">
       <p class="section-number">۰۹ — میزبانی و قابل‌مشاهده‌بودن</p><h2>کنترل‌های میزبان</h2>
       <p>میزبان داور مشترک میز است، نه بازیکنی با دسترسی به راهبرد خصوصی دیگران. کنترل‌ها توسط سرور بررسی می‌شوند و فقط برای میزبان فعلی در دسترس‌اند.</p>
       <div class="rulebook-table-wrap"><table class="rulebook-table"><thead><tr><th>کنترل میزبان</th><th>چه زمانی؟</th><th>نتیجه</th></tr></thead><tbody><tr><td>توزیع کارت</td><td>یک‌بار در دور</td><td>دو کارت مهارت خصوصی به هر بازیکن می‌دهد</td></tr><tr><td>کشیدن شرایط جهانی</td><td>پس از کارت‌ها و همه قفل‌ها</td><td>یک شرایط برای دور تعیین می‌کند</td></tr><tr><td>رسیدگی به درخواست سکه</td><td>درخواست معلق</td><td>درخواست ۱۰۰ سکه را تأیید یا رد می‌کند</td></tr><tr><td>بستن و محاسبه</td><td>پس از قفل و آمادگی همه</td><td>درآمد، وام، اثرهای موقت و وضعیت دور را محاسبه می‌کند</td></tr><tr><td>راه‌اندازی مجدد اتاق</td><td>پس از پایان بازی</td><td>بازی سه‌دوری تازه را آغاز می‌کند و برنده را انتخاب نمی‌کند</td></tr></tbody></table></div>
-      <h3>دیگر بازیکنان چه می‌بینند؟</h3><p>برد فرماندهی نام کشور، ضریب‌ها، مجموع سرمایه‌گذاری میدان پس از در دسترس بودن، وضعیت ائتلاف و آمادگی را نشان می‌دهد. جزئیات کشاورزی، نفت و معادن رقیب پیش از حل دور نمایش داده نمی‌شود. جزئیات سرمایه‌گذاری خودتان را می‌بینید.</p>
+      <h3>دیگر بازیکنان چه می‌بینند؟</h3><p>برد فرماندهی نام کشور، ضریب‌ها، مجموع سرمایه‌گذاری میدان پس از در دسترس بودن، وضعیت ائتلاف و آمادگی را نشان می‌دهد. جزئیات کشاورزی، نفت و معادن رقیب پیش از حل دور نمایش داده نمی‌شود. در خاموشی، ضریب‌ها و مجموع سرمایه‌گذاری حریف نیز پنهان است. جزئیات سرمایه‌گذاری خودتان را می‌بینید.</p>
       <h3>خروج و اتصال مجدد</h3><p>با Exit Game صندلی و نشست خود را پاک‌سازی کنید. اگر میزبان خارج شود، مسئولیت به بازیکن واجد شرایط باقی‌مانده منتقل می‌شود. اگر ارتباط قطع شد، پیش از انقضای کد با نام فرمانده و کد ذخیره‌شده کشور خود را پس بگیرید.</p>
     </section>
     <section id="finish" class="rulebook-section">

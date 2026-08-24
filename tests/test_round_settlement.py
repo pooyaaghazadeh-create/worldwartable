@@ -31,11 +31,13 @@ class RoundSettlementTests(unittest.TestCase):
         self.assertEqual(GameHandler.calculate_field_yield(11, self.multiplier("agri", warming)), 29)
         self.assertEqual(GameHandler.calculate_field_yield(11, self.multiplier("oil", warming)), 19)
 
-    def test_pandemic_overrides_every_multiplier_to_one(self):
-        pandemic = {"id": "pandemic"}
-        for field in ("agri", "oil", "mines"):
-            self.assertEqual(self.multiplier(field, pandemic), 1)
-            self.assertEqual(GameHandler.calculate_field_yield(17, self.multiplier(field, pandemic)), 17)
+    def test_pandemic_overrides_only_the_selected_field_to_one(self):
+        pandemic = {"id": "pandemic", "field": "agri"}
+        self.assertEqual(self.multiplier("agri", pandemic), 1)
+        self.assertEqual(self.multiplier("oil", pandemic), 2)
+        self.assertEqual(self.multiplier("mines", pandemic), 1)
+        self.assertEqual(GameHandler.calculate_field_yield(17, self.multiplier("agri", pandemic)), 17)
+        self.assertEqual(GameHandler.calculate_field_yield(17, self.multiplier("oil", pandemic)), 34)
 
     def test_cold_war_and_recession_leave_field_income_unchanged(self):
         for condition in ({"id": "cold-war"}, {"id": "economic-recession"}):
@@ -59,9 +61,9 @@ class RoundSettlementTests(unittest.TestCase):
         self.assertEqual(GameHandler.atomic_destruction_amount(1), 1)
         self.assertEqual(GameHandler.atomic_destruction_amount(0), 0)
 
-    def test_pandemic_keeps_battle_and_income_multiplier_at_one(self):
-        pandemic = {"id": "pandemic"}
-        self.assertEqual(self.multiplier("agri", pandemic), 1)
+    def test_pandemic_uses_the_same_selected_field_for_battle_and_income(self):
+        pandemic = {"id": "pandemic", "field": "oil"}
+        self.assertEqual(self.multiplier("agri", pandemic), 3)
         self.assertEqual(self.multiplier("oil", pandemic), 1)
         self.assertEqual(self.multiplier("mines", pandemic), 1)
 

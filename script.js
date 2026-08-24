@@ -99,16 +99,76 @@ const GLOBAL_CONDITION_CARDS = [
   {
     id: "pandemic",
     title: "🦠 Pandemic",
-    desc: "All resource multipliers become x1 this round.",
-    resourceMultiplierOverride: 1
+    desc: "One randomly selected resource multiplier becomes ×1 this round."
   },
   {
     id: "cold-war",
     title: "🕊️ Cold War",
     desc: "Spy cards cannot be played this round.",
     blocksSpyCards: true
+  },
+  {
+    id: "blackout",
+    title: "🌑 Blackout",
+    desc: "Opponent multipliers and total investments are hidden this round."
   }
 ];
+
+const globalConditionTranslations = {
+  en: {
+    "economic-recession": { title: "📉 Economic Recession", desc: "Trade income is reduced by 20% this round." },
+    "global-warming": { title: "🌡️ Global Warming", desc: "Agriculture and Oil income is reduced by 10% this round." },
+    pandemic: {
+      title: "🦠 Pandemic",
+      desc: field => `The ${globalConditionFieldLabel(field, "en")} multiplier becomes ×1 this round.`
+    },
+    "cold-war": { title: "🕊️ Cold War", desc: "Spy cards cannot be played this round." },
+    blackout: { title: "🌑 Blackout", desc: "Opponent multipliers and total investments are hidden this round." }
+  },
+  tr: {
+    "economic-recession": { title: "📉 Ekonomik Durgunluk", desc: "Ticaret geliri bu raund %20 azalır." },
+    "global-warming": { title: "🌡️ Küresel Isınma", desc: "Tarım ve petrol geliri bu raund %10 azalır." },
+    pandemic: {
+      title: "🦠 Pandemi",
+      desc: field => `${globalConditionFieldLabel(field, "tr")} çarpanı bu raund ×1 olur.`
+    },
+    "cold-war": { title: "🕊️ Soğuk Savaş", desc: "Casus kartları bu raund kullanılamaz." },
+    blackout: { title: "🌑 Karartma", desc: "Rakip çarpanları ve toplam yatırımları bu raund gizlenir." }
+  },
+  fa: {
+    "economic-recession": { title: "📉 رکود اقتصادی", desc: "درآمد تجارت در این دور ۲۰٪ کاهش می‌یابد." },
+    "global-warming": { title: "🌡️ گرمایش جهانی", desc: "درآمد کشاورزی و نفت در این دور ۱۰٪ کاهش می‌یابد." },
+    pandemic: {
+      title: "🦠 همه‌گیری",
+      desc: field => `ضریب ${globalConditionFieldLabel(field, "fa")} در این دور ×۱ می‌شود.`
+    },
+    "cold-war": { title: "🕊️ جنگ سرد", desc: "کارت‌های جاسوس در این دور قابل استفاده نیستند." },
+    blackout: { title: "🌑 خاموشی", desc: "ضرایب و مجموع سرمایه‌گذاری حریفان در این دور پنهان می‌شود." }
+  }
+};
+
+function globalConditionFieldLabel(field, lang = currentLang) {
+  const labels = {
+    en: { agri: "Agriculture", oil: "Oil", mines: "Mines" },
+    tr: { agri: "Tarım", oil: "Petrol", mines: "Madenler" },
+    fa: { agri: "کشاورزی", oil: "نفت", mines: "معادن" }
+  };
+  return labels[lang]?.[field] || labels.en[field] || "selected resource";
+}
+
+function describeGlobalCondition(condition) {
+  const base = GLOBAL_CONDITION_CARDS.find(card => card.id === condition?.id);
+  if (!base) return null;
+  const copy = globalConditionTranslations[currentLang]?.[base.id] || globalConditionTranslations.en[base.id];
+  const desc = typeof copy?.desc === "function" ? copy.desc(condition?.field) : copy?.desc;
+  return {
+    ...base,
+    id: base.id,
+    field: condition?.field,
+    title: copy?.title || base.title,
+    desc: desc || base.desc
+  };
+}
 
 // ==========================================
 // MULTI-LANGUAGE TRANSLATION DICTIONARY (i18n)
@@ -175,6 +235,8 @@ const translations = {
     txtAnnouncements: "📣 Round Announcements",
     txtAnnouncementsSubtitle: "Current round activity only",
     txtGameResultContinue: "Continue",
+    txtBlackoutHidden: "🌑 BLACKOUT — Intelligence hidden",
+    txtBoardBlackout: "Blackout active — opponent multipliers and total investment are hidden.",
     txtCommandBoardKicker: "LIVE STRATEGIC MAP",
     txtCommandBoardTitle: "Command Board",
     txtCommandBoardDesc: "Select an opposing country to inspect its multipliers, total investment, and available actions.",
@@ -303,6 +365,8 @@ const translations = {
     txtAnnouncements: "📣 Raund Duyuruları",
     txtAnnouncementsSubtitle: "Yalnızca mevcut raund etkinlikleri",
     txtGameResultContinue: "Devam",
+    txtBlackoutHidden: "🌑 KARARTMA — İstihbarat gizli",
+    txtBoardBlackout: "Karartma aktif — rakip çarpanları ve toplam yatırımları gizli.",
     txtCommandBoardKicker: "CANLI STRATEJİ HARİTASI",
     txtCommandBoardTitle: "Komuta Panosu",
     txtCommandBoardDesc: "Çarpanlarını, toplam yatırımını ve kullanılabilir eylemlerini incelemek için rakip bir ülke seçin.",
@@ -431,6 +495,8 @@ const translations = {
     txtAnnouncements: "📣 اطلاعیه‌های دور",
     txtAnnouncementsSubtitle: "فقط فعالیت‌های دور جاری",
     txtGameResultContinue: "ادامه",
+    txtBlackoutHidden: "🌑 خاموشی — اطلاعات پنهان است",
+    txtBoardBlackout: "خاموشی فعال است — ضرایب و مجموع سرمایه‌گذاری حریفان پنهان است.",
     txtCommandBoardKicker: "نقشه زنده راهبردی",
     txtCommandBoardTitle: "برد فرماندهی",
     txtCommandBoardDesc: "برای بررسی ضریب‌ها، مجموع سرمایه‌گذاری و اقدامات در دسترس، یک کشور رقیب را انتخاب کنید.",
@@ -886,6 +952,10 @@ window.changeLanguage = function(lang) {
   renderCommandBoard();
   syncCommanderStatus();
   syncCoinPurchaseControl();
+  if (activeGlobalCondition) {
+    activeGlobalCondition = describeGlobalCondition(activeGlobalCondition);
+    renderActiveGlobalCondition();
+  }
   renderRoundAnnouncements();
   document.getElementById("btn-dismiss-game-result")?.replaceChildren(dict.txtGameResultContinue || "Continue");
   if (activeGameResultAlert) {
@@ -1133,6 +1203,11 @@ function getCountryRoundMultipliers(country, fallbackCard = null) {
     : { agri: 1, oil: 1, mines: 1 };
 }
 
+function isCountryIntelHiddenByBlackout(country) {
+  return isGlobalConditionActive("blackout") &&
+    (!assignedCountry || cleanStr(country) !== cleanStr(assignedCountry.name));
+}
+
 function applyRoundResourceMultipliers(multipliers) {
   roundResourceMultipliers = multipliers && typeof multipliers === "object" ? multipliers : {};
   if (assignedCountry) {
@@ -1242,7 +1317,8 @@ function renderTvRoster() {
   wrapper.replaceChildren();
   activeRoomPlayers.forEach(player => {
     const country = activeCountryCard(player.country);
-    const multipliers = getCountryRoundMultipliers(player.country, country);
+    const intelHidden = isCountryIntelHiddenByBlackout(player.country);
+    const multipliers = intelHidden ? null : getCountryRoundMultipliers(player.country, country);
     const alliance = [activePresidentCoalition, activeCounterUnion].find(item =>
       Array.isArray(item?.members) && item.members.some(member => cleanStr(member) === cleanStr(player.country))
     );
@@ -1266,19 +1342,25 @@ function renderTvRoster() {
     statusLabel.textContent = player.locked ? "🔒 Investments locked" : "Planning investments";
     const resources = document.createElement("div");
     resources.className = "tv-seat-resources";
-    [
-      ["🌾", "Agriculture", getEffectiveResourceMultiplier("agri", multipliers.agri)],
-      ["🛢️", "Oil", getEffectiveResourceMultiplier("oil", multipliers.oil)],
-      ["⛏️", "Mines", getEffectiveResourceMultiplier("mines", multipliers.mines)]
-    ].forEach(([icon, label, value]) => {
-      const item = document.createElement("span");
-      item.title = label;
-      item.textContent = `${icon} ×${value}`;
-      resources.appendChild(item);
-    });
+    if (intelHidden) {
+      resources.textContent = (translations[currentLang] || translations.en).txtBlackoutHidden;
+    } else {
+      [
+        ["🌾", "Agriculture", getEffectiveResourceMultiplier("agri", multipliers.agri)],
+        ["🛢️", "Oil", getEffectiveResourceMultiplier("oil", multipliers.oil)],
+        ["⛏️", "Mines", getEffectiveResourceMultiplier("mines", multipliers.mines)]
+      ].forEach(([icon, label, value]) => {
+        const item = document.createElement("span");
+        item.title = label;
+        item.textContent = `${icon} ×${value}`;
+        resources.appendChild(item);
+      });
+    }
     const investmentLabel = document.createElement("strong");
     investmentLabel.className = "tv-seat-investment";
-    investmentLabel.textContent = player.totalInvestment == null
+    investmentLabel.textContent = intelHidden
+      ? (translations[currentLang] || translations.en).txtBlackoutHidden
+      : player.totalInvestment == null
       ? "💰 Total investment: Not locked"
       : `💰 Total investment: ${player.totalInvestment} coins`;
     seat.append(stateLabel, countryLabel, handleLabel, resources, investmentLabel, statusLabel);
@@ -2579,8 +2661,15 @@ function isGlobalConditionActive(conditionId) {
 }
 
 function getEffectiveResourceMultiplier(field, baseMultiplier = countryMultipliers[field]) {
-  const override = activeGlobalCondition?.resourceMultiplierOverride;
-  if (Number.isFinite(override)) return override;
+  if (
+    activeGlobalCondition?.id === "pandemic" &&
+    (
+      !["agri", "oil", "mines"].includes(activeGlobalCondition.field) ||
+      activeGlobalCondition.field === field
+    )
+  ) {
+    return 1;
+  }
   if (
     activeGlobalCondition?.id === "global-warming" &&
     (field === "agri" || field === "oil")
@@ -2698,8 +2787,7 @@ function renderActiveGlobalCondition() {
 }
 
 function activateGlobalCondition(condition) {
-  const matchingCondition = GLOBAL_CONDITION_CARDS.find(card => card.id === condition?.id);
-  activeGlobalCondition = matchingCondition ? { ...matchingCondition } : null;
+  activeGlobalCondition = describeGlobalCondition(condition);
 
   try {
     if (activeGlobalCondition) {
@@ -2847,6 +2935,7 @@ function commandBoardStatus(player, copy) {
 }
 
 function commandBoardTotalInvestment(player) {
+  if (player?.totalInvestment == null) return null;
   const total = Number(player?.totalInvestment);
   return Number.isFinite(total) ? Math.max(0, total) : null;
 }
@@ -2872,8 +2961,9 @@ function renderCommandBoardDetails(player) {
     return;
   }
 
+  const intelHidden = isCountryIntelHiddenByBlackout(player.country);
   const card = activeCountryCard(player.country);
-  const multipliers = getCountryRoundMultipliers(player.country, card);
+  const multipliers = intelHidden ? null : getCountryRoundMultipliers(player.country, card);
   const totalInvestment = commandBoardTotalInvestment(player);
   const alliance = commandBoardAlliance(player.country);
   const title = document.createElement("div");
@@ -2891,24 +2981,30 @@ function renderCommandBoardDetails(player) {
 
   const resources = document.createElement("div");
   resources.className = "command-board-detail-resources";
-  [
-    ["🌾", "Farm", "agri"],
-    ["🛢️", "Oil", "oil"],
-    ["⛏️", "Mines", "mines"]
-  ].forEach(([icon, label, field]) => {
-    resources.appendChild(
-      renderCommandBoardResource(
-        icon,
-        label,
-        getEffectiveResourceMultiplier(field, multipliers[field])
-      )
-    );
-  });
+  if (intelHidden) {
+    resources.textContent = copy.txtBlackoutHidden;
+  } else {
+    [
+      ["🌾", "Farm", "agri"],
+      ["🛢️", "Oil", "oil"],
+      ["⛏️", "Mines", "mines"]
+    ].forEach(([icon, label, field]) => {
+      resources.appendChild(
+        renderCommandBoardResource(
+          icon,
+          label,
+          getEffectiveResourceMultiplier(field, multipliers[field])
+        )
+      );
+    });
+  }
 
   const context = document.createElement("p");
   context.className = "command-board-context";
   const contextParts = [
-    totalInvestment == null
+    intelHidden
+      ? copy.txtBoardBlackout
+      : totalInvestment == null
       ? copy.txtBoardTotalPending
       : copy.txtBoardTotalInvestment.replace("{total}", totalInvestment)
   ];
@@ -2994,8 +3090,11 @@ function renderCommandBoard() {
       country: player.country,
       locked: player.locked,
       ready: player.ready,
-      total: player.totalInvestment,
-      multipliers: getCountryRoundMultipliers(player.country, activeCountryCard(player.country)),
+      intelHidden: isCountryIntelHiddenByBlackout(player.country),
+      total: isCountryIntelHiddenByBlackout(player.country) ? null : player.totalInvestment,
+      multipliers: isCountryIntelHiddenByBlackout(player.country)
+        ? null
+        : getCountryRoundMultipliers(player.country, activeCountryCard(player.country)),
       alliance: commandBoardAlliance(player.country)?.allianceType || ""
     }))
   });
@@ -3014,8 +3113,9 @@ function renderCommandBoard() {
   }
 
   opponentPlayers.forEach((player, index) => {
+    const intelHidden = isCountryIntelHiddenByBlackout(player.country);
     const card = activeCountryCard(player.country);
-    const multipliers = getCountryRoundMultipliers(player.country, card);
+    const multipliers = intelHidden ? null : getCountryRoundMultipliers(player.country, card);
     const totalInvestment = commandBoardTotalInvestment(player);
     const alliance = commandBoardAlliance(player.country);
     const isSelected = cleanStr(player.country) === cleanStr(selectedBoardCountry);
@@ -3047,22 +3147,28 @@ function renderCommandBoard() {
     commander.textContent = `${player.handle}${player.isHost ? " · Host" : ""}`;
     const resources = document.createElement("span");
     resources.className = "command-territory-resources";
-    [
-      ["🌾", "Farm", "agri"],
-      ["🛢️", "Oil", "oil"],
-      ["⛏️", "Mines", "mines"]
-    ].forEach(([icon, label, field]) => {
-      resources.appendChild(
-        renderCommandBoardResource(
-          icon,
-          label,
-          getEffectiveResourceMultiplier(field, multipliers[field])
-        )
-      );
-    });
+    if (intelHidden) {
+      resources.textContent = copy.txtBlackoutHidden;
+    } else {
+      [
+        ["🌾", "Farm", "agri"],
+        ["🛢️", "Oil", "oil"],
+        ["⛏️", "Mines", "mines"]
+      ].forEach(([icon, label, field]) => {
+        resources.appendChild(
+          renderCommandBoardResource(
+            icon,
+            label,
+            getEffectiveResourceMultiplier(field, multipliers[field])
+          )
+        );
+      });
+    }
     const total = document.createElement("span");
     total.className = "command-territory-total";
-    total.textContent = totalInvestment == null
+    total.textContent = intelHidden
+      ? copy.txtBoardBlackout
+      : totalInvestment == null
       ? copy.txtBoardTotalPending
       : copy.txtBoardTotalInvestment.replace("{total}", totalInvestment);
     if (alliance) {
@@ -3220,7 +3326,7 @@ function getTradeFieldLabel(field) {
 }
 
 function getTradeConditionLabel() {
-  if (isGlobalConditionActive("pandemic")) return "Pandemic: all resource multipliers are x1";
+  if (isGlobalConditionActive("pandemic")) return activeGlobalCondition?.desc || "Pandemic multiplier adjustment";
   if (isGlobalConditionActive("economic-recession")) return "Recession reduction included";
   return "No active trade adjustment";
 }

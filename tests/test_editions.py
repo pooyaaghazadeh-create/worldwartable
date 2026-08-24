@@ -165,6 +165,102 @@ class EditionTests(unittest.TestCase):
             ).fetchone()["agri"]
         self.assertEqual(remaining, 80)
 
+    def test_blackout_can_be_drawn_in_both_editions(self):
+        for edition, country in (("simple", "USA 🇺🇸"), ("advanced", "Canada 🇨🇦")):
+            player_id = self.add_player(edition, f"{edition} Blackout Commander", country)
+            with server.database(edition) as connection:
+                connection.execute(
+                    "INSERT INTO player_round_cards (player_id, cards, dealt_at) VALUES (?, ?, 1)",
+                    (player_id, json.dumps(["General"])),
+                )
+                connection.execute(
+                    "INSERT INTO player_round_resources (player_id, agri, oil, mines, locked_at) VALUES (?, 1, 1, 1, 1)",
+                    (player_id,),
+                )
+                connection.execute("UPDATE round_state SET cards_dealt = 1 WHERE id = 1")
+
+            token = server.ACTIVE_EDITION.set(edition)
+            try:
+                with patch("server.secrets.choice", return_value={"id": "blackout"}):
+                    with server.database() as connection:
+                        event = self.handler.draw_global_condition_if_ready(connection)
+            finally:
+                server.ACTIVE_EDITION.reset(token)
+
+            self.assertEqual(event["payload"], {"id": "blackout"})
+
+    def test_pandemic_draw_persists_the_selected_resource_field(self):
+        player_id = self.add_player("simple", "Pandemic Commander", "USA 🇺🇸")
+        with server.database("simple") as connection:
+            connection.execute(
+                "INSERT INTO player_round_cards (player_id, cards, dealt_at) VALUES (?, ?, 1)",
+                (player_id, json.dumps(["General"])),
+            )
+            connection.execute(
+                "INSERT INTO player_round_resources (player_id, agri, oil, mines, locked_at) VALUES (?, 1, 1, 1, 1)",
+                (player_id,),
+            )
+            connection.execute("UPDATE round_state SET cards_dealt = 1 WHERE id = 1")
+
+        token = server.ACTIVE_EDITION.set("simple")
+        try:
+            with patch("server.secrets.choice", side_effect=[{"id": "pandemic"}, "oil"]):
+                with server.database() as connection:
+                    event = self.handler.draw_global_condition_if_ready(connection)
+                    active_condition = json.loads(
+                        connection.execute(
+                            "SELECT active_condition FROM room_state WHERE id = 1"
+                        ).fetchone()["active_condition"]
+                    )
+        finally:
+            server.ACTIVE_EDITION.reset(token)
+
+        self.assertEqual(event["payload"], {"id": "pandemic", "field": "oil"})
+        self.assertEqual(active_condition, {"id": "pandemic", "field": "oil"})
+
+    def test_blackout_redacts_opponent_intelligence_from_room_snapshots(self):
+        usa_id = self.add_player("advanced", "USA Commander", "USA 🇺🇸")
+        canada_id = self.add_player("advanced", "Canada Commander", "Canada 🇨🇦")
+        with server.database("advanced") as connection:
+            connection.execute(
+                "INSERT INTO player_round_resources (player_id, agri, oil, mines, locked_at) VALUES (?, 10, 20, 30, 1)",
+                (usa_id,),
+            )
+            connection.execute(
+                "INSERT INTO player_round_resources (player_id, agri, oil, mines, locked_at) VALUES (?, 40, 50, 60, 1)",
+                (canada_id,),
+            )
+            connection.execute(
+                "UPDATE room_state SET active_condition = ? WHERE id = 1",
+                (json.dumps({"id": "blackout"}),),
+            )
+
+            token = server.ACTIVE_EDITION.set("advanced")
+            try:
+                player_snapshot = self.handler.room_snapshot(
+                    connection,
+                    include_investments=True,
+                    viewer_player_id=usa_id,
+                )
+                tv_snapshot = self.handler.room_snapshot(
+                    connection,
+                    include_investments=False,
+                )
+            finally:
+                server.ACTIVE_EDITION.reset(token)
+
+        player_by_country = {
+            player["country"]: player for player in player_snapshot["players"]
+        }
+        self.assertEqual(player_by_country["USA 🇺🇸"]["totalInvestment"], 60)
+        self.assertEqual(player_by_country["Canada 🇨🇦"]["totalInvestment"], None)
+        self.assertEqual(player_by_country["Canada 🇨🇦"]["investments"], None)
+        self.assertEqual(set(player_snapshot["resourceMultipliers"]), {"USA 🇺🇸"})
+        self.assertEqual(tv_snapshot["resourceMultipliers"], {})
+        self.assertTrue(
+            all(player["totalInvestment"] is None for player in tv_snapshot["players"])
+        )
+
     def test_join_role_allows_first_explicit_host_to_claim_host(self):
         responses = []
         self.handler.headers = {}
