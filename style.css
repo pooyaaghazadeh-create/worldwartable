@@ -313,6 +313,19 @@ body {
   margin: 0 auto;
 }
 
+/* Keep mobile interactions from triggering Safari's double-tap zoom.
+   Pinch-to-zoom remains available because manipulation allows panning and pinch zoom. */
+body.entry-page,
+body.mobile-controller {
+  -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
+}
+
+body.entry-page :where(button, a, input, select, textarea),
+body.mobile-controller :where(button, a, input, select, textarea) {
+  touch-action: manipulation;
+}
+
 .game-header {
   display: flex;
   flex-direction: column;
@@ -2053,6 +2066,16 @@ body:not(.tv-body) .card {
 
   body:not(.tv-body) .role-switcher {
     justify-content: stretch;
+  }
+}
+
+@media (max-width: 700px) {
+  /* Mobile Safari zooms focused text controls smaller than 16px. */
+  body.entry-page input,
+  body.mobile-controller input,
+  body.mobile-controller select,
+  body.mobile-controller textarea {
+    font-size: 16px;
   }
 }
 
