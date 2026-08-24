@@ -63,7 +63,8 @@
 .tv-felt.is-motion-global::after { animation: arena-global-signal 620ms ease-out both; }
 
 .table-flight {
-  background: linear-gradient(90deg, transparent 0%, currentColor 18%, currentColor 76%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, currentColor 16%, currentColor 48%, transparent 76%, currentColor 100%);
+  background-size: 220% 100%;
   border-radius: 999px;
   color: #fbbf24;
   height: 3px;
@@ -91,11 +92,54 @@
   width: 8px;
 }
 
-.table-flight.is-active { animation: table-flight-pass 820ms cubic-bezier(.2, .8, .25, 1) both; }
-.table-flight-trade { color: #fbbf24; }
+.table-flight.is-active {
+  animation: table-flight-pass 1280ms cubic-bezier(.2, .8, .25, 1) both, table-flight-flow 760ms linear 2 both;
+}
+.table-flight.is-active::after { animation: table-flight-orb 1280ms cubic-bezier(.2, .8, .25, 1) both; }
+.table-flight-trade { color: #34d399; }
 .table-flight-alliance { color: #c4b5fd; }
 .table-flight-combat { color: #fb7185; height: 4px; }
 .table-flight-atomic { color: #fb7185; height: 5px; }
+
+.poker-seat.has-atomic-cloud {
+  overflow: visible;
+  z-index: 4;
+}
+
+.tv-mushroom-cloud {
+  bottom: 55%;
+  filter: drop-shadow(0 0 12px rgba(251, 113, 133, .94));
+  height: 96px;
+  left: 50%;
+  pointer-events: none;
+  position: absolute;
+  transform: translateX(-50%);
+  width: 100px;
+  z-index: 7;
+}
+
+.tv-mushroom-cap {
+  background:
+    radial-gradient(circle at 50% 25%, #fff7ed 0 10%, #fed7aa 11% 26%, #fb923c 48%, #ef4444 72%, rgba(127, 29, 29, .18) 100%);
+  border: 2px solid rgba(254, 202, 202, .72);
+  border-radius: 52% 52% 40% 40%;
+  box-shadow: -23px 14px 0 -5px rgba(251, 146, 60, .92), 23px 14px 0 -5px rgba(251, 146, 60, .92), 0 18px 22px rgba(127, 29, 29, .46);
+  height: 54px;
+  left: 23px;
+  position: absolute;
+  top: 0;
+  width: 54px;
+}
+
+.tv-mushroom-stem {
+  background: linear-gradient(90deg, rgba(127, 29, 29, .78), #fed7aa 50%, rgba(127, 29, 29, .78));
+  border-radius: 46% 46% 24% 24%;
+  bottom: 2px;
+  height: 56px;
+  left: 39px;
+  position: absolute;
+  width: 22px;
+}
 
 .table-center-pot {
   position: absolute;
@@ -3269,7 +3313,7 @@ input[type="range"]:focus-visible,
 
 @keyframes arena-trade-signal {
   0%, 100% { opacity: .72; transform: scale(1); }
-  45% { background: radial-gradient(ellipse at center, rgba(251, 191, 36, .34), transparent 42%), radial-gradient(ellipse at center, transparent 36%, rgba(2, 6, 23, .24) 78%, transparent 100%); opacity: 1; transform: scale(1.045); }
+  45% { background: radial-gradient(ellipse at center, rgba(52, 211, 153, .36), transparent 42%), radial-gradient(ellipse at center, transparent 36%, rgba(2, 6, 23, .24) 78%, transparent 100%); opacity: 1; transform: scale(1.045); }
 }
 
 @keyframes arena-combat-signal {
@@ -3290,10 +3334,32 @@ input[type="range"]:focus-visible,
 
 @keyframes table-flight-pass {
   0% { opacity: 0; }
-  14% { opacity: .9; }
-  84% { opacity: .9; }
+  12% { opacity: 1; }
+  88% { opacity: 1; }
   100% { opacity: 0; }
 }
+
+@keyframes table-flight-flow {
+  from { background-position: 200% 0; }
+  to { background-position: -20% 0; }
+}
+
+@keyframes table-flight-orb {
+  0%, 12% { left: 0; opacity: 0; }
+  22% { opacity: 1; }
+  50% { left: 100%; opacity: 1; }
+  78% { left: 0; opacity: 1; }
+  100% { left: 0; opacity: 0; }
+}
+
+@keyframes atomic-mushroom-rise {
+  0% { opacity: 0; transform: translate(-50%, 40px) scale(.32); }
+  18% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  65% { opacity: 1; transform: translate(-50%, -28px) scale(1.16); }
+  100% { opacity: 0; transform: translate(-50%, -46px) scale(1.34); }
+}
+
+.tv-mushroom-cloud { animation: atomic-mushroom-rise 3400ms cubic-bezier(.16, .78, .28, 1) both; }
 
 @media (pointer: coarse) {
   .btn:not(.btn-small),

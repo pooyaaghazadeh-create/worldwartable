@@ -1059,6 +1059,31 @@ function playTvTableLink(sourceCountry, targetCountry, kind = "trade") {
   window.setTimeout(() => link.remove(), 920);
 }
 
+function showTvAtomicCloud(country) {
+  const seat = Array.from(document.querySelectorAll(".poker-seat")).find(item =>
+    cleanStr(item.dataset.country) === cleanStr(country)
+  );
+  if (!seat) return;
+
+  seat.querySelector(".tv-mushroom-cloud")?.remove();
+  seat.classList.add("has-atomic-cloud");
+  const cloud = document.createElement("span");
+  cloud.className = "tv-mushroom-cloud";
+  cloud.setAttribute("aria-hidden", "true");
+  const cap = document.createElement("span");
+  cap.className = "tv-mushroom-cap";
+  const stem = document.createElement("span");
+  stem.className = "tv-mushroom-stem";
+  cloud.append(cap, stem);
+  seat.appendChild(cloud);
+  window.setTimeout(() => {
+    cloud.remove();
+    if (!seat.querySelector(".tv-mushroom-cloud")) {
+      seat.classList.remove("has-atomic-cloud");
+    }
+  }, 3600);
+}
+
 function pulseTvSeat(country, className = "is-broadcast-highlight") {
   const seat = Array.from(document.querySelectorAll(".poker-seat")).find(item =>
     cleanStr(item.dataset.country) === cleanStr(country)
@@ -1134,6 +1159,7 @@ const soundManager = {
   enabled: false,
   context: null,
   lastPlayed: new Map(),
+  activeLoops: new Map(),
   gestureUnlockBound: false,
 
   init() {
@@ -1181,6 +1207,8 @@ const soundManager = {
     if (this.enabled) {
       await this.unlock();
       this.play("ui", { force: true });
+    } else {
+      this.stopAllLoops();
     }
   },
 
@@ -1213,6 +1241,39 @@ const soundManager = {
     oscillator.stop(start + duration + 0.02);
   },
 
+  startLoop(category, options = {}) {
+    if (!this.enabled || !this.context || this.context.state !== "running") return;
+    this.stopLoop(category);
+    const duration = options.duration ?? 2200;
+    const interval = options.interval ?? 680;
+    const startedAt = Date.now();
+    const tick = () => {
+      if (
+        !this.enabled ||
+        Date.now() - startedAt >= duration ||
+        !this.context ||
+        this.context.state !== "running"
+      ) {
+        this.stopLoop(category);
+        return;
+      }
+      this.play(category, { force: true });
+    };
+    tick();
+    this.activeLoops.set(category, window.setInterval(tick, interval));
+  },
+
+  stopLoop(category) {
+    const timer = this.activeLoops.get(category);
+    if (timer) window.clearInterval(timer);
+    this.activeLoops.delete(category);
+  },
+
+  stopAllLoops() {
+    this.activeLoops.forEach(timer => window.clearInterval(timer));
+    this.activeLoops.clear();
+  },
+
   play(category, options = {}) {
     if (!this.enabled || !this.context || this.context.state !== "running") return;
     const nowMs = Date.now();
@@ -1230,17 +1291,21 @@ const soundManager = {
       playerLeave: [[330, 0, 0.08, 0.018, "triangle"], [247, 0.09, 0.1, 0.018, "triangle"]],
       cards: [[740, 0, 0.025, 0.012, "square"], [622, 0.06, 0.03, 0.012, "square"], [740, 0.12, 0.035, 0.014, "square"]],
       tradeProposal: [[392, 0, 0.06, 0.022], [587, 0.08, 0.08, 0.026]],
+      tradeLoop: [[523, 0, 0.11, 0.038], [659, 0.13, 0.11, 0.044], [784, 0.27, 0.15, 0.04], [659, 0.46, 0.11, 0.034]],
       tradeAccepted: [[523, 0, 0.07, 0.026], [659, 0.08, 0.08, 0.029], [784, 0.17, 0.11, 0.03]],
       tradeRejected: [[392, 0, 0.08, 0.022, "triangle"], [294, 0.1, 0.12, 0.024, "triangle"]],
       allianceProposal: [[330, 0, 0.08, 0.022], [440, 0.09, 0.09, 0.025]],
+      allianceLoop: [[330, 0, 0.12, 0.034], [494, 0.14, 0.12, 0.039], [659, 0.29, 0.16, 0.04]],
       allianceConfirmed: [[330, 0, 0.08, 0.026], [494, 0.09, 0.1, 0.03], [659, 0.2, 0.13, 0.032]],
       event: [[262, 0, 0.08, 0.024], [392, 0.1, 0.09, 0.028], [523, 0.2, 0.12, 0.03]],
       global: [[196, 0, 0.12, 0.024, "triangle"], [294, 0.13, 0.11, 0.026], [392, 0.25, 0.14, 0.029]],
       battle: [[130, 0, 0.11, 0.04, "triangle"], [98, 0.1, 0.13, 0.028, "sawtooth"]],
+      battleLoop: [[196, 0, 0.1, 0.043, "triangle"], [247, 0.13, 0.1, 0.04, "triangle"], [147, 0.27, 0.14, 0.04, "sawtooth"]],
       stalemate: [[349, 0, 0.075, 0.023], [349, 0.12, 0.075, 0.023]],
       victory: [[523, 0, 0.08, 0.03], [659, 0.09, 0.09, 0.033], [784, 0.19, 0.14, 0.035]],
       defeat: [[260, 0, 0.1, 0.027, "triangle"], [196, 0.11, 0.14, 0.03, "triangle"]],
       atomic: [[164, 0, 0.08, 0.03, "square"], [164, 0.13, 0.08, 0.03, "square"], [74, 0.25, 0.22, 0.045, "sawtooth"]],
+      atomicLoop: [[220, 0, 0.1, 0.043, "square"], [220, 0.16, 0.1, 0.04, "square"], [110, 0.32, 0.16, 0.045, "sawtooth"]],
       warning: [[196, 0, 0.08, 0.025, "triangle"], [196, 0.12, 0.08, 0.025, "triangle"]],
       round: [[392, 0, 0.08, 0.026], [523, 0.1, 0.1, 0.03], [659, 0.21, 0.16, 0.032]],
       allReady: [[523, 0, 0.07, 0.026], [659, 0.08, 0.08, 0.03], [784, 0.16, 0.1, 0.032], [1047, 0.27, 0.14, 0.03]]
@@ -1257,6 +1322,18 @@ window.toggleGameSound = function() {
 
 function playSound(category, options) {
   soundManager.play(category, options);
+}
+
+function startSoundLoop(category, options) {
+  if (document.body?.classList.contains("tv-body")) {
+    soundManager.startLoop(category, options);
+  } else {
+    soundManager.play(category, { force: true });
+  }
+}
+
+function stopSoundLoop(category) {
+  soundManager.stopLoop(category);
 }
 
 function createGameResultId() {
@@ -1549,7 +1626,7 @@ function handleAllianceRoomEvent(event) {
       pulseTvSeat(target, "is-alliance-highlight");
       playTvTableLink(event.payload?.initiator, target, "alliance");
     });
-    playSound("allianceProposal");
+    startSoundLoop("allianceLoop", { duration: 2200, interval: 620 });
   } else if (event.type === "APPROVE_ALLIANCE") {
     if (
       pendingAllianceProposal &&
@@ -1567,7 +1644,7 @@ function handleAllianceRoomEvent(event) {
       }
     }
     pulseTvSeat(event.payload?.approvedBy, "is-alliance-highlight");
-    playSound("allianceProposal");
+    startSoundLoop("allianceLoop", { duration: 1500, interval: 620 });
   } else if (event.type === "CONFIRM_ALLIANCE") {
     if (event.payload.allianceType === "Mega-Merger") {
       activePresidentCoalition = event.payload.data;
@@ -1581,6 +1658,7 @@ function handleAllianceRoomEvent(event) {
     });
     const members = event.payload?.data?.members || [];
     members.slice(1).forEach(country => playTvTableLink(members[0], country, "alliance"));
+    stopSoundLoop("allianceLoop");
     playSound("allianceConfirmed");
   } else if (event.type === "ALLIANCE_SKIRMISH") {
     applyAllianceSkirmishResult(event.payload);
@@ -1605,6 +1683,7 @@ function syncAlliancePool(alliance, snapshot) {
 
 function applyAllianceSkirmishResult(result) {
   if (!result?.attacker || !result?.defender) return;
+  startSoundLoop("battleLoop", { duration: 1500, interval: 520 });
   syncAlliancePool(allianceForProposalId(result.attacker.proposalId), result.attacker);
   if (result.defender.kind === "alliance") {
     syncAlliancePool(allianceForProposalId(result.defender.id), result.defender);
@@ -1659,6 +1738,7 @@ function applyGeneralAllowance(result) {
 
 function applySoloSkirmishResult(result, eventId) {
   if (!result?.attacker || !result?.defender) return;
+  startSoundLoop("battleLoop", { duration: 1500, interval: 520 });
   const localCountry = assignedCountry ? cleanStr(assignedCountry.name) : "";
   const applyResources = participant => {
     if (localCountry !== cleanStr(participant.country) || !participant.resources) return;
@@ -1887,6 +1967,8 @@ function applyHostEvent(event) {
       updateUI();
     }
     void refreshRoomSnapshot();
+    startSoundLoop("atomicLoop", { duration: 3400, interval: 620 });
+    showTvAtomicCloud(event.payload.targetCountry);
     publishGameResult({
       id: Number.isFinite(event.id)
         ? `atomic-strike-${event.id}`
@@ -1915,7 +1997,7 @@ function applyHostEvent(event) {
     pulseTvSeat(event.payload?.proposerCountry, "is-trade-highlight");
     pulseTvSeat(event.payload?.targetCountry, "is-trade-highlight");
     playTvTableLink(event.payload?.proposerCountry, event.payload?.targetCountry, "trade");
-    playSound("tradeProposal");
+    startSoundLoop("tradeLoop", { duration: 2600, interval: 680 });
     void refreshRoomSnapshot();
   } else if (event.type === "RESPOND_TRADE") {
     const myAssets = assignedCountry ? event.payload?.assets?.[assignedCountry.name] : null;
@@ -1933,6 +2015,7 @@ function applyHostEvent(event) {
     pendingTradeProposal = null;
     pendingOutgoingTrade = null;
     updateAllianceUI();
+    stopSoundLoop("tradeLoop");
     publishGameResult({
       id: Number.isFinite(event.id)
         ? `trade-response-${event.id}`
