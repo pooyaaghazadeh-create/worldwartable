@@ -72,9 +72,8 @@ class EditionTests(unittest.TestCase):
             tv_snapshot = self.handler.room_snapshot(
                 connection,
                 include_investments=False,
-                include_total_investment=False,
             )
-        self.assertNotIn("totalInvestment", tv_snapshot["players"][0])
+        self.assertIn("totalInvestment", tv_snapshot["players"][0])
 
     def test_simple_deal_excludes_banker_and_president_while_advanced_keeps_them(self):
         simple_id = self.add_player("simple", "Simple Commander", "USA 🇺🇸")

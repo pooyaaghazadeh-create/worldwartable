@@ -909,7 +909,12 @@ function renderTvRoster() {
       item.textContent = `${icon} ×${value}`;
       resources.appendChild(item);
     });
-    seat.append(stateLabel, countryLabel, handleLabel, resources, statusLabel);
+    const investmentLabel = document.createElement("strong");
+    investmentLabel.className = "tv-seat-investment";
+    investmentLabel.textContent = player.totalInvestment == null
+      ? "💰 Total investment: Not locked"
+      : `💰 Total investment: ${player.totalInvestment} coins`;
+    seat.append(stateLabel, countryLabel, handleLabel, resources, investmentLabel, statusLabel);
     if (country) seat.dataset.country = country.name;
     wrapper.appendChild(seat);
   });

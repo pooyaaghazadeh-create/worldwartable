@@ -2852,6 +2852,12 @@ input[type="range"]:focus-visible,
 
 .poker-seat > strong { margin-top: 16px; }
 
+.poker-seat .tv-seat-investment {
+  color: #f8e0a0;
+  font-size: .86rem;
+  font-weight: 800;
+}
+
 .table-center-pot.is-broadcast-highlight,
 .table-center-pot.is-global-highlight {
   border-color: #fcd34d;
