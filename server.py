@@ -24,13 +24,13 @@ EDITIONS = {
     "advanced": {
         "label": "Advanced Edition",
         "database_path": DATABASE_PATH,
-        "card_titles": ("Banker", "President", "General", "Spy", "Merchant", "Atomic Bomb"),
+        "card_titles": ("Banker", "President", "General", "Spy", "Merchant", "Atomic Bomb", "Hitman"),
         "cards_per_round": 2,
     },
     "simple": {
         "label": "Simple Edition",
         "database_path": Path(os.environ.get("WORLD_WAR_SIMPLE_DB_PATH", ROOT / ".world_war_room_simple.sqlite3")),
-        "card_titles": ("General", "Spy", "Merchant", "Atomic Bomb"),
+        "card_titles": ("General", "Spy", "Merchant", "Atomic Bomb", "Hitman"),
         "cards_per_round": 1,
     },
 }
@@ -88,6 +88,7 @@ ROOM_EVENT_TYPES = {
     "PROPOSE_TRADE",
     "RESPOND_TRADE",
     "SPY_INTERRUPT",
+    "HITMAN_STRIKE",
 }
 RECONNECT_CODE_TTL_SECONDS = 24 * 60 * 60
 
@@ -1341,6 +1342,8 @@ class GameHandler(SimpleHTTPRequestHandler):
             self.respond_trade(player, event_payload)
         elif event_type == "SPY_INTERRUPT":
             self.spy_interrupt(player, event_payload)
+        elif event_type == "HITMAN_STRIKE":
+            self.hitman_strike(player, event_payload)
         elif event_type == "PROPOSE_ALLIANCE":
             self.propose_alliance(player, event_payload)
         elif event_type == "APPROVE_ALLIANCE":
@@ -1952,6 +1955,84 @@ class GameHandler(SimpleHTTPRequestHandler):
                 "assets": assets,
             })
         self.send_json({"event": event}, HTTPStatus.CREATED)
+
+    def hitman_strike(self, player: sqlite3.Row, payload: dict) -> None:
+        target_card = payload.get("targetCard")
+        if target_card not in {"General", "Spy"}:
+            self.send_json(
+                {"error": "Choose either the General or Spy card to target."},
+                HTTPStatus.BAD_REQUEST,
+            )
+            return
+
+        target_country = payload.get("targetCountry")
+        if not isinstance(target_country, str) or not target_country.strip():
+            self.send_json(
+                {"error": "Choose an opposing country to target."},
+                HTTPStatus.BAD_REQUEST,
+            )
+            return
+
+        with database() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            target = connection.execute(
+                """
+                SELECT id, country
+                FROM players
+                WHERE id != ? AND country = ?
+                """,
+                (player["id"], target_country),
+            ).fetchone()
+            if not target:
+                self.send_json(
+                    {"error": "Choose a valid seated opposing country."},
+                    HTTPStatus.BAD_REQUEST,
+                )
+                return
+
+            if not self.consume_card(connection, player["id"], "Hitman"):
+                self.send_json(
+                    {"error": "You need an unplayed Hitman card."},
+                    HTTPStatus.FORBIDDEN,
+                )
+                return
+
+            succeeded = False
+
+            target_hand_row = connection.execute(
+                "SELECT cards FROM player_round_cards WHERE player_id = ?",
+                (target["id"],),
+            ).fetchone()
+            target_hand = json.loads(target_hand_row["cards"]) if target_hand_row else []
+            if target_card in target_hand:
+                target_hand.remove(target_card)
+                connection.execute(
+                    "UPDATE player_round_cards SET cards = ? WHERE player_id = ?",
+                    (json.dumps(target_hand), target["id"]),
+                )
+                succeeded = True
+
+            event = self.publish_room_event(
+                connection,
+                "HITMAN_STRIKE",
+                {
+                    "attackerCountry": player["country"],
+                    "targetCountry": target_country,
+                    "succeeded": succeeded,
+                },
+            )
+
+        self.send_json(
+            {
+                "event": event,
+                "hitmanResult": {
+                    "targetCountry": target_country,
+                    "targetCard": target_card,
+                    "succeeded": succeeded,
+                },
+            },
+            HTTPStatus.CREATED,
+        )
 
     def lock_resources(self, player: sqlite3.Row, payload: dict) -> None:
         fields = ("agri", "oil", "mines")

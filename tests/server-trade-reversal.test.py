@@ -144,6 +144,13 @@ class TradeReversalServerTest(unittest.TestCase):
                 (json.dumps(["Spy"] * count), self.player_id_from_connection(connection, handle)),
             )
 
+    def set_cards(self, handle, cards):
+        with server.database() as connection:
+            connection.execute(
+                "UPDATE player_round_cards SET cards = ? WHERE player_id = ?",
+                (json.dumps(cards), self.player_id_from_connection(connection, handle)),
+            )
+
     def cards_for(self, handle):
         with server.database() as connection:
             row = connection.execute(
@@ -193,6 +200,33 @@ class TradeReversalServerTest(unittest.TestCase):
             {"proposalId": proposal_id},
             expected_status,
         )
+
+    def test_hitman_http_action_returns_private_result_and_only_removes_one_card(self):
+        self.set_cards("Spy", ["Hitman"])
+        self.set_cards("Target", ["Spy", "Spy"])
+
+        response = self.send_event(
+            "Spy",
+            "HITMAN_STRIKE",
+            {
+                "targetCard": "Spy",
+                "targetCountry": self.players["Target"]["country"],
+            },
+        )
+
+        self.assertEqual(response["event"]["type"], "HITMAN_STRIKE")
+        self.assertEqual(response["event"]["payload"]["targetCountry"], self.players["Target"]["country"])
+        self.assertNotIn("targetCard", response["event"]["payload"])
+        self.assertEqual(
+            response["hitmanResult"],
+            {
+                "targetCountry": self.players["Target"]["country"],
+                "targetCard": "Spy",
+                "succeeded": True,
+            },
+        )
+        self.assertEqual(self.cards_for("Spy"), [])
+        self.assertEqual(self.cards_for("Target"), ["Spy"])
 
     def test_spy_cancels_pending_offer_and_restores_escrow(self):
         before = self.assets_for("Proposer")

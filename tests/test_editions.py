@@ -106,6 +106,110 @@ class EditionTests(unittest.TestCase):
         self.assertEqual(advanced_cards, '["Banker", "President"]')
         self.assertEqual(len(json.loads(advanced_cards)), 2)
 
+    def test_hitman_is_in_both_edition_card_pools(self):
+        self.assertIn("Hitman", server.EDITIONS["simple"]["card_titles"])
+        self.assertIn("Hitman", server.EDITIONS["advanced"]["card_titles"])
+
+    def test_hitman_removes_one_requested_card_from_the_selected_opponent_in_both_editions(self):
+        for edition in ("simple", "advanced"):
+            attacker_id = self.add_player(edition, f"{edition} Hitman", "USA 🇺🇸")
+            target_id = self.add_player(edition, f"{edition} Target", "Canada 🇨🇦")
+            self.add_player(edition, f"{edition} Other", "Brazil 🇧🇷")
+            responses = []
+            self.handler.send_json = lambda payload, status=server.HTTPStatus.OK, cookie=None: responses.append(
+                (payload, status)
+            )
+
+            with server.database(edition) as connection:
+                connection.execute(
+                    "INSERT INTO player_round_cards (player_id, cards, dealt_at) VALUES (?, ?, 1)",
+                    (attacker_id, json.dumps(["Hitman"])),
+                )
+                connection.execute(
+                    "INSERT INTO player_round_cards (player_id, cards, dealt_at) VALUES (?, ?, 1)",
+                    (target_id, json.dumps(["General", "General", "Spy"])),
+                )
+            token = server.ACTIVE_EDITION.set(edition)
+            try:
+                self.handler.hitman_strike(
+                    {"id": attacker_id, "country": "USA 🇺🇸"},
+                    {"targetCard": "General", "targetCountry": "Canada 🇨🇦"},
+                )
+            finally:
+                server.ACTIVE_EDITION.reset(token)
+
+            payload, status = responses[-1]
+            self.assertEqual(status, server.HTTPStatus.CREATED)
+            self.assertTrue(payload["hitmanResult"]["succeeded"])
+            self.assertEqual(payload["hitmanResult"]["targetCountry"], "Canada 🇨🇦")
+            self.assertEqual(payload["event"]["payload"]["targetCountry"], "Canada 🇨🇦")
+            self.assertNotIn("targetCard", payload["event"]["payload"])
+            with server.database(edition) as connection:
+                attacker_cards = json.loads(
+                    connection.execute(
+                        "SELECT cards FROM player_round_cards WHERE player_id = ?", (attacker_id,)
+                    ).fetchone()["cards"]
+                )
+                target_cards = json.loads(
+                    connection.execute(
+                        "SELECT cards FROM player_round_cards WHERE player_id = ?", (target_id,)
+                    ).fetchone()["cards"]
+                )
+            self.assertEqual(attacker_cards, [])
+            self.assertEqual(target_cards, ["General", "Spy"])
+
+    def test_hitman_failure_consumes_card_and_invalid_target_type_does_not(self):
+        attacker_id = self.add_player("advanced", "Hitman", "USA 🇺🇸")
+        target_id = self.add_player("advanced", "Target", "Canada 🇨🇦")
+        responses = []
+        self.handler.send_json = lambda payload, status=server.HTTPStatus.OK, cookie=None: responses.append(
+            (payload, status)
+        )
+
+        with server.database("advanced") as connection:
+            connection.execute(
+                "INSERT INTO player_round_cards (player_id, cards, dealt_at) VALUES (?, ?, 1)",
+                (attacker_id, json.dumps(["Hitman"])),
+            )
+            connection.execute(
+                "INSERT INTO player_round_cards (player_id, cards, dealt_at) VALUES (?, ?, 1)",
+                (target_id, json.dumps(["General"])),
+            )
+        token = server.ACTIVE_EDITION.set("advanced")
+        try:
+            self.handler.hitman_strike(
+                {"id": attacker_id, "country": "USA 🇺🇸"},
+                {"targetCard": "Merchant"},
+            )
+            self.handler.hitman_strike(
+                {"id": attacker_id, "country": "USA 🇺🇸"},
+                {"targetCard": "Spy", "targetCountry": "USA 🇺🇸"},
+            )
+            self.handler.hitman_strike(
+                {"id": attacker_id, "country": "USA 🇺🇸"},
+                {"targetCard": "Spy", "targetCountry": "Canada 🇨🇦"},
+            )
+        finally:
+            server.ACTIVE_EDITION.reset(token)
+
+        self.assertEqual(responses[0][1], server.HTTPStatus.BAD_REQUEST)
+        self.assertEqual(responses[1][1], server.HTTPStatus.BAD_REQUEST)
+        self.assertEqual(responses[2][1], server.HTTPStatus.CREATED)
+        self.assertFalse(responses[2][0]["hitmanResult"]["succeeded"])
+        with server.database("advanced") as connection:
+            attacker_cards = json.loads(
+                connection.execute(
+                    "SELECT cards FROM player_round_cards WHERE player_id = ?", (attacker_id,)
+                ).fetchone()["cards"]
+            )
+            target_cards = json.loads(
+                connection.execute(
+                    "SELECT cards FROM player_round_cards WHERE player_id = ?", (target_id,)
+                ).fetchone()["cards"]
+            )
+        self.assertEqual(attacker_cards, [])
+        self.assertEqual(target_cards, ["General"])
+
     def test_simple_server_rejects_banker_and_alliance_actions(self):
         responses = []
         self.handler.send_json = lambda payload, status=server.HTTPStatus.OK, cookie=None: responses.append(

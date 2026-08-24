@@ -602,6 +602,28 @@
     </div>
   </div>
 
+  <div id="hitman-modal" class="modal-overlay hidden">
+    <div class="modal-card alert-card">
+      <h2 id="txt-hitman-modal-title">🕶️ Hitman Operation</h2>
+      <p id="txt-hitman-modal-desc">Choose an opposing country and which card type to target.</p>
+      <div class="field-box modal-input-box">
+        <label id="lbl-hitman-target-country" class="modal-label" for="select-hitman-target-country">Country to target:</label>
+        <select id="select-hitman-target-country" class="modal-select"></select>
+      </div>
+      <div class="field-box modal-input-box">
+        <label id="lbl-hitman-target-card" class="modal-label" for="select-hitman-target-card">Card type to disable:</label>
+        <select id="select-hitman-target-card" class="modal-select">
+          <option id="txt-hitman-general-option" value="General">🎖️ General</option>
+          <option id="txt-hitman-spy-option" value="Spy">🕵️ Spy</option>
+        </select>
+      </div>
+      <div class="button-group modal-btn-group">
+        <button id="btn-hitman-strike" class="btn btn-danger" onclick="confirmHitmanOperation()">🕶️ Execute Hitman Operation</button>
+        <button class="btn btn-small cancel-btn" onclick="closeHitmanModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <div id="atomic-modal" class="modal-overlay hidden">
     <div class="modal-card alert-card">
       <h2 style="color: var(--danger-color);">☢️ Atomic Bomb Targeting</h2>

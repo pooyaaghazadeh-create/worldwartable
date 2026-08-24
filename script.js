@@ -255,6 +255,13 @@ const translations = {
     txtBoardActionsAvailable: "Choose an available action for this country.",
     txtBoardTotalInvestment: "Total field investment: {total} coins",
     txtBoardTotalPending: "Total field investment: pending",
+    txtHitmanModalTitle: "🕶️ Hitman Operation",
+    txtHitmanModalDesc: "Choose an opposing country and which card type to target.",
+    lblHitmanTargetCountry: "Country to target:",
+    lblHitmanTargetCard: "Card type to disable:",
+    txtHitmanGeneralOption: "🎖️ General",
+    txtHitmanSpyOption: "🕵️ Spy",
+    btnHitmanStrike: "🕶️ Execute Hitman Operation",
     txtBoardAlliance: "Alliance",
     txtStatusKicker: "COMMANDER STATUS",
     txtNextMove: "NEXT MOVE",
@@ -385,6 +392,13 @@ const translations = {
     txtBoardActionsAvailable: "Bu ülke için kullanılabilir bir hamle seçin.",
     txtBoardTotalInvestment: "Toplam saha yatırımı: {total} coin",
     txtBoardTotalPending: "Toplam saha yatırımı: bekliyor",
+    txtHitmanModalTitle: "🕶️ Hitman Operasyonu",
+    txtHitmanModalDesc: "Bir rakip ülke ve hedef alınacak kart türünü seçin.",
+    lblHitmanTargetCountry: "Hedef ülke:",
+    lblHitmanTargetCard: "Devre dışı bırakılacak kart türü:",
+    txtHitmanGeneralOption: "🎖️ General",
+    txtHitmanSpyOption: "🕵️ Spy",
+    btnHitmanStrike: "🕶️ Hitman Operasyonunu Başlat",
     txtBoardAlliance: "İttifak",
     txtStatusKicker: "KOMUTAN DURUMU",
     txtNextMove: "SIRADAKİ HAMLE",
@@ -515,6 +529,13 @@ const translations = {
     txtBoardActionsAvailable: "یک اقدام در دسترس برای این کشور انتخاب کنید.",
     txtBoardTotalInvestment: "مجموع سرمایه‌گذاری میدان: {total} سکه",
     txtBoardTotalPending: "مجموع سرمایه‌گذاری میدان: در انتظار",
+    txtHitmanModalTitle: "🕶️ عملیات هیتمن",
+    txtHitmanModalDesc: "یک کشور رقیب و نوع کارت هدف را انتخاب کنید.",
+    lblHitmanTargetCountry: "کشور هدف:",
+    lblHitmanTargetCard: "نوع کارت برای غیرفعال‌سازی:",
+    txtHitmanGeneralOption: "🎖️ ژنرال",
+    txtHitmanSpyOption: "🕵️ جاسوس",
+    btnHitmanStrike: "🕶️ اجرای عملیات هیتمن",
     txtBoardAlliance: "ائتلاف",
     txtStatusKicker: "وضعیت فرمانده",
     txtNextMove: "حرکت بعدی",
@@ -631,6 +652,9 @@ const notificationExactTranslations = {
     "🎖️ General Card Activated! You now have 2 Skirmish Field Attacks for this round.": "🎖️ General kartı etkinleştirildi! Bu raund için artık 2 Saha Çatışması saldırınız var.",
     "🕵️ No current-round trade is available to break.": "🕵️ Bozulabilecek mevcut raund ticareti yok.",
     "🕵️ Spy operation submitted to the server.": "🕵️ Casus operasyonu sunucuya gönderildi.",
+    "🕶️ A Hitman disabled one of your proficiency cards this round.": "🕶️ Bir Hitman bu raund uzmanlık kartlarınızdan birini devre dışı bıraktı.",
+    "Choose an opposing country to target.": "Hedef alınacak bir rakip ülke seçin.",
+    "Choose a valid seated opposing country.": "Geçerli, oturmuş bir rakip ülke seçin.",
     "🦠 Pandemic is active: Atomic Bomb cards are deactivated this round.": "🦠 Pandemi aktif: Atom Bombası kartları bu raund devre dışı.",
     "⚠️ Atomic Bomb requires round investments to be locked first!": "⚠️ Atom Bombası için önce raund yatırımları kilitlenmelidir!",
     "⚠️ No other seated country is available to target.": "⚠️ Hedef alınabilecek başka bir oturmuş ülke yok.",
@@ -672,6 +696,9 @@ const notificationExactTranslations = {
     "🎖️ General Card Activated! You now have 2 Skirmish Field Attacks for this round.": "🎖️ کارت General فعال شد! اکنون برای این دور ۲ حمله نبرد میدانی دارید.",
     "🕵️ No current-round trade is available to break.": "🕵️ تجارت فعالی از این دور برای مختل کردن وجود ندارد.",
     "🕵️ Spy operation submitted to the server.": "🕵️ عملیات جاسوسی به سرور ارسال شد.",
+    "🕶️ A Hitman disabled one of your proficiency cards this round.": "🕶️ یک هیتمن یکی از کارت‌های مهارت شما را در این دور غیرفعال کرد.",
+    "Choose an opposing country to target.": "یک کشور رقیب برای هدف‌گیری انتخاب کنید.",
+    "Choose a valid seated opposing country.": "یک کشور رقیب نشسته و معتبر انتخاب کنید.",
     "🦠 Pandemic is active: Atomic Bomb cards are deactivated this round.": "🦠 همه‌گیری فعال است: کارت‌های بمب اتم در این دور غیرفعال هستند.",
     "⚠️ Atomic Bomb requires round investments to be locked first!": "⚠️ برای بمب اتم ابتدا باید سرمایه‌گذاری‌های دور قفل شوند!",
     "⚠️ No other seated country is available to target.": "⚠️ کشور نشسته دیگری برای هدف‌گیری وجود ندارد.",
@@ -702,6 +729,16 @@ function localizeNotificationMessage(message) {
   if (exact) return exact;
   let match;
 
+  if ((match = message.match(/^🕶️ Hitman success: (.+) had the (General|Spy) card\. It was disabled\.$/))) {
+    return currentLang === "tr"
+      ? `🕶️ Hitman başarılı: ${match[1]} ülkesinde ${match[2]} kartı vardı. Kart devre dışı bırakıldı.`
+      : `🕶️ هیتمن موفق بود: کشور ${match[1]} کارت ${match[2]} را داشت. کارت غیرفعال شد.`;
+  }
+  if ((match = message.match(/^🕶️ Hitman failed: (.+) did not have the (General|Spy) card\.$/))) {
+    return currentLang === "tr"
+      ? `🕶️ Hitman başarısız: ${match[1]} ülkesinde ${match[2]} kartı yoktu.`
+      : `🕶️ هیتمن ناموفق بود: کشور ${match[1]} کارت ${match[2]} را نداشت.`;
+  }
   if ((match = message.match(/^🌐 Language changed to (.+)\.$/))) {
     return currentLang === "tr" ? `🌐 Dil ${match[1]} olarak değiştirildi.` : `🌐 زبان به ${match[1]} تغییر کرد.`;
   }
@@ -1580,8 +1617,25 @@ const cardDeck = [
   { title: "General", icon: "🎖️", desc: "Grants 2 skirmish attacks per round." },
   { title: "Spy", icon: "🕵️", desc: "Interrupt rival deal agreements." },
   { title: "Merchant", icon: "💰", desc: "Generates +10% extra profit on all field buy/sell transactions." },
-  { title: "Atomic Bomb", icon: "☢️", desc: "Destroy 20% of 1 target field's investment. Disabled during Pandemic in Advanced Edition." }
+  { title: "Atomic Bomb", icon: "☢️", desc: "Destroy 20% of 1 target field's investment. Disabled during Pandemic in Advanced Edition." },
+  { title: "Hitman", icon: "🕶️", desc: "Randomly target one opposing country and disable its General or Spy card." }
 ];
+
+const proficiencyCardCopy = {
+  en: {
+    Hitman: "Randomly target one opposing country and disable its General or Spy card."
+  },
+  tr: {
+    Hitman: "Rastgele bir rakip ülkeyi hedef alın ve General veya Spy kartını devre dışı bırakın."
+  },
+  fa: {
+    Hitman: "یک کشور رقیب را به‌صورت تصادفی هدف بگیرید و کارت ژنرال یا جاسوس آن را غیرفعال کنید."
+  }
+};
+
+function localizedCardDescription(card) {
+  return proficiencyCardCopy[currentLang]?.[card.title] || card.desc;
+}
 
 function setTxt(id, text) {
   const el = document.getElementById(id);
@@ -2514,6 +2568,17 @@ function applyHostEvent(event) {
         : "The proposer’s escrowed asset was returned."
     });
     void refreshRoomSnapshot();
+  } else if (event.type === "HITMAN_STRIKE") {
+    if (
+      event.payload?.succeeded &&
+      assignedCountry &&
+      cleanStr(event.payload.targetCountry) === cleanStr(assignedCountry.name)
+    ) {
+      void refreshCurrentHand();
+      logAction("🕶️ A Hitman disabled one of your proficiency cards this round.", "CARD");
+      playSound("warning");
+    }
+    void refreshRoomSnapshot();
   } else if (event.type === "SOLO_SKIRMISH") {
     applySoloSkirmishResult(event.payload, event.id);
     void refreshRoomSnapshot();
@@ -2566,6 +2631,7 @@ async function submitRoomEvent(type, payload) {
       return false;
     }
     (Array.isArray(data.events) ? data.events : [data.event]).forEach(applyHostEvent);
+    if (data.hitmanResult) handleHitmanResult(data.hitmanResult);
     return true;
   } catch (e) {
     logAction("⛔ Could not contact the game server for this alliance action.", "ALLIANCE");
@@ -4826,7 +4892,7 @@ function renderHand() {
 
     const descDiv = document.createElement("div");
     descDiv.className = "card-desc";
-    descDiv.textContent = card.desc;
+    descDiv.textContent = localizedCardDescription(card);
 
     element.appendChild(iconDiv);
     element.appendChild(titleDiv);
@@ -4855,6 +4921,10 @@ function playCardAction(card, index) {
 
     case "Spy":
       window.openSpyModal(index);
+      break;
+
+    case "Hitman":
+      window.openHitmanModal(index);
       break;
 
     case "Merchant":
@@ -4972,6 +5042,56 @@ window.confirmSpyInterruption = async function() {
 
 window.closeSpyModal = function() {
   document.getElementById("spy-modal")?.classList.add("hidden");
+};
+
+function handleHitmanResult(result) {
+  const targetCountry = String(result?.targetCountry || "");
+  const targetCard = result?.targetCard === "Spy" ? "Spy" : "General";
+  const message = result?.succeeded
+    ? `🕶️ Hitman success: ${targetCountry} had the ${targetCard} card. It was disabled.`
+    : targetCountry
+      ? `🕶️ Hitman failed: ${targetCountry} did not have the ${targetCard} card.`
+      : "🕶️ Hitman failed: no opposing country was available.";
+  logAction(message, "CARD");
+  void refreshCurrentHand();
+}
+
+window.openHitmanModal = function(cardIndex) {
+  const countrySelect = document.getElementById("select-hitman-target-country");
+  if (!countrySelect) return;
+  countrySelect.replaceChildren();
+  const targets = liveCountryNames(true);
+  if (targets.length === 0) {
+    const empty = document.createElement("option");
+    empty.value = "";
+    empty.textContent = "No opposing countries available";
+    countrySelect.appendChild(empty);
+  } else {
+    targets.forEach(country => {
+      const option = document.createElement("option");
+      option.value = country;
+      option.textContent = country;
+      countrySelect.appendChild(option);
+    });
+  }
+  window.pendingCardIndex = cardIndex;
+  document.getElementById("hitman-modal")?.classList.remove("hidden");
+};
+
+window.confirmHitmanOperation = async function() {
+  const targetCountry = document.getElementById("select-hitman-target-country")?.value;
+  const targetCard = document.getElementById("select-hitman-target-card")?.value;
+  if (!targetCountry || !["General", "Spy"].includes(targetCard)) {
+    logAction("⚠️ Select an opposing country and card type to target.", "CARD");
+    return;
+  }
+  const completed = await submitRoomEvent("HITMAN_STRIKE", { targetCountry, targetCard });
+  if (!completed) return;
+  window.closeHitmanModal();
+};
+
+window.closeHitmanModal = function() {
+  document.getElementById("hitman-modal")?.classList.add("hidden");
 };
 
 window.openAtomicModal = function(cardIndex) {
