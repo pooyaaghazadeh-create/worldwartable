@@ -38,6 +38,14 @@
          <label id="entry-commander-label" class="modal-label">Commander Name:</label>
          <input type="text" id="input-commander-name" class="modal-select" autofocus autocomplete="nickname" placeholder="Enter commander handle..." />
       </div>
+       <div class="field-box modal-input-box" style="text-align: left; margin-bottom: 10px;">
+         <label id="entry-player-role-label" class="modal-label" for="entry-player-role">Join as:</label>
+         <select id="entry-player-role" class="modal-select">
+           <option id="entry-role-player-option" value="player">Normal Player</option>
+           <option id="entry-role-host-option" value="host">Host Player</option>
+         </select>
+         <small id="entry-player-role-note" style="color: var(--text-muted);">Only the first player who chooses Host Player becomes host.</small>
+       </div>
 
        <button id="entry-enter-button" class="btn btn-success btn-large" style="font-size: 1.1rem; padding: 14px;" onclick="enterGameAutoSeat()">
         ⚔️ Enter World War Game
@@ -87,6 +95,10 @@
         advancedDescription: "Full table with Banker loans, President Mega-Mergers, and Counter-Unions.",
         commanderName: "Commander Name:",
         namePlaceholder: "Enter commander handle...",
+        roleLabel: "Join as:",
+        normalPlayer: "Normal Player",
+        hostPlayer: "Host Player",
+        roleNote: "Only the first player who chooses Host Player becomes host.",
         enterButton: "⚔️ Enter World War Game",
         reconnectHeading: "Returning after a disconnect?",
         reconnectDescription: "Your browser session will reconnect you automatically. Use the code below only if this browser session was lost.",
@@ -106,6 +118,7 @@
         tvReconnectChecking: "Checking whether this device still has your game session…",
         tvReconnectDescription: "Enter the commander name and saved reconnect code for the country you want to reclaim.",
         missingName: "Please enter your commander name!",
+        hostTaken: "A host is already assigned to this table. Choose Normal Player or join another empty table.",
         missingReconnect: "Enter both your commander name and reconnect code.",
         joinError: "Could not join the room.",
         resumeError: "Could not resume this player. Check your commander name and reconnect code.",
@@ -127,6 +140,10 @@
         advancedDescription: "Banker kredileri, Başkan Mega-Birleşmeleri ve Karşı Birlikler içeren tam masa.",
         commanderName: "Komutan Adı:",
         namePlaceholder: "Komutan adınızı girin...",
+        roleLabel: "Şu kişi olarak katıl:",
+        normalPlayer: "Normal Oyuncu",
+        hostPlayer: "Yönetici Oyuncu",
+        roleNote: "Yalnızca Yönetici Oyuncu seçen ilk kişi yönetici olur.",
         enterButton: "⚔️ Dünya Savaşı Oyununa Gir",
         reconnectHeading: "Bağlantınız mı koptu?",
         reconnectDescription: "Tarayıcı oturumunuz sizi otomatik olarak yeniden bağlar. Bu kodu yalnızca oturum kaybolduysa kullanın.",
@@ -146,6 +163,7 @@
         tvReconnectChecking: "Bu cihazda oyun oturumunuzun hâlâ bulunup bulunmadığı kontrol ediliyor…",
         tvReconnectDescription: "Geri almak istediğiniz ülkenin komutan adını ve kayıtlı yeniden bağlanma kodunu girin.",
         missingName: "Lütfen komutan adınızı girin!",
+        hostTaken: "Bu masaya zaten bir yönetici atanmış. Normal Oyuncu seçin veya başka boş bir masaya katılın.",
         missingReconnect: "Komutan adınızı ve yeniden bağlanma kodunuzu girin.",
         joinError: "Odaya katılınamadı.",
         resumeError: "Oyuncu devam ettirilemedi. Komutan adınızı ve yeniden bağlanma kodunuzu kontrol edin.",
@@ -167,6 +185,10 @@
         advancedDescription: "میز کامل با وام‌های Banker، ادغام‌های بزرگ President و اتحادهای متقابل.",
         commanderName: "نام فرمانده:",
         namePlaceholder: "نام فرمانده را وارد کنید...",
+        roleLabel: "ورود به‌عنوان:",
+        normalPlayer: "بازیکن عادی",
+        hostPlayer: "بازیکن میزبان",
+        roleNote: "فقط اولین بازیکنی که «بازیکن میزبان» را انتخاب کند، میزبان می‌شود.",
         enterButton: "⚔️ ورود به بازی جنگ جهانی",
         reconnectHeading: "پس از قطع اتصال برمی‌گردید؟",
         reconnectDescription: "نشست مرورگر شما به‌طور خودکار دوباره وصل می‌شود. کد زیر را فقط در صورت از دست رفتن نشست استفاده کنید.",
@@ -186,6 +208,7 @@
         tvReconnectChecking: "در حال بررسی وجود نشست بازی شما روی این دستگاه…",
         tvReconnectDescription: "نام فرمانده و کد اتصال مجدد ذخیره‌شده کشوری را که می‌خواهید پس بگیرید وارد کنید.",
         missingName: "لطفاً نام فرمانده خود را وارد کنید!",
+        hostTaken: "میزبان این میز از قبل تعیین شده است. «بازیکن عادی» را انتخاب کنید یا به یک میز خالی دیگر بروید.",
         missingReconnect: "نام فرمانده و کد اتصال مجدد را وارد کنید.",
         joinError: "ورود به اتاق ممکن نشد.",
         resumeError: "ادامه بازی این بازیکن ممکن نشد. نام فرمانده و کد اتصال مجدد را بررسی کنید.",
@@ -213,6 +236,10 @@
         "entry-advanced-title": "advancedTitle",
         "entry-advanced-description": "advancedDescription",
         "entry-commander-label": "commanderName",
+        "entry-player-role-label": "roleLabel",
+        "entry-role-player-option": "normalPlayer",
+        "entry-role-host-option": "hostPlayer",
+        "entry-player-role-note": "roleNote",
         "entry-enter-button": "enterButton",
         "reconnect-heading": "reconnectHeading",
         "reconnect-description": "reconnectDescription",
@@ -269,11 +296,15 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "same-origin",
-          body: JSON.stringify({ handle: pName, edition: selectedEdition })
+          body: JSON.stringify({
+            handle: pName,
+            edition: selectedEdition,
+            role: document.getElementById("entry-player-role")?.value || "player"
+          })
         });
         const data = await response.json();
         if (!response.ok) {
-          alert(data.error || entryText("joinError"));
+          alert(data.code === "HOST_ALREADY_ASSIGNED" ? entryText("hostTaken") : data.error || entryText("joinError"));
           return;
         }
 

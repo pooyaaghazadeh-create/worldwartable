@@ -782,6 +782,10 @@ class GameHandler(SimpleHTTPRequestHandler):
         self.set_request_edition(payload=payload)
         handle = str(payload.get("handle", "")).strip()
         handle_key = normalize_handle(handle)
+        requested_role = str(payload.get("role", "host")).strip().casefold()
+        if requested_role not in {"player", "host"}:
+            self.send_json({"error": "Choose either Normal Player or Host Player.", "code": "INVALID_ROLE"}, HTTPStatus.BAD_REQUEST)
+            return
         if not handle_key or len(handle) > 40:
             self.send_json({"error": "Enter a commander name between 1 and 40 characters."}, HTTPStatus.BAD_REQUEST)
             return
@@ -820,7 +824,16 @@ class GameHandler(SimpleHTTPRequestHandler):
             room = connection.execute(
                 "SELECT host_player_id FROM room_state WHERE id = 1"
             ).fetchone()
-            is_host = room["host_player_id"] is None
+            is_host = requested_role == "host" and room["host_player_id"] is None
+            if requested_role == "host" and not is_host:
+                self.send_json(
+                    {
+                        "error": "A host is already assigned to this table. Choose Normal Player instead.",
+                        "code": "HOST_ALREADY_ASSIGNED",
+                    },
+                    HTTPStatus.CONFLICT,
+                )
+                return
             if is_host:
                 connection.execute(
                     "UPDATE room_state SET host_player_id = ? WHERE id = 1 AND host_player_id IS NULL",

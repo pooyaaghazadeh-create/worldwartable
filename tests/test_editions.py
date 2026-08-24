@@ -165,6 +165,38 @@ class EditionTests(unittest.TestCase):
             ).fetchone()["agri"]
         self.assertEqual(remaining, 80)
 
+    def test_join_role_allows_first_explicit_host_to_claim_host(self):
+        responses = []
+        self.handler.headers = {}
+        self.handler.send_json = lambda payload, status=server.HTTPStatus.OK, cookie=None: responses.append(
+            (payload, status)
+        )
+        token = server.ACTIVE_EDITION.set("simple")
+        try:
+            self.handler.join_room(
+                {"handle": "Normal Commander", "role": "player", "edition": "simple"}
+            )
+            self.handler.join_room(
+                {"handle": "Host Commander", "role": "host", "edition": "simple"}
+            )
+            self.handler.join_room(
+                {"handle": "Late Host", "role": "host", "edition": "simple"}
+            )
+        finally:
+            server.ACTIVE_EDITION.reset(token)
+
+        self.assertEqual(responses[0][1], server.HTTPStatus.CREATED)
+        self.assertFalse(responses[0][0]["player"]["isHost"])
+        self.assertEqual(responses[1][1], server.HTTPStatus.CREATED)
+        self.assertTrue(responses[1][0]["player"]["isHost"])
+        self.assertEqual(responses[2][1], server.HTTPStatus.CONFLICT)
+        self.assertEqual(responses[2][0]["code"], "HOST_ALREADY_ASSIGNED")
+        with server.database("simple") as connection:
+            hosts = connection.execute(
+                "SELECT handle FROM players WHERE is_host = 1"
+            ).fetchall()
+        self.assertEqual([row["handle"] for row in hosts], ["Host Commander"])
+
     def test_one_browser_can_keep_independent_sessions_for_both_editions(self):
         self.http_server = server.ThreadingHTTPServer(("127.0.0.1", 0), server.GameHandler)
         self.http_thread = threading.Thread(target=self.http_server.serve_forever, daemon=True)
