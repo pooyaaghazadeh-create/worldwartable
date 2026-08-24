@@ -1975,6 +1975,15 @@ class GameHandler(SimpleHTTPRequestHandler):
 
         with database() as connection:
             connection.execute("BEGIN IMMEDIATE")
+            if connection.execute(
+                "SELECT 1 FROM player_round_resources WHERE player_id = ?",
+                (player["id"],),
+            ).fetchone():
+                self.send_json(
+                    {"error": "Hitman must be used during Prepare before locking investments."},
+                    HTTPStatus.CONFLICT,
+                )
+                return
             target = connection.execute(
                 """
                 SELECT id, country
@@ -2047,6 +2056,17 @@ class GameHandler(SimpleHTTPRequestHandler):
                 "SELECT 1 FROM player_round_resources WHERE player_id = ?", (player["id"],)
             ).fetchone():
                 self.send_json({"error": "Your resources are already locked for this round."}, HTTPStatus.CONFLICT)
+                return
+            hand_row = connection.execute(
+                "SELECT cards FROM player_round_cards WHERE player_id = ?",
+                (player["id"],),
+            ).fetchone()
+            hand = json.loads(hand_row["cards"]) if hand_row else []
+            if "Hitman" in hand:
+                self.send_json(
+                    {"error": "Use your Hitman card before completing Prepare by locking investments."},
+                    HTTPStatus.CONFLICT,
+                )
                 return
             wallet = connection.execute(
                 "SELECT coins FROM player_wallets WHERE player_id = ?", (player["id"],)
@@ -2140,6 +2160,18 @@ class GameHandler(SimpleHTTPRequestHandler):
             ).fetchone():
                 self.send_json({"error": "Lock resources before marking ready."}, HTTPStatus.CONFLICT)
                 return
+            if ready:
+                hand_row = connection.execute(
+                    "SELECT cards FROM player_round_cards WHERE player_id = ?",
+                    (player["id"],),
+                ).fetchone()
+                hand = json.loads(hand_row["cards"]) if hand_row else []
+                if "Hitman" in hand:
+                    self.send_json(
+                        {"error": "Use your Hitman card before completing Prepare."},
+                        HTTPStatus.CONFLICT,
+                    )
+                    return
             if ready:
                 connection.execute(
                     "INSERT INTO player_round_readiness (player_id, ready_at) VALUES (?, ?) ON CONFLICT(player_id) DO UPDATE SET ready_at = excluded.ready_at",
@@ -2344,6 +2376,34 @@ class GameHandler(SimpleHTTPRequestHandler):
 
         with database() as connection:
             connection.execute("BEGIN IMMEDIATE")
+            phase = connection.execute(
+                "SELECT cards_dealt, event_drawn FROM round_state WHERE id = 1"
+            ).fetchone()
+            player_count = connection.execute("SELECT COUNT(*) FROM players").fetchone()[0]
+            locked_count = connection.execute(
+                "SELECT COUNT(*) FROM player_round_resources"
+            ).fetchone()[0]
+            if (
+                not phase
+                or not phase["cards_dealt"]
+                or not phase["event_drawn"]
+                or not player_count
+                or locked_count != player_count
+            ):
+                self.send_json(
+                    {"error": "Complete Prepare for every commander before activating General in Act."},
+                    HTTPStatus.CONFLICT,
+                )
+                return
+            if connection.execute(
+                "SELECT 1 FROM player_round_readiness WHERE player_id = ?",
+                (player["id"],),
+            ).fetchone():
+                self.send_json(
+                    {"error": "General can only be activated during Act before you mark ready."},
+                    HTTPStatus.CONFLICT,
+                )
+                return
             connection.execute(
                 """
                 INSERT OR IGNORE INTO solo_skirmish_state (player_id, attacks_used, max_attacks)

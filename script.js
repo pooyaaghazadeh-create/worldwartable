@@ -307,6 +307,9 @@ const translations = {
     txtStatusReady: "Mark yourself ready",
     txtStatusWaiting: "Waiting for the host",
     txtStatusComplete: "Review final results",
+    txtStatusPrepareWait: "Wait for every commander to complete Prepare",
+    txtGeneralActOnly: "🎖️ Complete Prepare before activating General in Act.",
+    txtHitmanPrepareOnly: "🕶️ Use Hitman during Prepare before locking investments.",
     btnHostDealUsed: "✓ Cards Dealt This Round",
     btnHostEventLocked: "Deal Cards Before Drawing Event",
     btnHostEventUsed: "✓ Global Event Drawn"
@@ -444,6 +447,9 @@ const translations = {
     txtStatusReady: "Hazır olduğunuzu belirtin",
     txtStatusWaiting: "Yönetici bekleniyor",
     txtStatusComplete: "Sonuçları inceleyin",
+    txtStatusPrepareWait: "Her komutanın Hazırlığı tamamlamasını bekleyin",
+    txtGeneralActOnly: "🎖️ General kartını Hamle aşamasında etkinleştirmeden önce Hazırlığı tamamlayın.",
+    txtHitmanPrepareOnly: "🕶️ Yatırımları kilitlemeden önce Hitman kartını Hazırlıkta kullanın.",
     btnHostDealUsed: "✓ Kartlar Bu Raund Dağıtıldı",
     btnHostEventLocked: "Önce Kartları Dağıtın",
     btnHostEventUsed: "✓ Küresel Etkinlik Çekildi"
@@ -581,6 +587,9 @@ const translations = {
     txtStatusReady: "اعلام آمادگی",
     txtStatusWaiting: "در انتظار میزبان",
     txtStatusComplete: "بررسی نتایج نهایی",
+    txtStatusPrepareWait: "منتظر بمانید تا همه فرماندهان آماده‌سازی را تمام کنند",
+    txtGeneralActOnly: "🎖️ پیش از فعال‌سازی ژنرال در مرحله اقدام، آماده‌سازی را کامل کنید.",
+    txtHitmanPrepareOnly: "🕶️ پیش از قفل کردن سرمایه‌گذاری‌ها، هیتمن را در آماده‌سازی استفاده کنید.",
     btnHostDealUsed: "✓ کارت‌ها در این دور توزیع شدند",
     btnHostEventLocked: "ابتدا کارت‌ها را توزیع کنید",
     btnHostEventUsed: "✓ رویداد جهانی کشیده شد"
@@ -1127,6 +1136,14 @@ function liveCountryNames(excludeSelf = false) {
     .filter(country => country && (!excludeSelf || cleanStr(country) !== selfCountry));
 }
 
+function isActPhaseReady() {
+  return !gameFinished &&
+    investmentsLocked &&
+    eventDrawnThisRound &&
+    !isLocalPlayerReadyToClose &&
+    lockedPlayersSet.size >= registeredPlayersCount;
+}
+
 function activeCountryCard(country) {
   return countryCards.find(card => cleanStr(card.name) === cleanStr(country));
 }
@@ -1179,6 +1196,10 @@ function syncGameTabBadges(phase) {
 window.selectGameTab = function(tabName, shouldFocus = false) {
   const validTabs = ["status", "prepare", "act", "review"];
   if (!validTabs.includes(tabName)) return;
+  if (tabName === "act" && !isActPhaseReady()) {
+    logAction((translations[currentLang] || translations.en).txtStatusPrepareWait, "SYSTEM");
+    return;
+  }
 
   const tab = document.getElementById(`tab-${tabName}`);
   const panel = document.getElementById(`tab-panel-${tabName}`);
@@ -3851,9 +3872,11 @@ function syncCommanderStatus(totalAllocated = investments.agri + investments.oil
   } else if (investmentsLocked && isLocalPlayerReadyToClose) {
     phase = "review";
     nextAction = copy.txtStatusWaiting;
-  } else if (investmentsLocked) {
+  } else if (isActPhaseReady()) {
     phase = "act";
     nextAction = copy.txtStatusAct;
+  } else if (investmentsLocked) {
+    nextAction = copy.txtStatusPrepareWait;
   } else if (loanDue > 0 && unallocated >= loanDue) {
     nextAction = copy.btnRepayLoan;
   }
@@ -4859,24 +4882,32 @@ function renderHand() {
     const isAtomicDisabled = activeEdition !== "simple"
       && card.title === "Atomic Bomb"
       && isGlobalConditionActive("pandemic");
-    element.className = `prof-card${isAtomicDisabled ? " is-disabled" : ""}`;
-    element.style.cursor = isAtomicDisabled ? "not-allowed" : "pointer";
+    const isGeneralDisabled = card.title === "General" && !isActPhaseReady();
+    const isHitmanDisabled = card.title === "Hitman" && investmentsLocked;
+    const isCardDisabled = isAtomicDisabled || isGeneralDisabled || isHitmanDisabled;
+    const disabledMessage = isAtomicDisabled
+      ? copy.txtAtomicDisabled
+      : isGeneralDisabled
+        ? copy.txtGeneralActOnly
+        : copy.txtHitmanPrepareOnly;
+    element.className = `prof-card${isCardDisabled ? " is-disabled" : ""}`;
+    element.style.cursor = isCardDisabled ? "not-allowed" : "pointer";
     element.setAttribute("role", "button");
-    element.setAttribute("aria-disabled", String(isAtomicDisabled));
-    element.tabIndex = isAtomicDisabled ? -1 : 0;
-    if (isAtomicDisabled) {
-      element.title = copy.txtAtomicDisabled;
+    element.setAttribute("aria-disabled", String(isCardDisabled));
+    element.tabIndex = isCardDisabled ? -1 : 0;
+    if (isCardDisabled) {
+      element.title = disabledMessage;
     }
 
     element.onclick = () => {
-      if (isAtomicDisabled) {
-        logAction(`🦠 Pandemic is active: ${copy.txtAtomicDisabled}.`, "EVENT");
+      if (isCardDisabled) {
+        logAction(disabledMessage, card.title === "Atomic Bomb" ? "EVENT" : "CARD");
         return;
       }
       playCardAction(card, index);
     };
     element.onkeydown = event => {
-      if (!isAtomicDisabled && (event.key === "Enter" || event.key === " ")) {
+      if (!isCardDisabled && (event.key === "Enter" || event.key === " ")) {
         event.preventDefault();
         playCardAction(card, index);
       }
@@ -4904,6 +4935,14 @@ function renderHand() {
 function playCardAction(card, index) {
   if (isSimpleEdition() && ["Banker", "President"].includes(card.title)) {
     logAction(`${card.title} is unavailable in the Simple Edition.`, "CARD");
+    return;
+  }
+  if (card.title === "General" && !isActPhaseReady()) {
+    logAction((translations[currentLang] || translations.en).txtGeneralActOnly, "CARD");
+    return;
+  }
+  if (card.title === "Hitman" && investmentsLocked) {
+    logAction((translations[currentLang] || translations.en).txtHitmanPrepareOnly, "CARD");
     return;
   }
   switch (card.title) {
@@ -4979,6 +5018,10 @@ window.confirmLoan = async function() {
 };
 
 window.activateGeneralCard = async function(cardIndex) {
+  if (!isActPhaseReady()) {
+    logAction((translations[currentLang] || translations.en).txtGeneralActOnly, "CARD");
+    return;
+  }
   const activated = await submitRoomEvent("ACTIVATE_GENERAL", {});
   if (!activated) return;
   currentHand.splice(cardIndex, 1);
@@ -5057,6 +5100,10 @@ function handleHitmanResult(result) {
 }
 
 window.openHitmanModal = function(cardIndex) {
+  if (investmentsLocked) {
+    logAction((translations[currentLang] || translations.en).txtHitmanPrepareOnly, "CARD");
+    return;
+  }
   const countrySelect = document.getElementById("select-hitman-target-country");
   if (!countrySelect) return;
   countrySelect.replaceChildren();

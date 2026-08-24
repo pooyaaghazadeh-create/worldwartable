@@ -210,6 +210,91 @@ class EditionTests(unittest.TestCase):
         self.assertEqual(attacker_cards, [])
         self.assertEqual(target_cards, ["General"])
 
+    def test_hitman_must_be_used_before_preparation_can_be_locked(self):
+        attacker_id = self.add_player("simple", "Hitman Commander", "USA 🇺🇸")
+        target_id = self.add_player("simple", "Target Commander", "Canada 🇨🇦")
+        responses = []
+        self.handler.send_json = lambda payload, status=server.HTTPStatus.OK, cookie=None: responses.append(
+            (payload, status)
+        )
+        with server.database("simple") as connection:
+            connection.execute(
+                "INSERT INTO player_round_cards (player_id, cards, dealt_at) VALUES (?, ?, 1)",
+                (attacker_id, json.dumps(["Hitman"])),
+            )
+            connection.execute(
+                "INSERT INTO player_round_cards (player_id, cards, dealt_at) VALUES (?, ?, 1)",
+                (target_id, json.dumps(["Spy"])),
+            )
+
+        token = server.ACTIVE_EDITION.set("simple")
+        try:
+            self.handler.lock_resources(
+                {"id": attacker_id, "country": "USA 🇺🇸"},
+                {"agri": 0, "oil": 0, "mines": 0},
+            )
+            self.handler.hitman_strike(
+                {"id": attacker_id, "country": "USA 🇺🇸"},
+                {"targetCard": "Spy", "targetCountry": "Canada 🇨🇦"},
+            )
+            self.handler.lock_resources(
+                {"id": attacker_id, "country": "USA 🇺🇸"},
+                {"agri": 0, "oil": 0, "mines": 0},
+            )
+        finally:
+            server.ACTIVE_EDITION.reset(token)
+
+        self.assertEqual(responses[0][1], server.HTTPStatus.CONFLICT)
+        self.assertIn("Hitman", responses[0][0]["error"])
+        self.assertEqual(responses[1][1], server.HTTPStatus.CREATED)
+        self.assertEqual(responses[2][1], server.HTTPStatus.CREATED)
+
+    def test_general_cannot_be_activated_until_prepare_is_complete(self):
+        player_id = self.add_player("advanced", "General Commander", "USA 🇺🇸")
+        responses = []
+        self.handler.send_json = lambda payload, status=server.HTTPStatus.OK, cookie=None: responses.append(
+            (payload, status)
+        )
+        with server.database("advanced") as connection:
+            connection.execute(
+                "INSERT INTO player_round_cards (player_id, cards, dealt_at) VALUES (?, ?, 1)",
+                (player_id, json.dumps(["General", "General"])),
+            )
+
+        token = server.ACTIVE_EDITION.set("advanced")
+        try:
+            self.handler.activate_general({"id": player_id, "country": "USA 🇺🇸"}, {})
+            with server.database() as connection:
+                connection.execute(
+                    "INSERT INTO player_round_resources (player_id, agri, oil, mines, locked_at) VALUES (?, 0, 0, 0, 1)",
+                    (player_id,),
+                )
+                connection.execute(
+                    "UPDATE round_state SET cards_dealt = 1, event_drawn = 1 WHERE id = 1"
+                )
+            self.handler.activate_general({"id": player_id, "country": "USA 🇺🇸"}, {})
+            with server.database() as connection:
+                connection.execute(
+                    "INSERT INTO player_round_readiness (player_id, ready_at) VALUES (?, 1)",
+                    (player_id,),
+                )
+            self.handler.activate_general({"id": player_id, "country": "USA 🇺🇸"}, {})
+        finally:
+            server.ACTIVE_EDITION.reset(token)
+
+        self.assertEqual(responses[0][1], server.HTTPStatus.CONFLICT)
+        self.assertIn("Complete Prepare", responses[0][0]["error"])
+        self.assertEqual(responses[1][1], server.HTTPStatus.CREATED)
+        self.assertEqual(responses[2][1], server.HTTPStatus.CONFLICT)
+        self.assertIn("before you mark ready", responses[2][0]["error"])
+        with server.database("advanced") as connection:
+            cards = json.loads(
+                connection.execute(
+                    "SELECT cards FROM player_round_cards WHERE player_id = ?", (player_id,)
+                ).fetchone()["cards"]
+            )
+        self.assertEqual(cards, ["General"])
+
     def test_simple_server_rejects_banker_and_alliance_actions(self):
         responses = []
         self.handler.send_json = lambda payload, status=server.HTTPStatus.OK, cookie=None: responses.append(

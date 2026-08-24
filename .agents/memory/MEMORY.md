@@ -5,3 +5,4 @@
 - [Coin purchase request limit](coin-purchase-request-limit.md) — Players may submit up to five coin-purchase requests per game; the cap includes resolved requests.
 - [Game edition rules](game-edition-rules.md) — Simple removes Banker and President cards, so Mega-Merger and Counter-Union are unavailable.
 - [Hitman targeting](hitman-targeting.md) — A Hitman owner selects the opposing country and whether to disable General or Spy.
+- [Round card phases](round-card-phases.md) — Hitman is required during Prepare; General is available only in Act before a player is ready.
