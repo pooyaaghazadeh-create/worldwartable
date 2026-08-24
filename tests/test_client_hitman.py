@@ -25,6 +25,18 @@ class HitmanClientFlowTests(unittest.TestCase):
 
         self.assertNotIn("data.hitmanResult", host_command_body)
 
+    def test_hitman_event_publishes_a_safe_public_result_notification(self):
+        source = (Path(__file__).resolve().parents[1] / "script.js").read_text()
+        hitman_start = source.index('} else if (event.type === "HITMAN_STRIKE")')
+        next_event_start = source.index('} else if (event.type === "SOLO_SKIRMISH")', hitman_start)
+        hitman_body = source[hitman_start:next_event_start]
+
+        self.assertIn("const publicMessage = succeeded", hitman_body)
+        self.assertIn('logAction(publicMessage, "CARD")', hitman_body)
+        self.assertIn('category: "HITMAN RESULT"', hitman_body)
+        self.assertIn("The targeted card type remains private.", hitman_body)
+        self.assertNotIn("event.payload.targetCard", hitman_body)
+
     def test_hitman_modal_sends_the_selected_opposing_country(self):
         source = (Path(__file__).resolve().parents[1] / "script.js").read_text()
         hitman_start = source.index("window.openHitmanModal = function")

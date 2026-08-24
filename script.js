@@ -738,6 +738,16 @@ function localizeNotificationMessage(message) {
   if (exact) return exact;
   let match;
 
+  if ((match = message.match(/^🕶️ Hitman action: (.+) disabled one proficiency card held by (.+)\.$/))) {
+    return currentLang === "tr"
+      ? `🕶️ Hitman eylemi: ${match[2]} tarafından tutulan bir uzmanlık kartı ${match[1]} tarafından devre dışı bırakıldı.`
+      : `🕶️ اقدام هیتمن: یک کارت مهارت متعلق به ${match[2]} توسط ${match[1]} غیرفعال شد.`;
+  }
+  if ((match = message.match(/^🕶️ Hitman action: (.+) targeted (.+), but no matching card was found\.$/))) {
+    return currentLang === "tr"
+      ? `🕶️ Hitman eylemi: ${match[1]} ${match[2]} ülkesini hedef aldı, ancak eşleşen kart bulunamadı.`
+      : `🕶️ اقدام هیتمن: ${match[1]} کشور ${match[2]} را هدف گرفت، اما کارت منطبقی پیدا نشد.`;
+  }
   if ((match = message.match(/^🕶️ Hitman success: (.+) had the (General|Spy) card\. It was disabled\.$/))) {
     return currentLang === "tr"
       ? `🕶️ Hitman başarılı: ${match[1]} ülkesinde ${match[2]} kartı vardı. Kart devre dışı bırakıldı.`
@@ -2590,13 +2600,30 @@ function applyHostEvent(event) {
     });
     void refreshRoomSnapshot();
   } else if (event.type === "HITMAN_STRIKE") {
+    const attackerCountry = event.payload?.attackerCountry || "An opposing commander";
+    const targetCountry = event.payload?.targetCountry || "an opposing country";
+    const succeeded = Boolean(event.payload?.succeeded);
+    const publicMessage = succeeded
+      ? `🕶️ Hitman action: ${attackerCountry} disabled one proficiency card held by ${targetCountry}.`
+      : `🕶️ Hitman action: ${attackerCountry} targeted ${targetCountry}, but no matching card was found.`;
+    logAction(publicMessage, "CARD");
+    publishGameResult({
+      id: Number.isFinite(event.id) ? `hitman-${event.id}` : `hitman-${attackerCountry}-${targetCountry}`,
+      icon: "🕶️",
+      category: "HITMAN RESULT",
+      tone: succeeded ? "danger" : "neutral",
+      title: succeeded ? "Hitman Operation Successful" : "Hitman Operation Failed",
+      summary: `${attackerCountry} targeted ${targetCountry}.`,
+      details: succeeded
+        ? "One General or Spy card was disabled. The targeted card type remains private."
+        : "No matching General or Spy card was found, so no proficiency card was disabled."
+    });
     if (
-      event.payload?.succeeded &&
+      succeeded &&
       assignedCountry &&
-      cleanStr(event.payload.targetCountry) === cleanStr(assignedCountry.name)
+      cleanStr(targetCountry) === cleanStr(assignedCountry.name)
     ) {
       void refreshCurrentHand();
-      logAction("🕶️ A Hitman disabled one of your proficiency cards this round.", "CARD");
       playSound("warning");
     }
     void refreshRoomSnapshot();
