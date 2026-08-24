@@ -9,68 +9,258 @@
 <body class="entry-page command-entry" style="display: flex; justify-content: center; align-items: center; min-height: 90vh;">
 
   <div class="card entry-card" style="max-width: 420px; text-align: center; padding: 30px; width: 90%;">
-    <h1 style="color: var(--gold-color); font-size: 2rem; margin-bottom: 10px;">🌍 World War Table</h1>
+    <h1 id="entry-title" style="color: var(--gold-color); font-size: 2rem; margin-bottom: 10px;">🌍 World War Table</h1>
+    <div class="entry-language-selector lang-selector" style="justify-content: center; margin: 0 0 16px;">
+      <label id="entry-language-label" for="entry-lang-select">Language:</label>
+      <select id="entry-lang-select" aria-label="Language">
+        <option value="en">English 🇬🇧</option>
+        <option value="tr">Türkçe 🇹🇷</option>
+        <option value="fa">فارسی 🇮🇷</option>
+      </select>
+    </div>
      <p id="entry-intro" style="color: var(--text-muted); margin-bottom: 20px;">Choose an edition, then enter your name to claim a seat. Each edition has its own private table.</p>
     
     <div id="entry-actions">
        <fieldset class="entry-edition-picker" style="border: 0; padding: 0; margin: 0 0 20px; text-align: left;">
-         <legend class="modal-label" style="margin-bottom: 8px;">Choose your table edition:</legend>
+         <legend id="entry-edition-legend" class="modal-label" style="margin-bottom: 8px;">Choose your table edition:</legend>
           <label class="edition-option" style="display: block; padding: 12px; margin-bottom: 8px; border: 1px solid rgba(255,215,0,0.5); border-radius: 8px; cursor: pointer;">
            <input type="radio" name="edition" value="simple" onchange="selectEdition('simple')">
-           <strong>Simple Edition</strong>
-           <small style="display: block; margin: 5px 0 0 25px; color: var(--text-muted);">Core trades, battles, cards, and Global Conditions. No Banker or President cards.</small>
+            <strong id="entry-simple-title">Simple Edition</strong>
+            <small id="entry-simple-description" style="display: block; margin: 5px 0 0 25px; color: var(--text-muted);">Core trades, battles, cards, and Global Conditions. No Banker or President cards.</small>
          </label>
           <label class="edition-option" style="display: block; padding: 12px; border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; cursor: pointer;">
            <input type="radio" name="edition" value="advanced" onchange="selectEdition('advanced')" checked>
-           <strong>Advanced Edition</strong>
-           <small style="display: block; margin: 5px 0 0 25px; color: var(--text-muted);">Full table with Banker loans, President Mega-Mergers, and Counter-Unions.</small>
+            <strong id="entry-advanced-title">Advanced Edition</strong>
+            <small id="entry-advanced-description" style="display: block; margin: 5px 0 0 25px; color: var(--text-muted);">Full table with Banker loans, President Mega-Mergers, and Counter-Unions.</small>
          </label>
        </fieldset>
       <div class="field-box modal-input-box" style="text-align: left; margin-bottom: 20px;">
-        <label class="modal-label">Commander Name:</label>
-        <input type="text" id="input-commander-name" class="modal-select" autofocus autocomplete="nickname" placeholder="Enter commander handle..." />
+         <label id="entry-commander-label" class="modal-label">Commander Name:</label>
+         <input type="text" id="input-commander-name" class="modal-select" autofocus autocomplete="nickname" placeholder="Enter commander handle..." />
       </div>
 
-      <button class="btn btn-success btn-large" style="font-size: 1.1rem; padding: 14px;" onclick="enterGameAutoSeat()">
+       <button id="entry-enter-button" class="btn btn-success btn-large" style="font-size: 1.1rem; padding: 14px;" onclick="enterGameAutoSeat()">
         ⚔️ Enter World War Game
       </button>
 
        <div class="entry-reconnect-section" style="border-top: 1px solid rgba(255,255,255,0.14); margin: 26px 0 18px; padding-top: 22px;">
         <h2 id="reconnect-heading" style="font-size: 1.05rem; color: var(--gold-color); margin: 0 0 8px;">Returning after a disconnect?</h2>
          <p id="reconnect-description" style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 14px;">Your browser session will reconnect you automatically. Use the code below only if this browser session was lost.</p>
-        <div class="field-box modal-input-box" style="text-align: left; margin-bottom: 10px;">
-          <label class="modal-label">Commander Name:</label>
+         <div class="field-box modal-input-box" style="text-align: left; margin-bottom: 10px;">
+           <label id="entry-reconnect-name-label" class="modal-label">Commander Name:</label>
           <input type="text" id="input-reconnect-name" class="modal-select" placeholder="Your original commander name" />
         </div>
         <div class="field-box modal-input-box" style="text-align: left; margin-bottom: 14px;">
-          <label class="modal-label">Reconnect Code:</label>
+           <label id="entry-reconnect-code-label" class="modal-label">Reconnect Code:</label>
           <input type="text" id="input-reconnect-code" class="modal-select" autocomplete="one-time-code" placeholder="Paste your saved reconnect code" />
         </div>
-        <button class="btn btn-secondary btn-large" onclick="resumeGameSeat()">↩️ Reconnect to My Seat</button>
+         <button id="entry-reconnect-button" class="btn btn-secondary btn-large" onclick="resumeGameSeat()">↩️ Reconnect to My Seat</button>
       </div>
 
-      <button class="btn btn-small cancel-btn" style="margin-top: 15px;" onclick="resetAllTableSeats()">
+       <button id="entry-reset-button" class="btn btn-small cancel-btn" style="margin-top: 15px;" onclick="resetAllTableSeats()">
         🔄 Reset Table Seats (Clear Room Memory)
       </button>
     </div>
 
     <section id="reconnect-code-card" class="field-box hidden" style="display: none; text-align: left; border: 1px solid var(--gold-color); background: rgba(255, 215, 0, 0.08); margin: 18px 0;">
       <h2 id="reconnect-code-title" style="color: var(--gold-color); font-size: 1.15rem; margin: 0 0 8px;">Save Your Reconnect Code</h2>
-       <p style="color: var(--text-muted); margin: 0 0 12px;">Keep this private. It is shown once and is only needed if your browser session is lost.</p>
+       <p id="reconnect-code-description" style="color: var(--text-muted); margin: 0 0 12px;">Keep this private. It is shown once and is only needed if your browser session is lost.</p>
       <code id="reconnect-code-value" style="display: block; overflow-wrap: anywhere; color: white; font-size: 0.95rem; padding: 10px; border-radius: 6px; background: rgba(0,0,0,0.32);"></code>
-      <p style="color: var(--text-muted); font-size: 0.82rem; margin: 12px 0 16px;">Each successful reconnect gives you a new code and invalidates the previous one.</p>
-      <button class="btn btn-success btn-large" onclick="continueToController()">I Saved It — Continue</button>
+       <p id="reconnect-code-note" style="color: var(--text-muted); font-size: 0.82rem; margin: 12px 0 16px;">Each successful reconnect gives you a new code and invalidates the previous one.</p>
+       <button id="reconnect-code-continue" class="btn btn-success btn-large" onclick="continueToController()">I Saved It — Continue</button>
     </section>
-    <a class="entry-rulebook-link" href="rulebook.html">📖 Read the Rulebook</a>
+     <a id="entry-rulebook-link" class="entry-rulebook-link" href="rulebook.html">📖 Read the Rulebook</a>
   </div>
 
   <script>
+    const entryTranslations = {
+      en: {
+        pageTitle: "World War Game - Entry",
+        language: "Language:",
+        languageAria: "Choose language",
+        title: "🌍 World War Table",
+        intro: "Choose an edition, then enter your name to claim a seat. Each edition has its own private table.",
+        editionLegend: "Choose your table edition:",
+        simpleTitle: "Simple Edition",
+        simpleDescription: "Core trades, battles, cards, and Global Conditions. No Banker or President cards.",
+        advancedTitle: "Advanced Edition",
+        advancedDescription: "Full table with Banker loans, President Mega-Mergers, and Counter-Unions.",
+        commanderName: "Commander Name:",
+        namePlaceholder: "Enter commander handle...",
+        enterButton: "⚔️ Enter World War Game",
+        reconnectHeading: "Returning after a disconnect?",
+        reconnectDescription: "Your browser session will reconnect you automatically. Use the code below only if this browser session was lost.",
+        reconnectNamePlaceholder: "Your original commander name",
+        reconnectCode: "Reconnect Code:",
+        reconnectCodePlaceholder: "Paste your saved reconnect code",
+        reconnectButton: "↩️ Reconnect to My Seat",
+        resetButton: "🔄 Reset Table Seats (Clear Room Memory)",
+        rulebook: "📖 Read the Rulebook",
+        reconnectTitle: "Save Your Reconnect Code",
+        reconnectNewTitle: "Save Your New Reconnect Code",
+        reconnectCodeDescription: "Keep this private. It is shown once and is only needed if your browser session is lost.",
+        reconnectCodeNote: "Each successful reconnect gives you a new code and invalidates the previous one.",
+        continueButton: "I Saved It — Continue",
+        reservedIntro: "Your seat is reserved. Save the reconnect code below before continuing.",
+        tvReconnectHeading: "📱 Rejoin from the TV QR code",
+        tvReconnectChecking: "Checking whether this device still has your game session…",
+        tvReconnectDescription: "Enter the commander name and saved reconnect code for the country you want to reclaim.",
+        missingName: "Please enter your commander name!",
+        missingReconnect: "Enter both your commander name and reconnect code.",
+        joinError: "Could not join the room.",
+        resumeError: "Could not resume this player. Check your commander name and reconnect code.",
+        networkError: "Could not reach the game server. Please try again.",
+        missingCode: "The game server did not provide a reconnect code. Please try joining again.",
+        resetDenied: "Only the room creator can reset the room.",
+        resetSuccess: "World War Table seats reset successfully!"
+      },
+      tr: {
+        pageTitle: "Dünya Savaşı Oyunu - Giriş",
+        language: "Dil:",
+        languageAria: "Dil seçin",
+        title: "🌍 World War Table",
+        intro: "Bir sürüm seçin, ardından yerinizi almak için adınızı girin. Her sürümün özel bir masası vardır.",
+        editionLegend: "Masa sürümünüzü seçin:",
+        simpleTitle: "Basit Sürüm",
+        simpleDescription: "Temel ticaret, savaş, kartlar ve Küresel Etkinlikler. Banker veya Başkan kartları yoktur.",
+        advancedTitle: "Gelişmiş Sürüm",
+        advancedDescription: "Banker kredileri, Başkan Mega-Birleşmeleri ve Karşı Birlikler içeren tam masa.",
+        commanderName: "Komutan Adı:",
+        namePlaceholder: "Komutan adınızı girin...",
+        enterButton: "⚔️ Dünya Savaşı Oyununa Gir",
+        reconnectHeading: "Bağlantınız mı koptu?",
+        reconnectDescription: "Tarayıcı oturumunuz sizi otomatik olarak yeniden bağlar. Bu kodu yalnızca oturum kaybolduysa kullanın.",
+        reconnectNamePlaceholder: "Önceki komutan adınız",
+        reconnectCode: "Yeniden Bağlanma Kodu:",
+        reconnectCodePlaceholder: "Kayıtlı yeniden bağlanma kodunuzu yapıştırın",
+        reconnectButton: "↩️ Yerime Yeniden Bağlan",
+        resetButton: "🔄 Masa Yerlerini Sıfırla (Oda Hafızasını Temizle)",
+        rulebook: "📖 Kural Kitabını Oku",
+        reconnectTitle: "Yeniden Bağlanma Kodunuzu Kaydedin",
+        reconnectNewTitle: "Yeni Yeniden Bağlanma Kodunuzu Kaydedin",
+        reconnectCodeDescription: "Bu kodu gizli tutun. Yalnızca bir kez gösterilir ve tarayıcı oturumunuz kaybolursa gerekir.",
+        reconnectCodeNote: "Her başarılı yeniden bağlanmada yeni bir kod verilir ve önceki kod geçersiz olur.",
+        continueButton: "Kaydettim — Devam Et",
+        reservedIntro: "Yeriniz ayrıldı. Devam etmeden önce yeniden bağlanma kodunu kaydedin.",
+        tvReconnectHeading: "📱 TV QR kodundan yeniden katıl",
+        tvReconnectChecking: "Bu cihazda oyun oturumunuzun hâlâ bulunup bulunmadığı kontrol ediliyor…",
+        tvReconnectDescription: "Geri almak istediğiniz ülkenin komutan adını ve kayıtlı yeniden bağlanma kodunu girin.",
+        missingName: "Lütfen komutan adınızı girin!",
+        missingReconnect: "Komutan adınızı ve yeniden bağlanma kodunuzu girin.",
+        joinError: "Odaya katılınamadı.",
+        resumeError: "Oyuncu devam ettirilemedi. Komutan adınızı ve yeniden bağlanma kodunuzu kontrol edin.",
+        networkError: "Oyun sunucusuna ulaşılamadı. Lütfen tekrar deneyin.",
+        missingCode: "Oyun sunucusu yeniden bağlanma kodu vermedi. Lütfen tekrar katılmayı deneyin.",
+        resetDenied: "Odayı yalnızca oda oluşturucusu sıfırlayabilir.",
+        resetSuccess: "World War Table yerleri başarıyla sıfırlandı!"
+      },
+      fa: {
+        pageTitle: "بازی جنگ جهانی - ورود",
+        language: "زبان:",
+        languageAria: "انتخاب زبان",
+        title: "🌍 World War Table",
+        intro: "یک نسخه را انتخاب کنید، سپس برای گرفتن صندلی نام خود را وارد کنید. هر نسخه میز خصوصی خود را دارد.",
+        editionLegend: "نسخه میز خود را انتخاب کنید:",
+        simpleTitle: "نسخه ساده",
+        simpleDescription: "تجارت، نبرد، کارت‌ها و رویدادهای جهانی اصلی. کارت‌های Banker و President وجود ندارند.",
+        advancedTitle: "نسخه پیشرفته",
+        advancedDescription: "میز کامل با وام‌های Banker، ادغام‌های بزرگ President و اتحادهای متقابل.",
+        commanderName: "نام فرمانده:",
+        namePlaceholder: "نام فرمانده را وارد کنید...",
+        enterButton: "⚔️ ورود به بازی جنگ جهانی",
+        reconnectHeading: "پس از قطع اتصال برمی‌گردید؟",
+        reconnectDescription: "نشست مرورگر شما به‌طور خودکار دوباره وصل می‌شود. کد زیر را فقط در صورت از دست رفتن نشست استفاده کنید.",
+        reconnectNamePlaceholder: "نام فرمانده قبلی شما",
+        reconnectCode: "کد اتصال مجدد:",
+        reconnectCodePlaceholder: "کد اتصال مجدد ذخیره‌شده را وارد کنید",
+        reconnectButton: "↩️ اتصال مجدد به صندلی من",
+        resetButton: "🔄 بازنشانی صندلی‌های میز (پاک کردن حافظه اتاق)",
+        rulebook: "📖 مطالعه قوانین",
+        reconnectTitle: "کد اتصال مجدد خود را ذخیره کنید",
+        reconnectNewTitle: "کد جدید اتصال مجدد خود را ذخیره کنید",
+        reconnectCodeDescription: "این کد را خصوصی نگه دارید. کد فقط یک بار نمایش داده می‌شود و هنگام از دست رفتن نشست مرورگر لازم است.",
+        reconnectCodeNote: "هر اتصال مجدد موفق، کد جدیدی می‌دهد و کد قبلی را باطل می‌کند.",
+        continueButton: "ذخیره کردم — ادامه",
+        reservedIntro: "صندلی شما رزرو شد. پیش از ادامه کد اتصال مجدد را ذخیره کنید.",
+        tvReconnectHeading: "📱 ورود مجدد از کد QR تلویزیون",
+        tvReconnectChecking: "در حال بررسی وجود نشست بازی شما روی این دستگاه…",
+        tvReconnectDescription: "نام فرمانده و کد اتصال مجدد ذخیره‌شده کشوری را که می‌خواهید پس بگیرید وارد کنید.",
+        missingName: "لطفاً نام فرمانده خود را وارد کنید!",
+        missingReconnect: "نام فرمانده و کد اتصال مجدد را وارد کنید.",
+        joinError: "ورود به اتاق ممکن نشد.",
+        resumeError: "ادامه بازی این بازیکن ممکن نشد. نام فرمانده و کد اتصال مجدد را بررسی کنید.",
+        networkError: "ارتباط با سرور بازی ممکن نشد. لطفاً دوباره تلاش کنید.",
+        missingCode: "سرور بازی کد اتصال مجددی ارائه نکرد. لطفاً دوباره تلاش کنید.",
+        resetDenied: "فقط سازنده اتاق می‌تواند اتاق را بازنشانی کند.",
+        resetSuccess: "صندلی‌های World War Table با موفقیت بازنشانی شد!"
+      }
+    };
+
+    function entryText(key) {
+      const lang = document.getElementById("entry-lang-select")?.value || "en";
+      return (entryTranslations[lang] || entryTranslations.en)[key];
+    }
+
+    function applyEntryLanguage(lang) {
+      const copy = entryTranslations[lang] || entryTranslations.en;
+      const textIds = {
+        "entry-language-label": "language",
+        "entry-title": "title",
+        "entry-intro": "intro",
+        "entry-edition-legend": "editionLegend",
+        "entry-simple-title": "simpleTitle",
+        "entry-simple-description": "simpleDescription",
+        "entry-advanced-title": "advancedTitle",
+        "entry-advanced-description": "advancedDescription",
+        "entry-commander-label": "commanderName",
+        "entry-enter-button": "enterButton",
+        "reconnect-heading": "reconnectHeading",
+        "reconnect-description": "reconnectDescription",
+        "entry-reconnect-name-label": "commanderName",
+        "entry-reconnect-code-label": "reconnectCode",
+        "entry-reconnect-button": "reconnectButton",
+        "entry-reset-button": "resetButton",
+        "entry-rulebook-link": "rulebook",
+        "reconnect-code-description": "reconnectCodeDescription",
+        "reconnect-code-note": "reconnectCodeNote",
+        "reconnect-code-continue": "continueButton"
+      };
+
+      Object.entries(textIds).forEach(([id, key]) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = copy[key];
+      });
+
+      const placeholders = {
+        "input-commander-name": "namePlaceholder",
+        "input-reconnect-name": "reconnectNamePlaceholder",
+        "input-reconnect-code": "reconnectCodePlaceholder"
+      };
+      Object.entries(placeholders).forEach(([id, key]) => {
+        const element = document.getElementById(id);
+        if (element) element.placeholder = copy[key];
+      });
+
+      const languageSelect = document.getElementById("entry-lang-select");
+      if (languageSelect) {
+        languageSelect.value = entryTranslations[lang] ? lang : "en";
+        languageSelect.setAttribute("aria-label", copy.languageAria);
+      }
+      document.title = copy.pageTitle;
+      document.documentElement.lang = entryTranslations[lang] ? lang : "en";
+      document.documentElement.dir = lang === "fa" ? "rtl" : "ltr";
+      document.body.style.direction = lang === "fa" ? "rtl" : "ltr";
+      try {
+        localStorage.setItem("selected_lang", entryTranslations[lang] ? lang : "en");
+      } catch (e) {}
+    }
+
     async function enterGameAutoSeat() {
       const inputEl = document.getElementById("input-commander-name");
       const pName = inputEl ? inputEl.value.trim() : "";
       
       if (!pName) {
-        alert("Please enter your commander name!");
+        alert(entryText("missingName"));
         return;
       }
 
@@ -83,13 +273,13 @@
         });
         const data = await response.json();
         if (!response.ok) {
-          alert(data.error || "Could not join the room.");
+          alert(data.error || entryText("joinError"));
           return;
         }
 
-        showReconnectCode(data.reconnectCode, "Save Your Reconnect Code");
+        showReconnectCode(data.reconnectCode, entryText("reconnectTitle"));
       } catch (e) {
-        alert("Could not reach the game server. Please try again.");
+        alert(entryText("networkError"));
       }
     }
 
@@ -99,7 +289,7 @@
       const handle = nameEl ? nameEl.value.trim() : "";
       const reconnectCode = codeEl ? codeEl.value.trim() : "";
       if (!handle || !reconnectCode) {
-        alert("Enter both your commander name and reconnect code.");
+        alert(entryText("missingReconnect"));
         return;
       }
 
@@ -112,25 +302,25 @@
         });
         const data = await response.json();
         if (!response.ok) {
-          alert(data.error || "Could not resume this player. Check your commander name and reconnect code.");
+          alert(data.error || entryText("resumeError"));
           return;
         }
-        showReconnectCode(data.reconnectCode, "Save Your New Reconnect Code");
+        showReconnectCode(data.reconnectCode, entryText("reconnectNewTitle"));
       } catch (e) {
-        alert("Could not reach the game server. Please try again.");
+        alert(entryText("networkError"));
       }
     }
 
     function showReconnectCode(code, title) {
       if (!code) {
-        alert("The game server did not provide a reconnect code. Please try joining again.");
+        alert(entryText("missingCode"));
         return;
       }
       document.getElementById("reconnect-code-title").textContent = title;
       document.getElementById("reconnect-code-value").textContent = code;
       document.getElementById("entry-actions").style.display = "none";
       const reconnectCard = document.getElementById("reconnect-code-card");
-      document.getElementById("entry-intro").textContent = "Your seat is reserved. Save the reconnect code below before continuing.";
+      document.getElementById("entry-intro").textContent = entryText("reservedIntro");
       reconnectCard.style.display = "block";
       reconnectCard.classList.remove("hidden");
       reconnectCard.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -141,6 +331,18 @@
     }
 
     let selectedEdition = "advanced";
+
+    const savedEntryLanguage = (() => {
+      try {
+        return localStorage.getItem("selected_lang") || "en";
+      } catch (e) {
+        return "en";
+      }
+    })();
+    applyEntryLanguage(savedEntryLanguage);
+    document.getElementById("entry-lang-select")?.addEventListener("change", event => {
+      applyEntryLanguage(event.target.value);
+    });
 
     function selectEdition(edition) {
       selectedEdition = edition === "simple" ? "simple" : "advanced";
@@ -159,8 +361,8 @@
       const description = document.getElementById("reconnect-description");
       const reconnectSection = heading?.parentElement;
       if (fromTvReconnect) {
-        if (heading) heading.textContent = "📱 Rejoin from the TV QR code";
-        if (description) description.textContent = "Checking whether this device still has your game session…";
+        if (heading) heading.textContent = entryText("tvReconnectHeading");
+        if (description) description.textContent = entryText("tvReconnectChecking");
       }
 
       try {
@@ -177,7 +379,7 @@
       } catch (e) {}
 
       if (fromTvReconnect) {
-        if (description) description.textContent = "Enter the commander name and saved reconnect code for the country you want to reclaim.";
+        if (description) description.textContent = entryText("tvReconnectDescription");
         if (reconnectSection) reconnectSection.scrollIntoView({ block: "center" });
         document.getElementById("input-reconnect-name")?.focus();
       }
@@ -195,13 +397,13 @@
         });
         const data = await response.json();
         if (!response.ok) {
-          alert(data.error || "Only the room creator can reset the room.");
+          alert(data.error || entryText("resetDenied"));
           return;
         }
-        alert("World War Table seats reset successfully!");
+        alert(entryText("resetSuccess"));
         location.reload();
       } catch (e) {
-        alert("Could not reach the game server. Please try again.");
+        alert(entryText("networkError"));
       }
     }
   </script>
