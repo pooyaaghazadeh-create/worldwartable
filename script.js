@@ -747,10 +747,10 @@ function localizeNotificationMessage(message) {
       ? `💥 ÇATIŞMA YENİLGİSİ! ${match[1]} ${fieldNotificationLabel(match[2])} sahanızı işgal etti! Yatırılmış ${match[3]} coin kaybedildi!`
       : `💥 شکست نبرد! ${match[1]} به زمین ${fieldNotificationLabel(match[2])} شما حمله کرد! همه ${match[3]} سکه سرمایه‌گذاری‌شده از دست رفت!`;
   }
-  if ((match = message.match(/^☢️ ATOMIC STRIKE! (.+) destroyed (.+) Coins in your (.+) field\. (.+) Coins remain invested\.$/))) {
+  if ((match = message.match(/^☢️ ATOMIC STRIKE! (.+) destroyed (.+) Coins in your (.+) field\.$/))) {
     return currentLang === "tr"
-      ? `☢️ ATOM SALDIRISI! ${match[1]}, ${fieldNotificationLabel(match[3])} sahanızdaki ${match[2]} coin'i yok etti. ${match[4]} coin yatırılmış olarak kaldı.`
-      : `☢️ حمله اتمی! ${match[1]} در زمین ${fieldNotificationLabel(match[3])} شما ${match[2]} سکه را نابود کرد. ${match[4]} سکه همچنان سرمایه‌گذاری شده است.`;
+      ? `☢️ ATOM SALDIRISI! ${match[1]}, ${fieldNotificationLabel(match[3])} sahanızdaki ${match[2]} coin'i yok etti.`
+      : `☢️ حمله اتمی! ${match[1]} در زمین ${fieldNotificationLabel(match[3])} شما ${match[2]} سکه را نابود کرد.`;
   }
   if ((match = message.match(/^❌ Alliance Proposal Rejected by (.+)! Alliance cancelled\.$/))) {
     return currentLang === "tr" ? `❌ İttifak teklifi ${match[1]} tarafından reddedildi! İttifak iptal edildi.` : `❌ پیشنهاد ائتلاف توسط ${match[1]} رد شد! ائتلاف لغو شد.`;
@@ -1097,7 +1097,7 @@ if (gameBroadcast) {
         if (slider) slider.value = investments[fieldName];
 
         updateUI();
-        logAction(`☢️ ATOMIC STRIKE! ${data.payload.attackerCountry} destroyed ${destroyedAmount} Coins in your ${fieldName.toUpperCase()} field. ${investments[fieldName]} Coins remain invested.`, "ATOMIC");
+        logAction(`☢️ ATOMIC STRIKE! ${data.payload.attackerCountry} destroyed ${destroyedAmount} Coins in your ${fieldName.toUpperCase()} field.`, "ATOMIC");
       }
     } else if (data.type.endsWith("_ALLIANCE")) {
       handleAllianceRoomEvent(data);
@@ -2479,7 +2479,7 @@ function applyHostEvent(event) {
       tone: "danger",
       title: "Atomic Strike Detonated",
       summary: `${event.payload.attackerCountry} launched an Atomic Bomb against ${event.payload.targetCountry}.`,
-      details: `${event.payload.targetField} investments destroyed: ${event.payload.destroyed}. Remaining investment: ${event.payload.remaining}.`
+      details: `${event.payload.targetField} investments destroyed: ${event.payload.destroyed}.`
     });
     pulseTvSeat(event.payload.targetCountry, "is-combat-highlight");
     pulseTvSeat(event.payload.attackerCountry, "is-combat-highlight");

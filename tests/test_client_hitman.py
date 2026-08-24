@@ -35,6 +35,16 @@ class HitmanClientFlowTests(unittest.TestCase):
         self.assertIn("liveCountryNames(true)", hitman_body)
         self.assertIn('submitRoomEvent("HITMAN_STRIKE", { targetCountry, targetCard })', hitman_body)
 
+    def test_atomic_result_notifications_omit_remaining_investment(self):
+        source = (Path(__file__).resolve().parents[1] / "script.js").read_text()
+        atomic_result_start = source.index('} else if (event.type === "ATOMIC_STRIKE")')
+        next_event_start = source.index('} else if (event.type === "PROPOSE_TRADE")', atomic_result_start)
+        atomic_body = source[atomic_result_start:next_event_start]
+
+        self.assertIn("investments destroyed:", atomic_body)
+        self.assertNotIn("Remaining investment:", atomic_body)
+        self.assertNotIn("remain invested", source)
+
 
 if __name__ == "__main__":
     unittest.main()
