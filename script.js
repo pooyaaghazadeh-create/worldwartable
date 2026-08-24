@@ -1024,7 +1024,7 @@ const cardDeck = [
   { title: "General", icon: "🎖️", desc: "Grants 2 skirmish attacks per round." },
   { title: "Spy", icon: "🕵️", desc: "Interrupt rival deal agreements." },
   { title: "Merchant", icon: "💰", desc: "Generates +10% extra profit on all field buy/sell transactions." },
-  { title: "Atomic Bomb", icon: "☢️", desc: "Destroy 20% of 1 target field's investment. Disabled during Pandemic." }
+  { title: "Atomic Bomb", icon: "☢️", desc: "Destroy 20% of 1 target field's investment. Disabled during Pandemic in Advanced Edition." }
 ];
 
 function setTxt(id, text) {
@@ -4081,7 +4081,7 @@ function calculateAndAdvanceRound(canonicalResult = null, roundResult = {}) {
 }
 
 // ==========================================
-// PROFICIENCY CARDS HAND (STRICTLY 2 CARDS)
+// PROFICIENCY CARDS HAND (EDITION-SPECIFIC CARD COUNT)
 // ==========================================
 function renderHand() {
   const container = document.getElementById("cards-container");
@@ -4089,12 +4089,14 @@ function renderHand() {
 
   container.replaceChildren();
 
-  const displayCards = currentHand.slice(0, 2);
+  const displayCards = currentHand.slice(0, activeEdition === "simple" ? 1 : 2);
   const copy = translations[currentLang] || translations.en;
 
   displayCards.forEach((card, index) => {
     const element = document.createElement("div");
-    const isAtomicDisabled = card.title === "Atomic Bomb" && isGlobalConditionActive("pandemic");
+    const isAtomicDisabled = activeEdition !== "simple"
+      && card.title === "Atomic Bomb"
+      && isGlobalConditionActive("pandemic");
     element.className = `prof-card${isAtomicDisabled ? " is-disabled" : ""}`;
     element.style.cursor = isAtomicDisabled ? "not-allowed" : "pointer";
     element.setAttribute("role", "button");
@@ -4277,7 +4279,7 @@ window.closeSpyModal = function() {
 };
 
 window.openAtomicModal = function(cardIndex) {
-  if (isGlobalConditionActive("pandemic")) {
+  if (activeEdition !== "simple" && isGlobalConditionActive("pandemic")) {
     logAction("🦠 Pandemic is active: Atomic Bomb cards are deactivated this round.", "EVENT");
     return;
   }

@@ -25,11 +25,13 @@ EDITIONS = {
         "label": "Advanced Edition",
         "database_path": DATABASE_PATH,
         "card_titles": ("Banker", "President", "General", "Spy", "Merchant", "Atomic Bomb"),
+        "cards_per_round": 2,
     },
     "simple": {
         "label": "Simple Edition",
         "database_path": Path(os.environ.get("WORLD_WAR_SIMPLE_DB_PATH", ROOT / ".world_war_room_simple.sqlite3")),
         "card_titles": ("General", "Spy", "Merchant", "Atomic Bomb"),
+        "cards_per_round": 1,
     },
 }
 ACTIVE_EDITION: ContextVar[str] = ContextVar("active_edition", default="advanced")
@@ -1340,7 +1342,7 @@ class GameHandler(SimpleHTTPRequestHandler):
         return True
 
     def deal_round_cards(self, connection: sqlite3.Connection) -> bool:
-        """Deal the fresh two-card hand automatically when a round begins."""
+        """Deal the edition-specific fresh hand automatically when a round begins."""
         state = connection.execute(
             "SELECT cards_dealt, game_finished FROM round_state WHERE id = 1"
         ).fetchone()
@@ -1359,7 +1361,10 @@ class GameHandler(SimpleHTTPRequestHandler):
             return False
         randomizer = secrets.SystemRandom()
         for seated_player in players:
-            hand = randomizer.sample(EDITIONS[self.edition]["card_titles"], 2)
+            hand = randomizer.sample(
+                EDITIONS[self.edition]["card_titles"],
+                EDITIONS[self.edition]["cards_per_round"],
+            )
             connection.execute(
                 """
                 INSERT INTO player_round_cards (player_id, cards, dealt_at)
@@ -1588,7 +1593,11 @@ class GameHandler(SimpleHTTPRequestHandler):
                 if condition_row and condition_row["active_condition"]
                 else None
             )
-            if isinstance(condition, dict) and condition.get("id") == "pandemic":
+            if (
+                self.edition != "simple"
+                and isinstance(condition, dict)
+                and condition.get("id") == "pandemic"
+            ):
                 self.send_json(
                     {"error": "Pandemic deactivates Atomic Bomb cards for this round."},
                     HTTPStatus.CONFLICT,

@@ -95,7 +95,9 @@ class EditionTests(unittest.TestCase):
 
         self.assertNotIn("Banker", cards)
         self.assertNotIn("President", cards)
+        self.assertEqual(len(json.loads(cards)), 1)
         self.assertEqual(advanced_cards, '["Banker", "President"]')
+        self.assertEqual(len(json.loads(advanced_cards)), 2)
 
     def test_simple_server_rejects_banker_and_alliance_actions(self):
         responses = []
@@ -113,6 +115,48 @@ class EditionTests(unittest.TestCase):
         self.assertIn("unavailable", responses[0][0]["error"])
         self.assertEqual(responses[1][1], server.HTTPStatus.FORBIDDEN)
         self.assertIn("unavailable", responses[1][0]["error"])
+
+    def test_simple_atomic_bomb_remains_available_during_pandemic(self):
+        attacker_id = self.add_player("simple", "Attacker", "USA 🇺🇸")
+        target_id = self.add_player("simple", "Target", "Canada 🇨🇦")
+        responses = []
+        self.handler.send_json = lambda payload, status=server.HTTPStatus.OK, cookie=None: responses.append(
+            (payload, status)
+        )
+
+        with server.database("simple") as connection:
+            connection.execute(
+                "INSERT INTO player_round_cards (player_id, cards, dealt_at) VALUES (?, ?, 1)",
+                (attacker_id, json.dumps(["Atomic Bomb"])),
+            )
+            connection.execute(
+                "INSERT INTO player_round_resources (player_id, agri, oil, mines, locked_at) VALUES (?, 10, 10, 10, 1)",
+                (attacker_id,),
+            )
+            connection.execute(
+                "INSERT INTO player_round_resources (player_id, agri, oil, mines, locked_at) VALUES (?, 100, 10, 10, 1)",
+                (target_id,),
+            )
+            connection.execute(
+                "UPDATE room_state SET active_condition = ? WHERE id = 1",
+                (json.dumps({"id": "pandemic"}),),
+            )
+
+        token = server.ACTIVE_EDITION.set("simple")
+        try:
+            self.handler.atomic_strike(
+                {"id": attacker_id, "country": "USA 🇺🇸"},
+                {"field": "agri", "targetCountry": "Canada 🇨🇦"},
+            )
+        finally:
+            server.ACTIVE_EDITION.reset(token)
+
+        self.assertEqual(responses[-1][1], server.HTTPStatus.CREATED)
+        with server.database("simple") as connection:
+            remaining = connection.execute(
+                "SELECT agri FROM player_round_resources WHERE player_id = ?", (target_id,)
+            ).fetchone()["agri"]
+        self.assertEqual(remaining, 80)
 
     def test_one_browser_can_keep_independent_sessions_for_both_editions(self):
         self.http_server = server.ThreadingHTTPServer(("127.0.0.1", 0), server.GameHandler)
