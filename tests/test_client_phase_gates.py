@@ -28,6 +28,18 @@ class ClientPhaseGateTests(unittest.TestCase):
         self.assertIn("battle.disabled = gameFinished || actActionsLocked", board_body)
         self.assertIn("if (!requireActPhase()) return;", trade_body)
 
+    def test_trade_and_battle_are_not_ordered_against_each_other(self):
+        board_start = self.source.index("function renderCommandBoardDetails")
+        board_end = self.source.index("function renderCommandBoard()", board_start)
+        board_body = self.source[board_start:board_end]
+        skirmish_start = self.source.index("window.openSkirmishModal = function")
+        skirmish_end = self.source.index("window.closeSkirmishModal", skirmish_start)
+        skirmish_body = self.source[skirmish_start:skirmish_end]
+
+        self.assertNotIn("fieldTradeAttemptsUsed", board_body[board_body.index("const battle"):])
+        self.assertNotIn("if (!investmentsLocked)", skirmish_body)
+        self.assertIn("No Field Trade is required first.", board_body)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -21,20 +21,27 @@ class QuietGameHandler(server.GameHandler):
 class TradeReversalServerTest(unittest.TestCase):
     def setUp(self):
         self.database_directory = tempfile.TemporaryDirectory()
-        server.DATABASE_PATH = Path(self.database_directory.name) / "room.sqlite3"
-        server.initialize_database()
+        self.original_database_path = server.EDITIONS["advanced"]["database_path"]
+        server.EDITIONS["advanced"]["database_path"] = (
+            Path(self.database_directory.name) / "room.sqlite3"
+        )
+        server.initialize_database("advanced")
         self.httpd = server.ThreadingHTTPServer(("127.0.0.1", 0), QuietGameHandler)
         self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
         self.thread.start()
         self.players = {}
-        for handle in ("Proposer", "Target", "Spy"):
-            self.players[handle] = self.join(handle)
+        for index, handle in enumerate(("Proposer", "Target", "Spy")):
+            self.players[handle] = self.join(
+                handle,
+                role="host" if index == 0 else "player",
+            )
         self.seed_players()
 
     def tearDown(self):
         self.httpd.shutdown()
         self.httpd.server_close()
         self.thread.join(timeout=2)
+        server.EDITIONS["advanced"]["database_path"] = self.original_database_path
         self.database_directory.cleanup()
 
     def request(self, method, path, payload=None, cookie=None):
@@ -54,8 +61,12 @@ class TradeReversalServerTest(unittest.TestCase):
             response_cookie,
         )
 
-    def join(self, handle):
-        status, payload, cookie = self.request("POST", "/api/room/join", {"handle": handle})
+    def join(self, handle, role):
+        status, payload, cookie = self.request(
+            "POST",
+            "/api/room/join",
+            {"handle": handle, "role": role},
+        )
         self.assertEqual(status, 201)
         self.assertIsNotNone(cookie)
         return {
@@ -82,6 +93,12 @@ class TradeReversalServerTest(unittest.TestCase):
 
     def seed_players(self):
         with server.database() as connection:
+            connection.execute(
+                "UPDATE round_state SET cards_dealt = 1, event_drawn = 1 WHERE id = 1"
+            )
+            connection.execute(
+                "UPDATE room_state SET active_condition = NULL WHERE id = 1"
+            )
             for handle in self.players:
                 player_id = self.player_id_from_connection(connection, handle)
                 connection.execute(
@@ -100,6 +117,7 @@ class TradeReversalServerTest(unittest.TestCase):
                     """
                     INSERT INTO player_round_cards (player_id, cards, dealt_at)
                     VALUES (?, ?, 1)
+                    ON CONFLICT(player_id) DO UPDATE SET cards = excluded.cards, dealt_at = excluded.dealt_at
                     """,
                     (player_id, json.dumps(["Spy"])),
                 )
@@ -193,6 +211,23 @@ class TradeReversalServerTest(unittest.TestCase):
             {"proposalId": proposal_id, "approved": True},
         )
 
+    def test_field_battle_is_available_after_prepare_without_a_trade(self):
+        response = self.send_event(
+            "Proposer",
+            "SOLO_SKIRMISH",
+            {
+                "targetId": self.players["Target"]["country"],
+                "field": "oil",
+            },
+        )
+
+        self.assertEqual(response["event"]["type"], "SOLO_SKIRMISH")
+        with server.database() as connection:
+            trade_count = connection.execute(
+                "SELECT COUNT(*) FROM trade_proposals"
+            ).fetchone()[0]
+        self.assertEqual(trade_count, 0)
+
     def spy_trade(self, proposal_id="trade-1", expected_status=201):
         return self.send_event(
             "Spy",
@@ -204,6 +239,11 @@ class TradeReversalServerTest(unittest.TestCase):
     def test_hitman_http_action_returns_private_result_and_only_removes_one_card(self):
         self.set_cards("Spy", ["Hitman"])
         self.set_cards("Target", ["Spy", "Spy"])
+        with server.database() as connection:
+            connection.execute(
+                "DELETE FROM player_round_resources WHERE player_id = ?",
+                (self.player_id("Spy"),),
+            )
 
         response = self.send_event(
             "Spy",

@@ -51,6 +51,7 @@ let isRoomCreator = false;
 let lastHostEventId = 0;
 let hostEventPollingStarted = false;
 const seenGameResultAlertIds = new Set();
+const seenRoundAnnouncementEventIds = new Set();
 const soundPreferenceKey = "world_war_sound_enabled";
 const visualPulseTimers = new WeakMap();
 const MAX_COIN_REQUESTS = 5;
@@ -1040,12 +1041,7 @@ const gameBroadcast = typeof BroadcastChannel !== "undefined" ? new BroadcastCha
 if (gameBroadcast) {
   gameBroadcast.onmessage = (event) => {
     const data = event.data;
-    if (data.type === "LOG_ENTRY") {
-      if (data.payload?.round === currentRound) {
-        gameActivityLedger.unshift(data.payload);
-        renderRoundAnnouncements();
-      }
-    } else if (data.type === "GAME_RESULT") {
+    if (data.type === "GAME_RESULT") {
       queueGameResultAlert(data.payload);
     } else if (data.type === "PLAYER_READY_STATUS") {
       if (data.payload.isReady) {
@@ -2028,27 +2024,161 @@ window.publishGameResult = function(result) {
 
 window.logAction = function(msg, tag = "INFO") {
   setTxt("action-log", localizeNotificationMessage(msg));
+};
 
-  const entry = {
+function sharedAnnouncementTime(createdAt) {
+  const timestamp = Number(createdAt);
+  return Number.isFinite(timestamp)
+    ? `${new Date(timestamp * 1000).toISOString().slice(11, 16)} UTC`
+    : "—";
+}
+
+function sharedAnnouncementForEvent(event) {
+  const payload = event?.payload || {};
+  const field = String(payload.field || payload.targetField || "").toUpperCase();
+  const country = payload.country || payload.attackerCountry || payload.initiator || "Table";
+  const result = {
     round: currentRound,
-    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    country: assignedCountry ? assignedCountry.name : "Commander",
-    tag: tag,
-    message: msg
+    country,
+    tag: "ROUND",
+    message: ""
   };
 
-  gameActivityLedger.unshift(entry);
-
-  try {
-    localStorage.setItem("world_war_round_announcements", JSON.stringify(gameActivityLedger));
-  } catch (e) {}
-
-  if (gameBroadcast) {
-    gameBroadcast.postMessage({ type: "LOG_ENTRY", payload: entry });
+  switch (event.type) {
+    case "PLAYER_JOINED":
+      result.country = payload.country || "Table";
+      result.message = `${payload.country || payload.handle || "A commander"} joined the table.`;
+      break;
+    case "PLAYER_LEFT":
+      result.country = payload.country || "Table";
+      result.message = `${payload.country || payload.handle || "A commander"} left the table.`;
+      break;
+    case "HOST_DEAL_CARDS":
+      result.tag = "HOST";
+      result.message = "Proficiency cards were dealt automatically.";
+      break;
+    case "HOST_DRAW_EVENT": {
+      const condition = GLOBAL_CONDITION_CARDS.find(item => item.id === payload.id);
+      result.tag = "EVENT";
+      result.message = `Global Condition drawn: ${condition?.title || payload.id || "Unknown Condition"}.`;
+      break;
+    }
+    case "LOCK_RESOURCES":
+      result.tag = "INVEST";
+      result.country = payload.country || "Table";
+      result.message = `${payload.country || "A commander"} locked field investments.`;
+      break;
+    case "SET_READY":
+      result.country = payload.country || "Table";
+      result.message = payload.ready
+        ? `${payload.country || "A commander"} is ready to close Round ${currentRound}.`
+        : `${payload.country || "A commander"} withdrew ready status.`;
+      break;
+    case "REQUEST_COINS":
+      result.tag = "BANK";
+      result.country = payload.country || "Table";
+      result.message = `${payload.country || "A commander"} requested ${payload.amount || 0} Coins.`;
+      break;
+    case "RESOLVE_COIN_REQUEST":
+      result.tag = "BANK";
+      result.country = payload.country || "Table";
+      result.message = `${payload.country || "A commander"}'s ${payload.amount || 0}-Coin request was ${payload.approved ? "approved" : "rejected"}.`;
+      break;
+    case "ACTIVATE_GENERAL":
+      result.tag = "CARD";
+      result.message = `${payload.country || "A commander"} activated General for a second Field Battle.`;
+      break;
+    case "TAKE_BANKER_LOAN":
+      result.tag = "BANK";
+      result.message = `${payload.country || "A commander"} took a Banker loan.`;
+      break;
+    case "REPAY_BANKER_LOAN":
+      result.tag = "BANK";
+      result.message = `${payload.country || "A commander"} repaid a Banker loan.`;
+      break;
+    case "ACTIVATE_MERCHANT":
+      result.tag = "CARD";
+      result.message = `${payload.country || "A commander"} activated Merchant.`;
+      break;
+    case "ATOMIC_STRIKE":
+      result.tag = "ATOMIC";
+      result.country = payload.attackerCountry || "Table";
+      result.message = `${payload.attackerCountry || "A commander"} launched an Atomic Bomb against ${payload.targetCountry || "an opposing country"}${field ? ` on ${field}` : ""}.`;
+      break;
+    case "PROPOSE_TRADE":
+      result.tag = "TRADE";
+      result.country = payload.proposerCountry || "Table";
+      result.message = `${payload.proposerCountry || "A commander"} proposed a Field Trade to ${payload.targetCountry || "an opposing country"}.`;
+      break;
+    case "RESPOND_TRADE":
+      result.tag = "TRADE";
+      result.country = payload.targetCountry || "Table";
+      result.message = `${payload.targetCountry || "A commander"} ${payload.approved ? "accepted" : "rejected"} a Field Trade with ${payload.proposerCountry || "an opposing country"}.`;
+      break;
+    case "SPY_INTERRUPT":
+      result.tag = "CARD";
+      result.message = payload.resolution === "reversed"
+        ? `${payload.country || "A commander"} reversed a finalized Field Trade between ${payload.proposerCountry} and ${payload.targetCountry}.`
+        : `${payload.country || "A commander"} cancelled a pending Field Trade between ${payload.proposerCountry} and ${payload.targetCountry}.`;
+      break;
+    case "HITMAN_STRIKE":
+      result.tag = "CARD";
+      result.country = payload.attackerCountry || "Table";
+      result.message = payload.succeeded
+        ? `${payload.attackerCountry || "A commander"} disabled one proficiency card held by ${payload.targetCountry || "an opposing country"}.`
+        : `${payload.attackerCountry || "A commander"} targeted ${payload.targetCountry || "an opposing country"}, but no matching card was found.`;
+      break;
+    case "SOLO_SKIRMISH":
+      result.tag = "SKIRMISH";
+      result.country = payload.attacker?.country || "Table";
+      result.message = `Field Battle: ${payload.attacker?.country || "Attacker"} vs ${payload.defender?.country || "Defender"}${field ? ` on ${field}` : ""} — ${payload.outcome || "completed"}.`;
+      break;
+    case "ALLIANCE_SKIRMISH":
+      result.tag = "ALLIANCE";
+      result.country = payload.attacker?.initiator || "Table";
+      result.message = `Alliance Field Battle: ${payload.attacker?.initiator || "Attacker"} vs ${payload.defender?.country || "Defender"}${field ? ` on ${field}` : ""} — ${payload.outcome || "completed"}.`;
+      break;
+    case "PROPOSE_ALLIANCE":
+      result.tag = "ALLIANCE";
+      result.country = payload.initiator || "Table";
+      result.message = `${payload.initiator || "A commander"} proposed a ${payload.allianceType || "new"} alliance.`;
+      break;
+    case "CONFIRM_ALLIANCE":
+      result.tag = "ALLIANCE";
+      result.country = payload.initiator || "Table";
+      result.message = `${payload.initiator || "A commander"} formed a ${payload.allianceType || "new"} alliance.`;
+      break;
+    case "REJECT_ALLIANCE":
+      result.tag = "ALLIANCE";
+      result.country = payload.rejectedBy || "Table";
+      result.message = `${payload.rejectedBy || "A commander"} rejected an alliance proposal.`;
+      break;
+    case "EXECUTE_ROUND_CALCULATION":
+      result.round = currentRound;
+      result.country = "Table";
+      result.message = payload.gameFinished
+        ? `Round ${payload.round} is complete. The game is complete.`
+        : `Round ${payload.nextRound} started.`;
+      break;
+    default:
+      return null;
   }
+  return result;
+}
 
+function recordSharedRoundAnnouncement(event) {
+  if (!Number.isFinite(Number(event?.id)) || seenRoundAnnouncementEventIds.has(event.id)) return;
+  const announcement = sharedAnnouncementForEvent(event);
+  if (!announcement) return;
+  seenRoundAnnouncementEventIds.add(event.id);
+  gameActivityLedger.unshift({
+    ...announcement,
+    id: event.id,
+    time: sharedAnnouncementTime(event.createdAt)
+  });
+  if (gameActivityLedger.length > 80) gameActivityLedger.length = 80;
   renderRoundAnnouncements();
-};
+}
 
 function renderRoundAnnouncements() {
   const container = document.getElementById("round-announcements");
@@ -2091,7 +2221,6 @@ function renderRoundAnnouncements() {
 
 function resetRoundAnnouncements() {
   gameActivityLedger = [];
-  try { localStorage.removeItem("world_war_round_announcements"); } catch (e) {}
   renderRoundAnnouncements();
 }
 
@@ -2333,12 +2462,7 @@ function publishRoundLifecycleAlerts(event) {
   const completedRound = Number(payload.round);
   if (!Number.isInteger(completedRound)) return;
 
-  const localResult = assignedCountry ? payload.results?.[assignedCountry.name] : null;
-  const grossProfit = Number(localResult?.grossProfit);
-  const repayment = Number(localResult?.repayment);
-  const settlementDetails = Number.isFinite(grossProfit)
-    ? `Your settlement: +${grossProfit} Coins from fields${repayment > 0 ? `, with ${repayment} Coins collected for loan repayment` : ""}.`
-    : "The server has settled every commander’s field income and Banker obligations.";
+  const settlementDetails = "The server has settled every commander’s field income and Banker obligations.";
 
   publishGameResult({
     id: Number.isFinite(event.id) ? `round-complete-${event.id}` : `round-complete-${completedRound}`,
@@ -2372,6 +2496,8 @@ function applyHostEvent(event) {
     if (event.id <= lastHostEventId) return;
     lastHostEventId = event.id;
   }
+  const announceAfterApply = event.type === "EXECUTE_ROUND_CALCULATION";
+  if (!announceAfterApply) recordSharedRoundAnnouncement(event);
 
   if (event.type === "PLAYER_JOINED" || event.type === "PLAYER_LEFT") {
     void refreshRoomSnapshot();
@@ -2650,6 +2776,7 @@ function applyHostEvent(event) {
     handleAllianceRoomEvent(event);
     void refreshRoomSnapshot();
   }
+  if (announceAfterApply) recordSharedRoundAnnouncement(event);
 }
 
 async function submitHostCommand(type, payload) {
@@ -3011,7 +3138,7 @@ async function initMobilePlayerSession() {
     }
   }
 
-  gameActivityLedger = safeStorageGet("world_war_round_announcements", []);
+  gameActivityLedger = [];
   soundManager.init();
   renderRoundAnnouncements();
 
@@ -3167,7 +3294,7 @@ function renderCommandBoardDetails(player) {
   battle.textContent = blockedByLoan
     ? copy.txtBoardBattleLoanLocked
     : `${copy.txtBoardBattle} (${battlesRemaining} left)`;
-  battle.disabled = gameFinished || actActionsLocked || !investmentsLocked || !player.locked || blockedByLoan || battlesRemaining === 0;
+  battle.disabled = gameFinished || actActionsLocked || blockedByLoan || battlesRemaining === 0;
   battle.title = actActionsLocked
     ? actionLockMessage
     : blockedByLoan
@@ -3175,8 +3302,8 @@ function renderCommandBoardDetails(player) {
     : battlesRemaining === 0
       ? "You have used all Field Battles allowed this round."
     : battle.disabled
-      ? "Both countries must lock investments before a field battle."
-      : "Open a Field Battle against this country.";
+      ? "Field Battle is unavailable right now."
+      : "Open a Field Battle against this country. No Field Trade is required first.";
   battle.onclick = window.openCommandBoardBattle;
   const guidance = document.createElement("p");
   guidance.className = "command-board-action-guidance";
@@ -4218,10 +4345,6 @@ window.openSkirmishModal = function() {
   if (!requireActPhase()) return;
   if (bankerRepaymentDue() > 0) {
     logAction("⚠️ Settle your Banker loan and interest in Player Overview before opening a Field Battle.", "SKIRMISH");
-    return;
-  }
-  if (!investmentsLocked) {
-    logAction("⚠️ Skirmish combat requires field investments to be locked first!", "SKIRMISH");
     return;
   }
 

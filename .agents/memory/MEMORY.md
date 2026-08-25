@@ -6,3 +6,4 @@
 - [Game edition rules](game-edition-rules.md) — Simple removes Banker and President cards, so Mega-Merger and Counter-Union are unavailable.
 - [Hitman targeting](hitman-targeting.md) — A Hitman owner selects the opposing country and whether to disable General or Spy.
 - [Round card phases](round-card-phases.md) — Hitman is required during Prepare; General is available only in Act before a player is ready.
+- [Act action independence](act-action-independence.md) — After Prepare, Field Trades and Field Battles are independent choices; neither unlocks the other.

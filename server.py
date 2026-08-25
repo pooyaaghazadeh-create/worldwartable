@@ -1272,14 +1272,16 @@ class GameHandler(SimpleHTTPRequestHandler):
                     )
                     event_payload["cardsDealt"] = self.deal_round_cards(connection)
                     self.draw_global_condition_if_ready(connection)
+            created_at = int(time.time())
             cursor = connection.execute(
                 "INSERT INTO host_events (event_type, payload, created_at) VALUES (?, ?, ?)",
-                (event_type, json.dumps(event_payload), int(time.time())),
+                (event_type, json.dumps(event_payload), created_at),
             )
             event = {
                 "id": cursor.lastrowid,
                 "type": event_type,
                 "payload": event_payload,
+                "createdAt": created_at,
             }
         self.send_json({"event": event})
 
@@ -1356,11 +1358,17 @@ class GameHandler(SimpleHTTPRequestHandler):
             self.confirm_alliance(player, event_payload)
 
     def publish_room_event(self, connection: sqlite3.Connection, event_type: str, payload: dict) -> dict:
+        created_at = int(time.time())
         cursor = connection.execute(
             "INSERT INTO host_events (event_type, payload, created_at) VALUES (?, ?, ?)",
-            (event_type, json.dumps(payload), int(time.time())),
+            (event_type, json.dumps(payload), created_at),
         )
-        return {"id": cursor.lastrowid, "type": event_type, "payload": payload}
+        return {
+            "id": cursor.lastrowid,
+            "type": event_type,
+            "payload": payload,
+            "createdAt": created_at,
+        }
 
     @staticmethod
     def consume_card(connection: sqlite3.Connection, player_id: int, title: str) -> bool:
@@ -1681,6 +1689,8 @@ class GameHandler(SimpleHTTPRequestHandler):
             return
         with database() as connection:
             connection.execute("BEGIN IMMEDIATE")
+            if not self.require_act_phase(connection, player["id"]):
+                return
             round_state = connection.execute(
                 "SELECT round_number FROM round_state WHERE id = 1"
             ).fetchone()
@@ -2201,6 +2211,42 @@ class GameHandler(SimpleHTTPRequestHandler):
             return multiplier * 0.9
         return multiplier
 
+    def require_act_phase(self, connection: sqlite3.Connection, player_id: int) -> bool:
+        """Gate independent Act actions after the whole table completes Prepare."""
+        phase = connection.execute(
+            "SELECT cards_dealt, event_drawn FROM round_state WHERE id = 1"
+        ).fetchone()
+        player_count = connection.execute("SELECT COUNT(*) FROM players").fetchone()[0]
+        locked_count = connection.execute(
+            "SELECT COUNT(*) FROM player_round_resources"
+        ).fetchone()[0]
+        if (
+            not phase
+            or not phase["cards_dealt"]
+            or not phase["event_drawn"]
+            or not player_count
+            or locked_count != player_count
+        ):
+            self.send_json(
+                {
+                    "error": (
+                        "Complete Prepare for every commander before choosing an Act action. "
+                        "Field Trades and Field Battles are independent; no trade is required before an attack."
+                    )
+                },
+                HTTPStatus.CONFLICT,
+            )
+            return False
+        if connection.execute(
+            "SELECT 1 FROM player_round_readiness WHERE player_id = ?", (player_id,)
+        ).fetchone():
+            self.send_json(
+                {"error": "You cannot choose another Act action after marking ready to close the round."},
+                HTTPStatus.CONFLICT,
+            )
+            return False
+        return True
+
     def alliance_skirmish(self, player: sqlite3.Row, payload: dict) -> None:
         field = payload.get("field")
         target_kind = payload.get("targetKind")
@@ -2211,6 +2257,8 @@ class GameHandler(SimpleHTTPRequestHandler):
 
         with database() as connection:
             connection.execute("BEGIN IMMEDIATE")
+            if not self.require_act_phase(connection, player["id"]):
+                return
             attacker = connection.execute(
                 "SELECT * FROM active_alliances WHERE initiator_player_id = ?", (player["id"],)
             ).fetchone()
@@ -2448,6 +2496,8 @@ class GameHandler(SimpleHTTPRequestHandler):
 
         with database() as connection:
             connection.execute("BEGIN IMMEDIATE")
+            if not self.require_act_phase(connection, player["id"]):
+                return
             attacker_wallet = connection.execute(
                 "SELECT loans, loan_interest FROM player_wallets WHERE player_id = ?", (player["id"],)
             ).fetchone()
@@ -2903,9 +2953,14 @@ class GameHandler(SimpleHTTPRequestHandler):
             after = 0
         with database() as connection:
             events = [
-                {"id": row["id"], "type": row["event_type"], "payload": json.loads(row["payload"])}
+                {
+                    "id": row["id"],
+                    "type": row["event_type"],
+                    "payload": json.loads(row["payload"]),
+                    "createdAt": row["created_at"],
+                }
                 for row in connection.execute(
-                    "SELECT id, event_type, payload FROM host_events WHERE id > ? ORDER BY id ASC",
+                    "SELECT id, event_type, payload, created_at FROM host_events WHERE id > ? ORDER BY id ASC",
                     (after,),
                 )
             ]
