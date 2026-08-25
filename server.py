@@ -881,6 +881,7 @@ class GameHandler(SimpleHTTPRequestHandler):
             )
             if cards_dealt:
                 self.publish_room_event(connection, "HOST_DEAL_CARDS", {"automatic": True})
+            self.draw_global_condition_if_ready(connection)
             room_snapshot = self.room_snapshot(connection, viewer_player_id=cursor.lastrowid)
 
         cookies = [
@@ -1001,7 +1002,7 @@ class GameHandler(SimpleHTTPRequestHandler):
                 return
             if event_type == "HOST_DRAW_EVENT":
                 self.send_json(
-                    {"error": "Global Conditions are drawn automatically once all investments are locked."},
+                    {"error": "Global Conditions are drawn automatically after proficiency cards are dealt."},
                     HTTPStatus.CONFLICT,
                 )
                 return
@@ -1270,6 +1271,7 @@ class GameHandler(SimpleHTTPRequestHandler):
                         (completed_round + 1, json.dumps(next_round_multipliers)),
                     )
                     event_payload["cardsDealt"] = self.deal_round_cards(connection)
+                    self.draw_global_condition_if_ready(connection)
             cursor = connection.execute(
                 "INSERT INTO host_events (event_type, payload, created_at) VALUES (?, ?, ?)",
                 (event_type, json.dumps(event_payload), int(time.time())),
@@ -1412,20 +1414,16 @@ class GameHandler(SimpleHTTPRequestHandler):
         return True
 
     def draw_global_condition_if_ready(self, connection: sqlite3.Connection) -> dict | None:
-        """Draw one condition as soon as every seated commander has locked."""
+        """Draw one condition immediately after proficiency cards are dealt."""
         state = connection.execute(
             "SELECT cards_dealt, event_drawn FROM round_state WHERE id = 1"
         ).fetchone()
         player_count = connection.execute("SELECT COUNT(*) FROM players").fetchone()[0]
-        locked_count = connection.execute(
-            "SELECT COUNT(*) FROM player_round_resources"
-        ).fetchone()[0]
         if (
             not state
             or not state["cards_dealt"]
             or state["event_drawn"]
             or not player_count
-            or locked_count != player_count
         ):
             return None
         condition = dict(secrets.choice(GLOBAL_CONDITIONS))
@@ -2086,9 +2084,7 @@ class GameHandler(SimpleHTTPRequestHandler):
                 "LOCK_RESOURCES",
                 {"country": player["country"], **values},
             )
-            condition_event = self.draw_global_condition_if_ready(connection)
-        events = [event] + ([condition_event] if condition_event else [])
-        self.send_json({"event": event, "events": events}, HTTPStatus.CREATED)
+        self.send_json({"event": event}, HTTPStatus.CREATED)
 
     def request_coins(self, player: sqlite3.Row, payload: dict) -> None:
         if payload:

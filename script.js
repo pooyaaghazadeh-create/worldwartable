@@ -643,7 +643,7 @@ const notificationExactTranslations = {
     "⚠️ No other seated country is available to trade.": "⚠️ Ticaret yapılabilecek başka bir oturmuş ülke yok.",
     "🔒 Lock your investments before offering a field investment in a trade.": "🔒 Ticarette saha yatırımı teklif etmeden önce yatırımlarınızı kilitleyin.",
     "⚠️ Enter valid offer/request fields and coin amounts.": "⚠️ Geçerli teklif/istek alanları ve coin miktarları girin.",
-    "⚠️ Every seated player must lock investments before the Global Condition is drawn.": "⚠️ Küresel Etkinlik çekilmeden önce tüm oturmuş oyuncular yatırımlarını kilitlemelidir.",
+    "🌍 The Global Condition is drawn automatically after proficiency cards are dealt.": "🌍 Küresel Etkinlik, uzmanlık kartları dağıtıldıktan sonra otomatik olarak çekilir.",
     "⚠️ You do not have an active Banker loan to repay.": "⚠️ Geri ödenecek aktif bir Banker krediniz yok.",
     "⚠️ Settle your Banker loan and interest in Player Overview before opening a Field Battle.": "⚠️ Saha Savaşını açmadan önce Oyuncu Genel Bakışı bölümünde Banker kredinizi ve faizini ödeyin.",
     "⚠️ Skirmish combat requires field investments to be locked first!": "⚠️ Çatışma başlatmadan önce saha yatırımlarının kilitlenmesi gerekir!",
@@ -687,7 +687,7 @@ const notificationExactTranslations = {
     "⚠️ No other seated country is available to trade.": "⚠️ کشور نشسته دیگری برای تجارت وجود ندارد.",
     "🔒 Lock your investments before offering a field investment in a trade.": "🔒 پیش از پیشنهاد سرمایه‌گذاری زمین در تجارت، سرمایه‌گذاری‌ها را قفل کنید.",
     "⚠️ Enter valid offer/request fields and coin amounts.": "⚠️ زمین‌ها و مقدار سکه معتبر برای پیشنهاد/درخواست وارد کنید.",
-    "⚠️ Every seated player must lock investments before the Global Condition is drawn.": "⚠️ پیش از کشیدن رویداد جهانی، همه بازیکنان نشسته باید سرمایه‌گذاری‌های خود را قفل کنند.",
+    "🌍 The Global Condition is drawn automatically after proficiency cards are dealt.": "🌍 رویداد جهانی پس از پخش کارت‌های مهارت به‌طور خودکار کشیده می‌شود.",
     "⚠️ You do not have an active Banker loan to repay.": "⚠️ وام فعال Banker برای بازپرداخت ندارید.",
     "⚠️ Settle your Banker loan and interest in Player Overview before opening a Field Battle.": "⚠️ پیش از باز کردن نبرد میدانی، وام و بهره Banker را در نمای بازیکن تسویه کنید.",
     "⚠️ Skirmish combat requires field investments to be locked first!": "⚠️ برای نبرد، ابتدا باید سرمایه‌گذاری‌های زمین قفل شوند!",
@@ -905,8 +905,8 @@ function localizeNotificationMessage(message) {
   if (message === "A new Global Condition applies to this round.") {
     return currentLang === "tr" ? "Bu raund için yeni bir Küresel Etkinlik geçerli." : "یک رویداد جهانی جدید در این دور اعمال می‌شود.";
   }
-  if (message === "This condition was drawn automatically after every seated commander locked investments.") {
-    return currentLang === "tr" ? "Bu etkinlik, tüm oturmuş komutanlar yatırımlarını kilitledikten sonra otomatik olarak çekildi." : "این رویداد پس از قفل شدن سرمایه‌گذاری همه فرماندهان به‌طور خودکار کشیده شد.";
+  if (message === "This condition was drawn automatically after proficiency cards were dealt.") {
+    return currentLang === "tr" ? "Bu etkinlik, uzmanlık kartları dağıtıldıktan sonra otomatik olarak çekildi." : "این رویداد پس از پخش کارت‌های مهارت به‌طور خودکار کشیده شد.";
   }
   if ((match = message.match(/^Shared resources: 🌾 (.+) · 🛢️ (.+) · ⛏️ (.+)\.$/))) {
     return currentLang === "tr" ? `Paylaşılan kaynaklar: 🌾 ${match[1]} · 🛢️ ${match[2]} · ⛏️ ${match[3]}.` : `منابع مشترک: 🌾 ${match[1]} · 🛢️ ${match[2]} · ⛏️ ${match[3]}.`;
@@ -2399,7 +2399,7 @@ function applyHostEvent(event) {
       tone: "neutral",
       title: eventTitle,
       summary: activeGlobalCondition?.desc || "A new Global Condition applies to this round.",
-      details: "This condition was drawn automatically after every seated commander locked investments."
+      details: "This condition was drawn automatically after proficiency cards were dealt."
     });
     pulseVisual(document.getElementById("global-event-banner"), "is-event-updated", 620);
     pulseTvCenter("is-global-highlight", 620);
@@ -3762,12 +3762,6 @@ window.hostDealCards = async function() {
 window.drawGlobalCondition = async function() {
   if (!requireRoomCreator("draw the Global Event")) return;
   if (!cardsDealtThisRound || eventDrawnThisRound) return;
-  const seatedPlayers = activeRoomPlayers.length || registeredPlayersCount;
-  if (!seatedPlayers || lockedPlayersSet.size < seatedPlayers) {
-    logAction("⚠️ Every seated player must lock investments before the Global Condition is drawn.", "EVENT");
-    return;
-  }
-
   await submitHostCommand("HOST_DRAW_EVENT", {});
 };
 

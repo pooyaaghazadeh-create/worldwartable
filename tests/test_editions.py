@@ -378,6 +378,33 @@ class EditionTests(unittest.TestCase):
 
             self.assertEqual(event["payload"], {"id": "blackout"})
 
+    def test_global_condition_draws_after_cards_without_locked_investments(self):
+        player_id = self.add_player("simple", "Prophecy Commander", "USA 🇺🇸")
+        with server.database("simple") as connection:
+            connection.execute(
+                "INSERT INTO player_round_cards (player_id, cards, dealt_at) VALUES (?, ?, 1)",
+                (player_id, json.dumps(["General"])),
+            )
+            connection.execute("UPDATE round_state SET cards_dealt = 1 WHERE id = 1")
+
+            token = server.ACTIVE_EDITION.set("simple")
+            try:
+                with patch("server.secrets.choice", return_value={"id": "blackout"}):
+                    event = self.handler.draw_global_condition_if_ready(connection)
+            finally:
+                server.ACTIVE_EDITION.reset(token)
+
+            locked_count = connection.execute(
+                "SELECT COUNT(*) FROM player_round_resources"
+            ).fetchone()[0]
+            event_drawn = connection.execute(
+                "SELECT event_drawn FROM round_state WHERE id = 1"
+            ).fetchone()[0]
+
+        self.assertEqual(locked_count, 0)
+        self.assertEqual(event["payload"], {"id": "blackout"})
+        self.assertEqual(event_drawn, 1)
+
     def test_pandemic_draw_persists_the_selected_resource_field(self):
         player_id = self.add_player("simple", "Pandemic Commander", "USA 🇺🇸")
         with server.database("simple") as connection:
