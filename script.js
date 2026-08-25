@@ -308,6 +308,8 @@ const translations = {
     txtStatusWaiting: "Waiting for the host",
     txtStatusComplete: "Review final results",
     txtStatusPrepareWait: "Wait for every commander to complete Prepare",
+    txtActActionsLocked: "Complete Prepare for every commander before using Act actions.",
+    txtActReviewLocked: "You marked ready, so Act actions are closed for you this round.",
     txtGeneralActOnly: "🎖️ Complete Prepare before activating General in Act.",
     txtHitmanPrepareOnly: "🕶️ Use Hitman during Prepare before locking investments.",
     btnHostDealUsed: "✓ Cards Dealt This Round",
@@ -448,6 +450,8 @@ const translations = {
     txtStatusWaiting: "Yönetici bekleniyor",
     txtStatusComplete: "Sonuçları inceleyin",
     txtStatusPrepareWait: "Her komutanın Hazırlığı tamamlamasını bekleyin",
+    txtActActionsLocked: "Hamle eylemlerini kullanmadan önce tüm komutanların Hazırlığı tamamlamasını bekleyin.",
+    txtActReviewLocked: "Hazır olduğunuzu belirttiniz; bu raund için Hamle eylemleri size kapalı.",
     txtGeneralActOnly: "🎖️ General kartını Hamle aşamasında etkinleştirmeden önce Hazırlığı tamamlayın.",
     txtHitmanPrepareOnly: "🕶️ Yatırımları kilitlemeden önce Hitman kartını Hazırlıkta kullanın.",
     btnHostDealUsed: "✓ Kartlar Bu Raund Dağıtıldı",
@@ -588,6 +592,8 @@ const translations = {
     txtStatusWaiting: "در انتظار میزبان",
     txtStatusComplete: "بررسی نتایج نهایی",
     txtStatusPrepareWait: "منتظر بمانید تا همه فرماندهان آماده‌سازی را تمام کنند",
+    txtActActionsLocked: "پیش از استفاده از اقدام‌های مرحله عمل، آماده‌سازی همه فرماندهان را کامل کنید.",
+    txtActReviewLocked: "شما آماده بودن را اعلام کرده‌اید؛ اقدام‌های مرحله عمل برای این دور بسته‌اند.",
     txtGeneralActOnly: "🎖️ پیش از فعال‌سازی ژنرال در مرحله اقدام، آماده‌سازی را کامل کنید.",
     txtHitmanPrepareOnly: "🕶️ پیش از قفل کردن سرمایه‌گذاری‌ها، هیتمن را در آماده‌سازی استفاده کنید.",
     btnHostDealUsed: "✓ کارت‌ها در این دور توزیع شدند",
@@ -1146,12 +1152,26 @@ function liveCountryNames(excludeSelf = false) {
     .filter(country => country && (!excludeSelf || cleanStr(country) !== selfCountry));
 }
 
-function isActPhaseReady() {
+function isPrepareCompleteForAct() {
   return !gameFinished &&
     investmentsLocked &&
     eventDrawnThisRound &&
-    !isLocalPlayerReadyToClose &&
     lockedPlayersSet.size >= registeredPlayersCount;
+}
+
+function isActPhaseReady() {
+  return isPrepareCompleteForAct() && !isLocalPlayerReadyToClose;
+}
+
+function actActionLockMessage() {
+  const copy = translations[currentLang] || translations.en;
+  return isPrepareCompleteForAct() ? copy.txtActReviewLocked : copy.txtActActionsLocked;
+}
+
+function requireActPhase() {
+  if (isActPhaseReady()) return true;
+  logAction(actActionLockMessage(), "SYSTEM");
+  return false;
 }
 
 function activeCountryCard(country) {
@@ -1206,10 +1226,6 @@ function syncGameTabBadges(phase) {
 window.selectGameTab = function(tabName, shouldFocus = false) {
   const validTabs = ["status", "prepare", "act", "review"];
   if (!validTabs.includes(tabName)) return;
-  if (tabName === "act" && !isActPhaseReady()) {
-    logAction((translations[currentLang] || translations.en).txtStatusPrepareWait, "SYSTEM");
-    return;
-  }
 
   const tab = document.getElementById(`tab-${tabName}`);
   const panel = document.getElementById(`tab-panel-${tabName}`);
@@ -3128,13 +3144,17 @@ function renderCommandBoardDetails(player) {
 
   const actions = document.createElement("div");
   actions.className = "command-board-actions";
+  const actActionsLocked = !isActPhaseReady();
+  const actionLockMessage = actActionLockMessage();
   const trade = document.createElement("button");
   trade.type = "button";
   trade.className = "btn btn-secondary btn-small";
   const tradesRemaining = Math.max(0, fieldTradeAttemptLimit - fieldTradeAttemptsUsed);
   trade.textContent = `${copy.txtBoardTrade} (${tradesRemaining} left)`;
-  trade.disabled = gameFinished || tradesRemaining === 0;
-  trade.title = tradesRemaining === 0
+  trade.disabled = gameFinished || actActionsLocked || tradesRemaining === 0;
+  trade.title = actActionsLocked
+    ? actionLockMessage
+    : tradesRemaining === 0
     ? "You have used both Field Trade proposals for this round."
     : "Open a Field Trade proposal.";
   trade.onclick = window.openCommandBoardTrade;
@@ -3147,8 +3167,10 @@ function renderCommandBoardDetails(player) {
   battle.textContent = blockedByLoan
     ? copy.txtBoardBattleLoanLocked
     : `${copy.txtBoardBattle} (${battlesRemaining} left)`;
-  battle.disabled = gameFinished || !investmentsLocked || !player.locked || blockedByLoan || battlesRemaining === 0;
-  battle.title = blockedByLoan
+  battle.disabled = gameFinished || actActionsLocked || !investmentsLocked || !player.locked || blockedByLoan || battlesRemaining === 0;
+  battle.title = actActionsLocked
+    ? actionLockMessage
+    : blockedByLoan
     ? copy.txtBattleLoanGate
     : battlesRemaining === 0
       ? "You have used all Field Battles allowed this round."
@@ -3160,7 +3182,9 @@ function renderCommandBoardDetails(player) {
   guidance.className = "command-board-action-guidance";
   guidance.id = "command-board-action-guidance";
   guidance.setAttribute("role", "status");
-  guidance.textContent = blockedByLoan
+  guidance.textContent = actActionsLocked
+    ? actionLockMessage
+    : blockedByLoan
     ? copy.txtBoardBattleLoanLocked
     : battlesRemaining === 0
       ? copy.txtBoardBattleUsed
@@ -3179,6 +3203,15 @@ function renderCommandBoardDetails(player) {
 function renderCommandBoard() {
   const surface = document.getElementById("command-board-surface");
   const condition = document.getElementById("command-board-condition");
+  const actLockNotice = document.getElementById("act-phase-lock-notice");
+  const prepareIncomplete = !isPrepareCompleteForAct();
+  if (actLockNotice) {
+    actLockNotice.hidden = !prepareIncomplete;
+    actLockNotice.textContent = prepareIncomplete
+      ? (translations[currentLang] || translations.en).txtActActionsLocked
+      : "";
+  }
+  document.getElementById("tab-panel-act")?.classList.toggle("is-actions-locked", prepareIncomplete);
   if (!surface) return;
   const copy = commandBoardCopy();
   const selfCountry = cleanStr(assignedCountry?.name || "");
@@ -3308,11 +3341,13 @@ function setCommandBoardTarget(selectId) {
 }
 
 window.openCommandBoardTrade = function() {
+  if (!requireActPhase()) return;
   window.openTradeModal();
   setCommandBoardTarget("select-trade-partner");
 };
 
 window.openCommandBoardBattle = function() {
+  if (!requireActPhase()) return;
   window.openSkirmishModal();
   setCommandBoardTarget("select-skirmish-target-country");
 };
@@ -3460,6 +3495,7 @@ window.updateTradePreview = function() {
 };
 
 window.openTradeModal = function() {
+  if (!requireActPhase()) return;
   if (fieldTradeAttemptsUsed >= fieldTradeAttemptLimit) {
     logAction("⚠️ You have used both Field Trade proposals for this round.", "TRADE");
     return;
@@ -4054,11 +4090,12 @@ function renderRoundSettlement() {
 function syncFieldBattleLoanGate() {
   const copy = translations[currentLang] || translations.en;
   const blocked = bankerRepaymentDue() > 0;
+  const actLocked = !isActPhaseReady();
   ["btn-execute-skirmish", "btn-execute-alliance-skirmish"].forEach(id => {
     const button = document.getElementById(id);
     if (!button) return;
-    button.disabled = blocked;
-    button.title = blocked ? copy.txtBattleLoanGate : "";
+    button.disabled = blocked || actLocked;
+    button.title = actLocked ? actActionLockMessage() : blocked ? copy.txtBattleLoanGate : "";
   });
 }
 
@@ -4184,6 +4221,7 @@ window.confirmInvestments = async function() {
 // SKIRMISH BATTLE ENGINE
 // ==========================================
 window.openSkirmishModal = function() {
+  if (!requireActPhase()) return;
   if (bankerRepaymentDue() > 0) {
     logAction("⚠️ Settle your Banker loan and interest in Player Overview before opening a Field Battle.", "SKIRMISH");
     return;
@@ -4223,6 +4261,7 @@ window.closeSkirmishModal = function() {
 };
 
 window.executeSkirmishAttack = async function() {
+  if (!requireActPhase()) return;
   if (bankerRepaymentDue() > 0) {
     logAction("⚠️ Settle your Banker loan and interest before launching a Field Battle.", "SKIRMISH");
     return;
@@ -4540,13 +4579,16 @@ function updateAllianceUI() {
       setTxt("coalition-members-list", `Members: ${activePresidentCoalition.members.join(", ")}`);
       if (allianceAttackButton && cleanStr(activePresidentCoalition.initiator) === myCountryClean) {
         allianceAttackButton.style.display = "inline-flex";
-        allianceAttackButton.disabled = Boolean(activePresidentCoalition.attacksUsed) || bankerRepaymentDue() > 0;
+        const actLocked = !isActPhaseReady();
+        allianceAttackButton.disabled = actLocked || Boolean(activePresidentCoalition.attacksUsed) || bankerRepaymentDue() > 0;
         allianceAttackButton.textContent = bankerRepaymentDue() > 0
           ? (translations[currentLang] || translations.en).txtBoardBattleLoanLocked
           : activePresidentCoalition.attacksUsed
           ? "✓ Alliance Skirmish Used"
           : "⚔️ Alliance Skirmish";
-        allianceAttackButton.title = bankerRepaymentDue() > 0
+        allianceAttackButton.title = actLocked
+          ? actActionLockMessage()
+          : bankerRepaymentDue() > 0
           ? (translations[currentLang] || translations.en).txtBattleLoanGate
           : "";
       }
@@ -4580,13 +4622,16 @@ function updateAllianceUI() {
       setTxt("coalition-members-list", `Defenders: ${activeCounterUnion.members.join(", ")}`);
       if (allianceAttackButton && cleanStr(activeCounterUnion.initiator) === myCountryClean) {
         allianceAttackButton.style.display = "inline-flex";
-        allianceAttackButton.disabled = Boolean(activeCounterUnion.attacksUsed) || bankerRepaymentDue() > 0;
+        const actLocked = !isActPhaseReady();
+        allianceAttackButton.disabled = actLocked || Boolean(activeCounterUnion.attacksUsed) || bankerRepaymentDue() > 0;
         allianceAttackButton.textContent = bankerRepaymentDue() > 0
           ? (translations[currentLang] || translations.en).txtBoardBattleLoanLocked
           : activeCounterUnion.attacksUsed
           ? "✓ Alliance Skirmish Used"
           : "⚔️ Alliance Skirmish";
-        allianceAttackButton.title = bankerRepaymentDue() > 0
+        allianceAttackButton.title = actLocked
+          ? actActionLockMessage()
+          : bankerRepaymentDue() > 0
           ? (translations[currentLang] || translations.en).txtBattleLoanGate
           : "";
       }
@@ -4604,6 +4649,7 @@ function currentInitiatedAlliance() {
 }
 
 window.openAllianceSkirmishModal = function() {
+  if (!requireActPhase()) return;
   if (bankerRepaymentDue() > 0) {
     logAction("⚠️ Settle your Banker loan and interest in Player Overview before launching an alliance Field Battle.", "ALLIANCE");
     return;
@@ -4652,6 +4698,7 @@ window.closeAllianceSkirmishModal = function() {
 };
 
 window.executeAllianceSkirmish = async function() {
+  if (!requireActPhase()) return;
   if (bankerRepaymentDue() > 0) {
     logAction("⚠️ Settle your Banker loan and interest before launching an alliance Field Battle.", "ALLIANCE");
     return;

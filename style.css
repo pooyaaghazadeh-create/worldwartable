@@ -1936,6 +1936,22 @@ body:not(.tv-body) .card {
   display: none !important;
 }
 
+.act-phase-lock-notice {
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.44);
+  border-radius: 10px;
+  color: #fef3c7;
+  font-size: 0.88rem;
+  font-weight: 700;
+  margin: 0;
+  padding: 10px 12px;
+}
+
+.game-tab-panel.is-actions-locked .command-board-actions .btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
 .game-tab-panel[data-panel="prepare"] > .resource-workspace {
   order: 1;
 }

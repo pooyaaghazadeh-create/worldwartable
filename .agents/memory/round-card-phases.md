@@ -7,4 +7,4 @@ Prepare ends only after each commander has locked investments and the Global Con
 
 **Why:** These card timings create a meaningful preparation phase and let Hitman disable General before Act begins.
 
-**How to apply:** Enforce phase timing server-side as well as in the interface. Never consume either card for an invalid phase attempt.
+**How to apply:** Keep the Act tab navigable during Prepare so players can inspect the strategic map, but disable its trade, battle, and alliance-skirmish controls until Act opens. Enforce card timing server-side as well as in the interface. Never consume either card for an invalid phase attempt.
