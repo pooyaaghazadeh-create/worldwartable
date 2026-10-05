@@ -26,11 +26,20 @@ class GameTabLayoutTests(unittest.TestCase):
             'id="commander-status-strip"',
             'class="game-cards-panel full-width"',
             'class="resource-workspace full-width"',
-            'id="txt-prepare-section"',
         ):
             with self.subTest(content=required_content):
                 self.assertIn(required_content, prepare_panel)
 
+        for redundant_heading in (
+            'id="txt-prepare-section"',
+            'id="txt-prepare-section-desc"',
+            'id="txt-act-section"',
+            'id="txt-act-section-desc"',
+            'id="txt-review-section"',
+            'id="txt-review-section-desc"',
+            'class="flow-section-label',
+        ):
+            self.assertNotIn(redundant_heading, self.html)
         self.assertNotIn('id="tab-panel-status"', self.html)
         self.assertNotIn('data-game-tab="status"', self.html)
 
