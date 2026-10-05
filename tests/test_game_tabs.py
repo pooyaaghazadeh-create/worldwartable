@@ -90,9 +90,17 @@ class GameTabLayoutTests(unittest.TestCase):
     def test_review_content_is_kept_in_act_without_review_tab(self):
         self.assertNotIn('data-game-tab="review"', self.html)
         self.assertNotIn('id="tab-panel-review"', self.html)
+        act_start = self.html.index('<section id="tab-panel-act"')
+        act_panel = self.html[act_start:self.html.index("</main>", act_start)]
         self.assertIn('id="round-settlement-card"', self.html)
         self.assertIn('id="final-placements-panel"', self.html)
         self.assertIn('id="round-announcements"', self.html)
+        for retained_panel in (
+            'id="round-settlement-card"',
+            'id="final-placements-panel"',
+            'id="round-announcements"',
+        ):
+            self.assertIn(retained_panel, act_panel)
 
     def test_tab_navigation_and_responsive_grid_match_two_tabs(self):
         select_start = self.script.index("window.selectGameTab = function")

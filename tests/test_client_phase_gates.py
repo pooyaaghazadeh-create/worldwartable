@@ -19,9 +19,10 @@ class ClientPhaseGateTests(unittest.TestCase):
         prepare_start = self.source.index("function isPrepareCompleteForAct()")
         prepare_end = self.source.index("function isActPhaseReady()", prepare_start)
         prepare_body = self.source[prepare_start:prepare_end]
-        self.assertIn("investmentsLocked", prepare_body)
-        self.assertIn("eventDrawnThisRound", prepare_body)
-        self.assertIn("lockedPlayersSet.size >= registeredPlayersCount", prepare_body)
+        self.assertIn("hasLocalPrepareCompleted()", prepare_body)
+        self.assertIn("activeRoomPlayers.length >= totalPlayers", prepare_body)
+        self.assertIn("lockedPlayersSet.size >= totalPlayers", prepare_body)
+        self.assertIn("activeRoomPlayers.every(player =>", prepare_body)
 
         board_start = self.source.index("function renderCommandBoardDetails")
         board_end = self.source.index("function renderCommandBoard()", board_start)
@@ -33,8 +34,21 @@ class ClientPhaseGateTests(unittest.TestCase):
         self.assertIn("const actActionsLocked = !isActPhaseReady();", board_body)
         self.assertIn("trade.disabled = gameFinished || actActionsLocked", board_body)
         self.assertIn("battle.disabled = gameFinished || actActionsLocked", board_body)
+        self.assertIn("president.disabled = gameFinished || isSimpleEdition() || actActionsLocked", board_body)
+        self.assertIn("if (!requireActPhase()) return;", self.source[self.source.index("window.openAtomicModal"):])
         self.assertIn("if (!requireActPhase()) return;", trade_body)
         self.assertIn("Complete Prepare for every commander before using Act actions.", self.source)
+
+    def test_act_card_actions_are_not_playable_during_incomplete_prepare(self):
+        hand_start = self.source.index("function renderHand()")
+        hand_end = self.source.index("function playCardAction", hand_start)
+        hand_body = self.source[hand_start:hand_end]
+        self.assertIn('["General", "Atomic Bomb", "President"].includes(card.title)', hand_body)
+        self.assertIn("isActPhaseDisabled = isActCard && !isActPhaseReady()", hand_body)
+
+        server = (Path(__file__).resolve().parents[1] / "server.py").read_text()
+        self.assertIn("Gate Act actions until every seated player completes Prepare.", server)
+        self.assertIn('phase["prepared_count"] < phase["player_count"]', server)
 
     def test_trade_and_battle_are_not_ordered_against_each_other(self):
         board_start = self.source.index("function renderCommandBoardDetails")

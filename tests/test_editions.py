@@ -249,9 +249,9 @@ class EditionTests(unittest.TestCase):
         self.assertEqual(responses[1][1], server.HTTPStatus.CREATED)
         self.assertEqual(responses[2][1], server.HTTPStatus.CREATED)
 
-    def test_act_action_phase_gate_only_requires_the_acting_players_prepare(self):
+    def test_act_action_phase_gate_waits_for_every_seated_commander(self):
         player_id = self.add_player("advanced", "Acting Commander", "USA 🇺🇸")
-        self.add_player("advanced", "Pending Commander", "China 🇨🇳")
+        other_player_id = self.add_player("advanced", "Pending Commander", "China 🇨🇳")
         responses = []
         self.handler.send_json = lambda payload, status=server.HTTPStatus.OK, cookie=None: responses.append(
             (payload, status)
@@ -268,17 +268,24 @@ class EditionTests(unittest.TestCase):
                     "INSERT INTO player_round_resources (player_id, agri, oil, mines, locked_at) VALUES (?, 0, 0, 0, 1)",
                     (player_id,),
                 )
+                self.assertFalse(self.handler.require_act_phase(connection, player_id))
+                connection.execute(
+                    "INSERT INTO player_round_resources (player_id, agri, oil, mines, locked_at) VALUES (?, 0, 0, 0, 1)",
+                    (other_player_id,),
+                )
                 self.assertTrue(self.handler.require_act_phase(connection, player_id))
         finally:
             server.ACTIVE_EDITION.reset(token)
 
-        self.assertEqual(len(responses), 1)
+        self.assertEqual(len(responses), 2)
         self.assertEqual(responses[0][1], server.HTTPStatus.CONFLICT)
-        self.assertIn("your own Prepare", responses[0][0]["error"])
+        self.assertIn("every commander", responses[0][0]["error"])
+        self.assertEqual(responses[1][1], server.HTTPStatus.CONFLICT)
+        self.assertIn("every commander", responses[1][0]["error"])
 
-    def test_general_can_activate_after_local_prepare_before_others_finish(self):
+    def test_general_waits_for_every_commander_to_finish_prepare(self):
         player_id = self.add_player("advanced", "General Commander", "USA 🇺🇸")
-        self.add_player("advanced", "Pending Commander", "China 🇨🇳")
+        other_player_id = self.add_player("advanced", "Pending Commander", "China 🇨🇳")
         responses = []
         self.handler.send_json = lambda payload, status=server.HTTPStatus.OK, cookie=None: responses.append(
             (payload, status)
@@ -303,6 +310,12 @@ class EditionTests(unittest.TestCase):
             self.handler.activate_general({"id": player_id, "country": "USA 🇺🇸"}, {})
             with server.database() as connection:
                 connection.execute(
+                    "INSERT INTO player_round_resources (player_id, agri, oil, mines, locked_at) VALUES (?, 0, 0, 0, 1)",
+                    (other_player_id,),
+                )
+            self.handler.activate_general({"id": player_id, "country": "USA 🇺🇸"}, {})
+            with server.database() as connection:
+                connection.execute(
                     "INSERT INTO player_round_readiness (player_id, ready_at) VALUES (?, 1)",
                     (player_id,),
                 )
@@ -311,10 +324,12 @@ class EditionTests(unittest.TestCase):
             server.ACTIVE_EDITION.reset(token)
 
         self.assertEqual(responses[0][1], server.HTTPStatus.CONFLICT)
-        self.assertIn("your own Prepare", responses[0][0]["error"])
-        self.assertEqual(responses[1][1], server.HTTPStatus.CREATED)
-        self.assertEqual(responses[2][1], server.HTTPStatus.CONFLICT)
-        self.assertIn("before you mark ready", responses[2][0]["error"])
+        self.assertIn("every commander", responses[0][0]["error"])
+        self.assertEqual(responses[1][1], server.HTTPStatus.CONFLICT)
+        self.assertIn("every commander", responses[1][0]["error"])
+        self.assertEqual(responses[2][1], server.HTTPStatus.CREATED)
+        self.assertEqual(responses[3][1], server.HTTPStatus.CONFLICT)
+        self.assertIn("after marking ready", responses[3][0]["error"])
         with server.database("advanced") as connection:
             cards = json.loads(
                 connection.execute(
@@ -364,6 +379,9 @@ class EditionTests(unittest.TestCase):
             connection.execute(
                 "UPDATE room_state SET active_condition = ? WHERE id = 1",
                 (json.dumps({"id": "pandemic"}),),
+            )
+            connection.execute(
+                "UPDATE round_state SET cards_dealt = 1, event_drawn = 1 WHERE id = 1"
             )
 
         token = server.ACTIVE_EDITION.set("simple")

@@ -277,7 +277,7 @@ const translations = {
     txtFlowReview: "Review",
     txtActActionsLocked: "Complete Prepare for every commander before using Act actions.",
     txtActReviewLocked: "You marked ready, so Act actions are closed for you this round.",
-    txtGeneralActOnly: "🎖️ Complete Prepare before activating General in Act.",
+    txtGeneralActOnly: "🎖️ Complete Prepare for every commander before activating General in Act.",
     txtHitmanPrepareOnly: "🕶️ Use Hitman during Prepare before locking investments.",
     btnHostDealUsed: "✓ Cards Dealt This Round",
     btnHostEventLocked: "Deal Cards Before Drawing Event",
@@ -390,7 +390,7 @@ const translations = {
     txtFlowReview: "Kontrol",
     txtActActionsLocked: "Hamle eylemlerini kullanmadan önce tüm komutanların Hazırlığı tamamlamasını bekleyin.",
     txtActReviewLocked: "Hazır olduğunuzu belirttiniz; bu raund için Hamle eylemleri size kapalı.",
-    txtGeneralActOnly: "🎖️ General kartını Hamle aşamasında etkinleştirmeden önce Hazırlığı tamamlayın.",
+    txtGeneralActOnly: "🎖️ General kartını Hamle aşamasında kullanmadan önce tüm komutanların Hazırlığı tamamlamasını bekleyin.",
     txtHitmanPrepareOnly: "🕶️ Yatırımları kilitlemeden önce Hitman kartını Hazırlıkta kullanın.",
     btnHostDealUsed: "✓ Kartlar Bu Raund Dağıtıldı",
     btnHostEventLocked: "Önce Kartları Dağıtın",
@@ -503,7 +503,7 @@ const translations = {
     txtFlowReview: "بررسی",
     txtActActionsLocked: "پیش از استفاده از اقدام‌های مرحله عمل، آماده‌سازی همه فرماندهان را کامل کنید.",
     txtActReviewLocked: "شما آماده بودن را اعلام کرده‌اید؛ اقدام‌های مرحله عمل برای این دور بسته‌اند.",
-    txtGeneralActOnly: "🎖️ پیش از فعال‌سازی ژنرال در مرحله اقدام، آماده‌سازی را کامل کنید.",
+    txtGeneralActOnly: "🎖️ پیش از فعال‌سازی ژنرال در مرحله اقدام، آماده‌سازی همه فرماندهان را کامل کنید.",
     txtHitmanPrepareOnly: "🕶️ پیش از قفل کردن سرمایه‌گذاری‌ها، هیتمن را در آماده‌سازی استفاده کنید.",
     btnHostDealUsed: "✓ کارت‌ها در این دور توزیع شدند",
     btnHostEventLocked: "ابتدا کارت‌ها را توزیع کنید",
@@ -1034,13 +1034,26 @@ function hasLocalPrepareCompleted() {
     eventDrawnThisRound;
 }
 
+function isPrepareCompleteForAct() {
+  const totalPlayers = Math.max(0, Number(registeredPlayersCount) || activeRoomPlayers.length);
+  return hasLocalPrepareCompleted() &&
+    totalPlayers > 0 &&
+    activeRoomPlayers.length >= totalPlayers &&
+    lockedPlayersSet.size >= totalPlayers &&
+    activeRoomPlayers.every(player =>
+      player.locked || lockedPlayersSet.has(cleanStr(player.country))
+    );
+}
+
 function isActPhaseReady() {
-  return hasLocalPrepareCompleted() && !isLocalPlayerReadyToClose;
+  return isPrepareCompleteForAct() && !isLocalPlayerReadyToClose;
 }
 
 function actActionLockMessage() {
   const copy = translations[currentLang] || translations.en;
-  return hasLocalPrepareCompleted() ? copy.txtActReviewLocked : copy.txtActActionsLocked;
+  return hasLocalPrepareCompleted() && isLocalPlayerReadyToClose
+    ? copy.txtActReviewLocked
+    : copy.txtActActionsLocked;
 }
 
 function requireActPhase() {
@@ -3228,8 +3241,10 @@ function renderCommandBoardDetails(player) {
     president.type = "button";
     president.className = "btn btn-secondary btn-small";
     president.textContent = copy.txtBoardPresident;
-    president.disabled = gameFinished || isSimpleEdition() || !investmentsLocked;
-    president.title = !investmentsLocked
+    president.disabled = gameFinished || isSimpleEdition() || actActionsLocked || !investmentsLocked;
+    president.title = actActionsLocked
+      ? actionLockMessage
+      : !investmentsLocked
       ? "Lock your investments before proposing a Mega-Merger."
       : isSimpleEdition()
         ? "Mega-Merger is unavailable in the Simple Edition."
@@ -3245,7 +3260,7 @@ function renderCommandBoard() {
   const surface = document.getElementById("poker-seats-wrapper");
   const felt = surface?.closest(".player-table-felt");
   const actLockNotice = document.getElementById("act-phase-lock-notice");
-  const prepareIncomplete = !hasLocalPrepareCompleted();
+  const prepareIncomplete = !isPrepareCompleteForAct();
   if (actLockNotice) {
     actLockNotice.hidden = !prepareIncomplete;
     actLockNotice.textContent = prepareIncomplete
@@ -4131,6 +4146,7 @@ window.openPresidentModal = function(cardIndex) {
     logAction("Mega-Merger is unavailable in the Simple Edition.", "ALLIANCE");
     return;
   }
+  if (!requireActPhase()) return;
   if (!investmentsLocked) {
     logAction("⚠️ President card requires field investments to be locked first!", "ALLIANCE");
     return;
@@ -4172,6 +4188,7 @@ window.openPresidentModal = function(cardIndex) {
 };
 
 window.confirmPresidentMergerProposal = function() {
+  if (!requireActPhase()) return;
   const partner1 = document.getElementById("select-pres-partner-1")?.value;
   const partner2 = document.getElementById("select-pres-partner-2")?.value;
 
@@ -4223,6 +4240,7 @@ window.openCounterUnionModal = function() {
     logAction("Counter-Union is unavailable in the Simple Edition.", "ALLIANCE");
     return;
   }
+  if (!requireActPhase()) return;
   const select1 = document.getElementById("select-union-partner-1");
   const select2 = document.getElementById("select-union-partner-2");
   if (!select1 || !select2) return;
@@ -4253,6 +4271,7 @@ window.openCounterUnionModal = function() {
 };
 
 window.confirmCounterUnion = function() {
+  if (!requireActPhase()) return;
   const partner1 = document.getElementById("select-union-partner-1")?.value;
   const partner2 = document.getElementById("select-union-partner-2")?.value;
 
@@ -4806,13 +4825,14 @@ function renderHand() {
     const isAtomicDisabled = activeEdition !== "simple"
       && card.title === "Atomic Bomb"
       && isGlobalConditionActive("pandemic");
-    const isGeneralDisabled = card.title === "General" && !isActPhaseReady();
+    const isActCard = ["General", "Atomic Bomb", "President"].includes(card.title);
+    const isActPhaseDisabled = isActCard && !isActPhaseReady();
     const isHitmanDisabled = card.title === "Hitman" && investmentsLocked;
-    const isCardDisabled = isAtomicDisabled || isGeneralDisabled || isHitmanDisabled;
+    const isCardDisabled = isAtomicDisabled || isActPhaseDisabled || isHitmanDisabled;
     const disabledMessage = isAtomicDisabled
       ? copy.txtAtomicDisabled
-      : isGeneralDisabled
-        ? copy.txtGeneralActOnly
+      : isActPhaseDisabled
+        ? actActionLockMessage()
         : copy.txtHitmanPrepareOnly;
     element.className = `prof-card${isCardDisabled ? " is-disabled" : ""}`;
     element.style.cursor = isCardDisabled ? "not-allowed" : "pointer";
@@ -4861,8 +4881,8 @@ function playCardAction(card, index) {
     logAction(`${card.title} is unavailable in the Simple Edition.`, "CARD");
     return;
   }
-  if (card.title === "General" && !isActPhaseReady()) {
-    logAction((translations[currentLang] || translations.en).txtGeneralActOnly, "CARD");
+  if (["General", "Atomic Bomb", "President"].includes(card.title) && !isActPhaseReady()) {
+    logAction(actActionLockMessage(), "CARD");
     return;
   }
   if (card.title === "Hitman" && investmentsLocked) {
@@ -4943,7 +4963,7 @@ window.confirmLoan = async function() {
 
 window.activateGeneralCard = async function(cardIndex) {
   if (!isActPhaseReady()) {
-    logAction((translations[currentLang] || translations.en).txtGeneralActOnly, "CARD");
+    logAction(actActionLockMessage(), "CARD");
     return;
   }
   const activated = await submitRoomEvent("ACTIVATE_GENERAL", {});
@@ -5057,6 +5077,7 @@ window.closeHitmanModal = function() {
 };
 
 window.openAtomicModal = function(cardIndex) {
+  if (!requireActPhase()) return;
   if (activeEdition !== "simple" && isGlobalConditionActive("pandemic")) {
     logAction("🦠 Pandemic is active: Atomic Bomb cards are deactivated this round.", "EVENT");
     return;
@@ -5080,6 +5101,7 @@ window.openAtomicModal = function(cardIndex) {
 };
 
 window.confirmAtomicStrike = async function() {
+  if (!requireActPhase()) return;
   const targetCountry = document.getElementById("select-atomic-target-country")?.value;
   const targetField = document.getElementById("select-atomic-target-field")?.value;
 

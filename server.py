@@ -1573,6 +1573,8 @@ class GameHandler(SimpleHTTPRequestHandler):
             return
         with database() as connection:
             connection.execute("BEGIN IMMEDIATE")
+            if not self.require_act_phase(connection, player["id"]):
+                return
             condition_row = connection.execute(
                 "SELECT active_condition FROM room_state WHERE id = 1"
             ).fetchone()
@@ -2100,24 +2102,29 @@ class GameHandler(SimpleHTTPRequestHandler):
         return multiplier
 
     def require_act_phase(self, connection: sqlite3.Connection, player_id: int) -> bool:
-        """Gate independent Act actions until the acting player completes Prepare."""
+        """Gate Act actions until every seated player completes Prepare."""
         phase = connection.execute(
-            "SELECT cards_dealt, event_drawn FROM round_state WHERE id = 1"
-        ).fetchone()
-        player_prepared = connection.execute(
-            "SELECT 1 FROM player_round_resources WHERE player_id = ?", (player_id,)
+            """
+            SELECT cards_dealt, event_drawn,
+                   (SELECT COUNT(*) FROM players) AS player_count,
+                   (SELECT COUNT(*) FROM players
+                    JOIN player_round_resources
+                      ON player_round_resources.player_id = players.id) AS prepared_count
+            FROM round_state
+            WHERE id = 1
+            """
         ).fetchone()
         if (
             not phase
             or not phase["cards_dealt"]
             or not phase["event_drawn"]
-            or not player_prepared
+            or phase["player_count"] == 0
+            or phase["prepared_count"] < phase["player_count"]
         ):
             self.send_json(
                 {
                     "error": (
-                        "Complete your own Prepare before choosing an Act action. "
-                        "Field Trades and Field Battles are independent; no trade is required before an attack."
+                        "Complete Prepare for every commander before choosing an Act action."
                     )
                 },
                 HTTPStatus.CONFLICT,
@@ -2306,31 +2313,7 @@ class GameHandler(SimpleHTTPRequestHandler):
 
         with database() as connection:
             connection.execute("BEGIN IMMEDIATE")
-            phase = connection.execute(
-                "SELECT cards_dealt, event_drawn FROM round_state WHERE id = 1"
-            ).fetchone()
-            player_prepared = connection.execute(
-                "SELECT 1 FROM player_round_resources WHERE player_id = ?", (player["id"],)
-            ).fetchone()
-            if (
-                not phase
-                or not phase["cards_dealt"]
-                or not phase["event_drawn"]
-                or not player_prepared
-            ):
-                self.send_json(
-                    {"error": "Complete your own Prepare before activating General in Act."},
-                    HTTPStatus.CONFLICT,
-                )
-                return
-            if connection.execute(
-                "SELECT 1 FROM player_round_readiness WHERE player_id = ?",
-                (player["id"],),
-            ).fetchone():
-                self.send_json(
-                    {"error": "General can only be activated during Act before you mark ready."},
-                    HTTPStatus.CONFLICT,
-                )
+            if not self.require_act_phase(connection, player["id"]):
                 return
             connection.execute(
                 """
@@ -2579,6 +2562,8 @@ class GameHandler(SimpleHTTPRequestHandler):
 
         with database() as connection:
             connection.execute("BEGIN IMMEDIATE")
+            if not self.require_act_phase(connection, player["id"]):
+                return
             seated_countries = {
                 row["country"] for row in connection.execute("SELECT country FROM players")
             }
