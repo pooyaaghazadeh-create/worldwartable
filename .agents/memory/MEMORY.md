@@ -7,3 +7,4 @@
 - [Hitman targeting](hitman-targeting.md) — A Hitman owner selects the opposing country and whether to disable General or Spy.
 - [Round card phases](round-card-phases.md) — Hitman is required during Prepare; General is available only in Act before a player is ready.
 - [Act action independence](act-action-independence.md) — After Prepare, Field Trades and Field Battles are independent choices; neither unlocks the other.
+- [Dashboard copy preference](dashboard-copy-preference.md) — Avoid redundant headings and static helper copy; keep accessible names and live status updates.
