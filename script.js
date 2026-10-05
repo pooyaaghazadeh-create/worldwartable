@@ -240,7 +240,6 @@ const translations = {
     txtCommandBoardDesc: "Tap a country badge to inspect it, then trade, battle, or target an available card.",
     txtBoardConditionClear: "No active condition",
     txtBoardEmpty: "Awaiting other seated commanders…",
-    txtBoardDetailsEmpty: "Select an opposing country to view its command profile.",
     txtBoardPlanning: "Planning",
     txtBoardLocked: "Investments locked",
     txtBoardReady: "Ready to close",
@@ -383,7 +382,6 @@ const translations = {
     txtCommandBoardDesc: "İncelemek için bir ülke rozetine dokunun; ardından ticaret, savaş veya kart hedefini seçin.",
     txtBoardConditionClear: "Aktif etkinlik yok",
     txtBoardEmpty: "Diğer oturmuş komutanlar bekleniyor…",
-    txtBoardDetailsEmpty: "Komuta profilini görmek için rakip bir ülke seçin.",
     txtBoardPlanning: "Planlama",
     txtBoardLocked: "Yatırımlar kilitli",
     txtBoardReady: "Kapanışa hazır",
@@ -526,7 +524,6 @@ const translations = {
     txtCommandBoardDesc: "برای بررسی، نشان یک کشور را انتخاب کنید؛ سپس تجارت، نبرد یا هدف کارت را انتخاب کنید.",
     txtBoardConditionClear: "رویداد فعالی نیست",
     txtBoardEmpty: "در انتظار دیگر فرماندهان نشسته…",
-    txtBoardDetailsEmpty: "برای دیدن نمای فرماندهی، یک کشور رقیب را انتخاب کنید.",
     txtBoardPlanning: "در حال برنامه‌ریزی",
     txtBoardLocked: "سرمایه‌گذاری‌ها قفل شده‌اند",
     txtBoardReady: "آماده بستن دور",
@@ -3221,12 +3218,7 @@ function renderCommandBoardDetails(player) {
   const copy = commandBoardCopy();
   details.replaceChildren();
 
-  if (!player) {
-    const empty = document.createElement("p");
-    empty.textContent = copy.txtBoardDetailsEmpty;
-    details.appendChild(empty);
-    return;
-  }
+  if (!player) return;
 
   const intelHidden = isCountryIntelHiddenByBlackout(player.country);
   const card = activeCountryCard(player.country);

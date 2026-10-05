@@ -62,6 +62,11 @@ class InteractiveTableTests(unittest.TestCase):
         self.assertIn(".player-table-felt .poker-seat.is-targetable", self.styles)
         self.assertIn("grid-template-columns: repeat(2, minmax(0, 1fr));", self.styles)
 
+    def test_empty_country_details_do_not_repeat_the_table_instructions(self):
+        self.assertNotIn("Select an opposing country to view its command profile.", self.mobile)
+        self.assertNotIn("txtBoardDetailsEmpty", self.script)
+        self.assertIn("if (!player) return;", self.script)
+
 
 if __name__ == "__main__":
     unittest.main()

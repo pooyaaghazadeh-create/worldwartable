@@ -841,10 +841,7 @@ body.mobile-controller :where(button, a, input, select, textarea) {
   padding: 10px 11px;
 }
 
-.command-board-details > p:only-child {
-  color: var(--text-muted);
-  font-size: 0.83rem;
-}
+.command-board-details:empty { display: none; }
 
 .command-board-detail-heading {
   align-items: center;
