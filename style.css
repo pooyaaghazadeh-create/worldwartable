@@ -1218,11 +1218,11 @@ body.mobile-controller :where(button, a, input, select, textarea) {
   overscroll-behavior: contain;
 }
 
-.host-auto-flow {
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  line-height: 1.45;
-  max-width: 430px;
+.host-review-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 4px;
 }
 
 .result-alert-overlay {
@@ -2175,6 +2175,14 @@ body:not(.tv-body) .card {
 
   body:not(.tv-body) .game-header-actions {
     justify-content: stretch;
+  }
+
+  .host-review-actions {
+    flex-direction: column;
+  }
+
+  .host-review-actions .btn {
+    width: 100%;
   }
 }
 

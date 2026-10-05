@@ -173,9 +173,6 @@ const translations = {
   en: {
     txtTitle: "Global Domination & Fortune",
     lblStatus: "Status",
-    txtHostTitle: "👑 Game Runner (Host) Controls",
-    txtReferee: "Master Referee Active",
-    txtMasterCtrl: "Master Game Controls",
     btnHostDeal: "Deal Cards (2 per player)",
     btnHostEvent: "Draw Global Event",
     btnHostAdvance: "Close & Calculate Round",
@@ -310,9 +307,6 @@ const translations = {
   tr: {
     txtTitle: "Küresel Hakimiyet ve Servet",
     lblStatus: "Durum",
-    txtHostTitle: "👑 Oyun Yöneticisi Kontrolleri",
-    txtReferee: "Baş Hakem Aktif",
-    txtMasterCtrl: "Ana Oyun Kontrolleri",
     btnHostDeal: "Kart Dağıt (Oyuncu Başı 2)",
     btnHostEvent: "Küresel Etkinlik Çek",
     btnHostAdvance: "Raundu Kapat ve Hesapla",
@@ -447,9 +441,6 @@ const translations = {
   fa: {
     txtTitle: "تسلط جهانی و ثروت",
     lblStatus: "وضعیت",
-    txtHostTitle: "👑 کنترل‌های مدیر بازی (میزبان)",
-    txtReferee: "داور اصلی فعال است",
-    txtMasterCtrl: "کنترل‌های اصلی بازی",
     btnHostDeal: "توزیع کارت (۲ عدد برای هر بازیکن)",
     btnHostEvent: "کارت رویداد جهانی",
     btnHostAdvance: "بستن و محاسبه نتایج دور",
@@ -2840,8 +2831,10 @@ function initializeRoomCreator(session) {
 }
 
 function syncHostAccessUI() {
-  const hostPanel = document.getElementById("host-panel");
-  hostPanel?.classList.toggle("hidden", !isRoomCreator);
+  const resetButton = document.getElementById("btn-host-reset");
+  const reviewActions = document.getElementById("host-review-actions");
+  resetButton?.classList.toggle("hidden", !isRoomCreator);
+  reviewActions?.classList.toggle("hidden", !isRoomCreator);
 }
 
 function requireRoomCreator(actionLabel) {
