@@ -233,14 +233,15 @@ const translations = {
     txtHandTitle: "Your Proficiency Hand (2 Cards)",
     txtClickCard: "👆 Click Card to Action",
     txtAtomicDisabled: "Disabled during Pandemic",
+    txtAtomicModalDesc: "Your selected table country will be targeted. Choose the field to strike.",
     txtAnnouncements: "📣 Round Announcements",
     txtAnnouncementsSubtitle: "Current round activity only",
     txtGameResultContinue: "Continue",
     txtBlackoutHidden: "🌑 BLACKOUT — Intelligence hidden",
     txtBoardBlackout: "Blackout active — opponent multipliers and total investment are hidden.",
-    txtCommandBoardKicker: "LIVE STRATEGIC MAP",
-    txtCommandBoardTitle: "Command Board",
-    txtCommandBoardDesc: "Select an opposing country to inspect its multipliers, total investment, and available actions.",
+    txtCommandBoardKicker: "LIVE GAME TABLE",
+    txtCommandBoardTitle: "Interactive Game Table",
+    txtCommandBoardDesc: "Tap a country badge to inspect it, then trade, battle, or target an available card.",
     txtBoardConditionClear: "No active condition",
     txtBoardEmpty: "Awaiting other seated commanders…",
     txtBoardDetailsEmpty: "Select an opposing country to view its command profile.",
@@ -249,6 +250,9 @@ const translations = {
     txtBoardReady: "Ready to close",
     txtBoardTrade: "Open Field Trade",
     txtBoardBattle: "Open Field Battle",
+    txtBoardHitman: "Use Hitman on this country",
+    txtBoardAtomic: "Use Atomic Bomb on this country",
+    txtBoardPresident: "Invite this country with President",
     txtBoardTradeUsed: "Field Trade is unavailable: both proposals have been used this round.",
     txtBoardBattleLoanLocked: "Settle your loan and interest before Field Battle is available.",
     txtBoardBattleUsed: "Field Battle is unavailable: all attacks have been used this round.",
@@ -257,7 +261,7 @@ const translations = {
     txtBoardTotalInvestment: "Total field investment: {total} coins",
     txtBoardTotalPending: "Total field investment: pending",
     txtHitmanModalTitle: "🕶️ Hitman Operation",
-    txtHitmanModalDesc: "Choose an opposing country and which card type to target.",
+    txtHitmanModalDesc: "Your selected table country will be targeted. Choose which card type to disable.",
     lblHitmanTargetCountry: "Country to target:",
     lblHitmanTargetCard: "Card type to disable:",
     txtHitmanGeneralOption: "🎖️ General",
@@ -375,14 +379,15 @@ const translations = {
     txtHandTitle: "Uzmanlık Kart Eliniz (2 Kart)",
     txtClickCard: "👆 Eylem İçin Karta Tıklayın",
     txtAtomicDisabled: "Pandemi sırasında devre dışı",
+    txtAtomicModalDesc: "Masada seçtiğiniz ülke hedef alınacak. Saldırılacak sahayı seçin.",
     txtAnnouncements: "📣 Raund Duyuruları",
     txtAnnouncementsSubtitle: "Yalnızca mevcut raund etkinlikleri",
     txtGameResultContinue: "Devam",
     txtBlackoutHidden: "🌑 KARARTMA — İstihbarat gizli",
     txtBoardBlackout: "Karartma aktif — rakip çarpanları ve toplam yatırımları gizli.",
-    txtCommandBoardKicker: "CANLI STRATEJİ HARİTASI",
-    txtCommandBoardTitle: "Komuta Panosu",
-    txtCommandBoardDesc: "Çarpanlarını, toplam yatırımını ve kullanılabilir eylemlerini incelemek için rakip bir ülke seçin.",
+    txtCommandBoardKicker: "CANLI OYUN MASASI",
+    txtCommandBoardTitle: "Etkileşimli Oyun Masası",
+    txtCommandBoardDesc: "İncelemek için bir ülke rozetine dokunun; ardından ticaret, savaş veya kart hedefini seçin.",
     txtBoardConditionClear: "Aktif etkinlik yok",
     txtBoardEmpty: "Diğer oturmuş komutanlar bekleniyor…",
     txtBoardDetailsEmpty: "Komuta profilini görmek için rakip bir ülke seçin.",
@@ -391,6 +396,9 @@ const translations = {
     txtBoardReady: "Kapanışa hazır",
     txtBoardTrade: "Saha Ticaretini Aç",
     txtBoardBattle: "Saha Savaşını Aç",
+    txtBoardHitman: "Bu ülkede Hitman kullan",
+    txtBoardAtomic: "Bu ülkeye Atom Bombası kullan",
+    txtBoardPresident: "President ile bu ülkeyi davet et",
     txtBoardTradeUsed: "Saha Ticareti kullanılamıyor: bu raund iki teklif de kullanıldı.",
     txtBoardBattleLoanLocked: "Saha Savaşı açılmadan önce kredi ve faizi ödeyin.",
     txtBoardBattleUsed: "Saha Savaşı kullanılamıyor: bu raund tüm saldırılar kullanıldı.",
@@ -399,7 +407,7 @@ const translations = {
     txtBoardTotalInvestment: "Toplam saha yatırımı: {total} coin",
     txtBoardTotalPending: "Toplam saha yatırımı: bekliyor",
     txtHitmanModalTitle: "🕶️ Hitman Operasyonu",
-    txtHitmanModalDesc: "Bir rakip ülke ve hedef alınacak kart türünü seçin.",
+    txtHitmanModalDesc: "Masada seçtiğiniz ülke hedef alınacak. Devre dışı bırakılacak kart türünü seçin.",
     lblHitmanTargetCountry: "Hedef ülke:",
     lblHitmanTargetCard: "Devre dışı bırakılacak kart türü:",
     txtHitmanGeneralOption: "🎖️ General",
@@ -517,14 +525,15 @@ const translations = {
     txtHandTitle: "دست کارت‌های مهارت شما (۲ کارت)",
     txtClickCard: "👆 برای اقدام روی کارت کلیک کنید",
     txtAtomicDisabled: "در زمان همه‌گیری غیرفعال است",
+    txtAtomicModalDesc: "کشوری که از روی میز انتخاب کرده‌اید هدف قرار می‌گیرد. زمین مورد حمله را انتخاب کنید.",
     txtAnnouncements: "📣 اطلاعیه‌های دور",
     txtAnnouncementsSubtitle: "فقط فعالیت‌های دور جاری",
     txtGameResultContinue: "ادامه",
     txtBlackoutHidden: "🌑 خاموشی — اطلاعات پنهان است",
     txtBoardBlackout: "خاموشی فعال است — ضرایب و مجموع سرمایه‌گذاری حریفان پنهان است.",
-    txtCommandBoardKicker: "نقشه زنده راهبردی",
-    txtCommandBoardTitle: "برد فرماندهی",
-    txtCommandBoardDesc: "برای بررسی ضریب‌ها، مجموع سرمایه‌گذاری و اقدامات در دسترس، یک کشور رقیب را انتخاب کنید.",
+    txtCommandBoardKicker: "میز زنده بازی",
+    txtCommandBoardTitle: "میز تعاملی بازی",
+    txtCommandBoardDesc: "برای بررسی، نشان یک کشور را انتخاب کنید؛ سپس تجارت، نبرد یا هدف کارت را انتخاب کنید.",
     txtBoardConditionClear: "رویداد فعالی نیست",
     txtBoardEmpty: "در انتظار دیگر فرماندهان نشسته…",
     txtBoardDetailsEmpty: "برای دیدن نمای فرماندهی، یک کشور رقیب را انتخاب کنید.",
@@ -533,6 +542,9 @@ const translations = {
     txtBoardReady: "آماده بستن دور",
     txtBoardTrade: "باز کردن معامله میدانی",
     txtBoardBattle: "باز کردن نبرد میدانی",
+    txtBoardHitman: "استفاده از Hitman علیه این کشور",
+    txtBoardAtomic: "استفاده از بمب اتم علیه این کشور",
+    txtBoardPresident: "دعوت این کشور با کارت President",
     txtBoardTradeUsed: "معامله میدانی در دسترس نیست: هر دو پیشنهاد این دور استفاده شده‌اند.",
     txtBoardBattleLoanLocked: "پیش از فعال شدن نبرد میدانی، وام و بهره را تسویه کنید.",
     txtBoardBattleUsed: "نبرد میدانی در دسترس نیست: همه حمله‌های این دور استفاده شده‌اند.",
@@ -541,7 +553,7 @@ const translations = {
     txtBoardTotalInvestment: "مجموع سرمایه‌گذاری میدان: {total} سکه",
     txtBoardTotalPending: "مجموع سرمایه‌گذاری میدان: در انتظار",
     txtHitmanModalTitle: "🕶️ عملیات هیتمن",
-    txtHitmanModalDesc: "یک کشور رقیب و نوع کارت هدف را انتخاب کنید.",
+    txtHitmanModalDesc: "کشوری که از روی میز انتخاب کرده‌اید هدف قرار می‌گیرد. نوع کارت برای غیرفعال‌سازی را انتخاب کنید.",
     lblHitmanTargetCountry: "کشور هدف:",
     lblHitmanTargetCard: "نوع کارت برای غیرفعال‌سازی:",
     txtHitmanGeneralOption: "🎖️ ژنرال",
@@ -998,7 +1010,7 @@ window.changeLanguage = function(lang) {
   document.querySelector(".status-metrics")?.setAttribute("aria-label", dict.ariaCommanderSummary);
   document.querySelector(".game-tabs")?.setAttribute("aria-label", dict.ariaGameTabs);
   document.getElementById("round-readiness-meter")?.setAttribute("aria-label", dict.ariaRoundReadiness);
-  document.getElementById("command-board-surface")?.setAttribute("aria-label", dict.ariaCommandBoard);
+  document.getElementById("poker-seats-wrapper")?.setAttribute("aria-label", dict.ariaCommandBoard);
   syncEditionTitle();
 
   if (lang === "fa") {
@@ -1133,7 +1145,7 @@ let activeRoomPlayers = [];
 let pendingServerTrades = [];
 let fieldTradeAttemptsUsed = 0;
 let coinRequestsUsed = 0;
-let activeGameTab = "status";
+let activeGameTab = "act";
 let lastAutoGamePhase = null;
 let gameTabsInitialized = false;
 const fieldTradeAttemptLimit = 2;
@@ -1395,15 +1407,22 @@ function renderTvRoster() {
   const wrapper = document.getElementById("poker-seats-wrapper");
   if (!wrapper) return;
   wrapper.replaceChildren();
+  const interactivePlayerView = document.body.classList.contains("mobile-controller");
+  const selfCountry = cleanStr(assignedCountry?.name || "");
   activeRoomPlayers.forEach(player => {
     const country = activeCountryCard(player.country);
+    const countryKey = cleanStr(player.country);
+    const isSelf = Boolean(selfCountry && countryKey === selfCountry);
+    const canSelect = interactivePlayerView && !isSelf;
     const intelHidden = isCountryIntelHiddenByBlackout(player.country);
     const multipliers = intelHidden ? null : getCountryRoundMultipliers(player.country, country);
     const alliance = [activePresidentCoalition, activeCounterUnion].find(item =>
       Array.isArray(item?.members) && item.members.some(member => cleanStr(member) === cleanStr(player.country))
     );
-    const seat = document.createElement("article");
-    seat.className = `poker-seat ${player.locked ? "is-locked" : "is-planning"}${player.ready ? " is-ready" : ""}${alliance ? " is-allied" : ""}`;
+    const seat = document.createElement(canSelect ? "button" : "article");
+    if (canSelect) seat.type = "button";
+    const isSelected = !isSelf && countryKey === cleanStr(selectedBoardCountry);
+    seat.className = `poker-seat ${player.locked ? "is-locked" : "is-planning"}${player.ready ? " is-ready" : ""}${alliance ? " is-allied" : ""}${isSelf ? " is-self" : ""}${isSelected ? " is-selected" : ""}${canSelect ? " is-targetable" : ""}`;
     const stateLabel = document.createElement("span");
     stateLabel.className = "tv-seat-state";
     stateLabel.textContent = player.ready
@@ -1438,13 +1457,27 @@ function renderTvRoster() {
     }
     const investmentLabel = document.createElement("strong");
     investmentLabel.className = "tv-seat-investment";
-    investmentLabel.textContent = intelHidden
+    investmentLabel.textContent = isSelf && player.totalInvestment != null
+      ? `💰 Your investment: ${player.totalInvestment} coins`
+      : intelHidden
       ? (translations[currentLang] || translations.en).txtBlackoutHidden
       : player.totalInvestment == null
       ? "💰 Total investment: Not locked"
       : `💰 Total investment: ${player.totalInvestment} coins`;
     seat.append(stateLabel, countryLabel, handleLabel, resources, investmentLabel, statusLabel);
     if (country) seat.dataset.country = country.name;
+    if (canSelect) {
+      seat.setAttribute("aria-pressed", String(isSelected));
+      seat.setAttribute("aria-label", `${player.country}, ${commandBoardStatus(player, commandBoardCopy())}. Select as target.`);
+      seat.onclick = () => {
+        selectedBoardCountry = player.country;
+        syncTableTargetSelectors();
+        renderCommandBoard();
+        playSound("ui");
+      };
+    } else if (isSelf) {
+      seat.setAttribute("aria-label", `${player.country}, your country.`);
+    }
     wrapper.appendChild(seat);
   });
 }
@@ -3324,11 +3357,59 @@ function renderCommandBoardDetails(player) {
   battle.setAttribute("aria-describedby", guidance.id);
   actions.append(trade, battle);
 
+  const hitmanCardIndex = currentHand.findIndex(card => card.title === "Hitman");
+  if (hitmanCardIndex >= 0) {
+    const hitman = document.createElement("button");
+    hitman.type = "button";
+    hitman.className = "btn btn-secondary btn-small";
+    hitman.textContent = copy.txtBoardHitman;
+    hitman.disabled = gameFinished || investmentsLocked;
+    hitman.title = investmentsLocked
+      ? (translations[currentLang] || translations.en).txtHitmanPrepareOnly
+      : `Target ${player.country} with Hitman.`;
+    hitman.onclick = () => window.openHitmanModal(hitmanCardIndex);
+    actions.appendChild(hitman);
+  }
+
+  const atomicCardIndex = currentHand.findIndex(card => card.title === "Atomic Bomb");
+  if (atomicCardIndex >= 0) {
+    const atomic = document.createElement("button");
+    atomic.type = "button";
+    atomic.className = "btn btn-danger btn-small";
+    atomic.textContent = copy.txtBoardAtomic;
+    const pandemicDisabled = activeEdition !== "simple" && isGlobalConditionActive("pandemic");
+    atomic.disabled = gameFinished || !investmentsLocked || pandemicDisabled;
+    atomic.title = pandemicDisabled
+      ? (translations[currentLang] || translations.en).txtAtomicDisabled
+      : !investmentsLocked
+        ? "Lock your investments before using Atomic Bomb."
+        : `Target ${player.country} with Atomic Bomb.`;
+    atomic.onclick = () => window.openAtomicModal(atomicCardIndex);
+    actions.appendChild(atomic);
+  }
+
+  const presidentCardIndex = currentHand.findIndex(card => card.title === "President");
+  if (presidentCardIndex >= 0) {
+    const president = document.createElement("button");
+    president.type = "button";
+    president.className = "btn btn-secondary btn-small";
+    president.textContent = copy.txtBoardPresident;
+    president.disabled = gameFinished || isSimpleEdition() || !investmentsLocked;
+    president.title = !investmentsLocked
+      ? "Lock your investments before proposing a Mega-Merger."
+      : isSimpleEdition()
+        ? "Mega-Merger is unavailable in the Simple Edition."
+        : `Invite ${player.country} to a Mega-Merger.`;
+    president.onclick = () => window.openPresidentModal(presidentCardIndex);
+    actions.appendChild(president);
+  }
+
   details.append(title, commander, resources, context, actions, guidance);
 }
 
 function renderCommandBoard() {
-  const surface = document.getElementById("command-board-surface");
+  const surface = document.getElementById("poker-seats-wrapper");
+  const felt = surface?.closest(".player-table-felt");
   const condition = document.getElementById("command-board-condition");
   const actLockNotice = document.getElementById("act-phase-lock-notice");
   const prepareIncomplete = !isPrepareCompleteForAct();
@@ -3339,7 +3420,6 @@ function renderCommandBoard() {
       : "";
   }
   document.getElementById("tab-panel-act")?.classList.toggle("is-actions-locked", prepareIncomplete);
-  if (!surface) return;
   const copy = commandBoardCopy();
   const selfCountry = cleanStr(assignedCountry?.name || "");
   const opponentPlayers = activeRoomPlayers.filter(player =>
@@ -3375,96 +3455,68 @@ function renderCommandBoard() {
   const stateChanged = Boolean(commandBoardStateSignature && commandBoardStateSignature !== signature);
   commandBoardStateSignature = signature;
 
-  surface.replaceChildren();
-  surface.classList.toggle("has-global-condition", Boolean(activeGlobalCondition));
+  felt?.classList.toggle("has-global-condition", Boolean(activeGlobalCondition));
+  renderTvRoster();
   if (!opponentPlayers.length) {
-    const empty = document.createElement("p");
-    empty.className = "command-board-empty";
-    empty.textContent = copy.txtBoardEmpty;
-    surface.appendChild(empty);
     renderCommandBoardDetails(null);
     return;
   }
 
-  opponentPlayers.forEach((player, index) => {
-    const intelHidden = isCountryIntelHiddenByBlackout(player.country);
-    const card = activeCountryCard(player.country);
-    const multipliers = intelHidden ? null : getCountryRoundMultipliers(player.country, card);
-    const totalInvestment = commandBoardTotalInvestment(player);
-    const alliance = commandBoardAlliance(player.country);
-    const isSelected = cleanStr(player.country) === cleanStr(selectedBoardCountry);
-    const territory = document.createElement("button");
-    territory.type = "button";
-    territory.className = `command-territory ${player.ready ? "is-ready" : player.locked ? "is-locked" : "is-planning"}${isSelected ? " is-selected" : ""}${alliance ? " is-allied" : ""}`;
-    territory.style.setProperty("--territory-index", String(index));
-    territory.style.setProperty("--territory-y", index % 2 ? "5px" : "0px");
-    territory.dataset.country = player.country;
-    territory.setAttribute("aria-pressed", String(isSelected));
-    territory.setAttribute(
-      "aria-label",
-      `${player.country}, ${commandBoardStatus(player, copy)}`
-    );
-    territory.onclick = () => {
-      selectedBoardCountry = player.country;
-      renderCommandBoard();
-      playSound("ui");
-    };
-
-    const state = document.createElement("span");
-    state.className = "command-territory-state";
-    state.textContent = player.ready ? "READY" : player.locked ? "LOCKED" : "PLAN";
-    const name = document.createElement("strong");
-    name.className = "command-territory-name";
-    name.textContent = player.country;
-    const commander = document.createElement("span");
-    commander.className = "command-territory-commander";
-    commander.textContent = `${player.handle}${player.isHost ? " · Host" : ""}`;
-    const resources = document.createElement("span");
-    resources.className = "command-territory-resources";
-    if (intelHidden) {
-      resources.textContent = copy.txtBlackoutHidden;
-    } else {
-      [
-        ["🌾", "Farm", "agri"],
-        ["🛢️", "Oil", "oil"],
-        ["⛏️", "Mines", "mines"]
-      ].forEach(([icon, label, field]) => {
-        resources.appendChild(
-          renderCommandBoardResource(
-            icon,
-            label,
-            getEffectiveResourceMultiplier(field, multipliers[field])
-          )
-        );
-      });
-    }
-    const total = document.createElement("span");
-    total.className = "command-territory-total";
-    total.textContent = intelHidden
-      ? copy.txtBoardBlackout
-      : totalInvestment == null
-      ? copy.txtBoardTotalPending
-      : copy.txtBoardTotalInvestment.replace("{total}", totalInvestment);
-    if (alliance) {
-      const allianceBadge = document.createElement("span");
-      allianceBadge.className = "command-territory-alliance";
-      allianceBadge.textContent = alliance.allianceType === "Mega-Merger" ? "MEGA" : "UNION";
-      territory.appendChild(allianceBadge);
-    }
-    territory.append(state, name, commander, resources, total);
-    surface.appendChild(territory);
-  });
-
   const selectedPlayer = opponentPlayers.find(player => cleanStr(player.country) === cleanStr(selectedBoardCountry));
   renderCommandBoardDetails(selectedPlayer);
-  if (stateChanged) pulseVisual(surface, "is-state-updated", 680);
+  if (stateChanged && felt) pulseVisual(felt, "is-state-updated", 680);
 }
 
 function setCommandBoardTarget(selectId) {
   const select = document.getElementById(selectId);
-  if (!select || !selectedBoardCountry) return;
-  const option = Array.from(select.options).find(item => cleanStr(item.value) === cleanStr(selectedBoardCountry));
-  if (option) select.value = option.value;
+  if (!select || !select.options.length) return;
+  const option = Array.from(select.options).find(item =>
+    selectedBoardCountry && cleanStr(item.value) === cleanStr(selectedBoardCountry)
+  ) || select.options[0];
+  if (!option) return;
+  if (!selectedBoardCountry) selectedBoardCountry = option.value;
+  select.value = option.value;
+  const displayId = {
+    "select-trade-partner": "trade-target-display",
+    "select-skirmish-target-country": "skirmish-target-display",
+    "select-hitman-target-country": "hitman-target-display",
+    "select-atomic-target-country": "atomic-target-display"
+  }[selectId];
+  const display = displayId ? document.getElementById(displayId) : null;
+  if (display) display.textContent = option.value;
+  window.updateResourceSelectorLabels?.();
+  window.updateTradePreview?.();
+}
+
+function populateTableTargetSelect(selectId, displayId) {
+  const select = document.getElementById(selectId);
+  const display = document.getElementById(displayId);
+  if (!select) return "";
+  const targets = liveCountryNames(true);
+  select.replaceChildren();
+  targets.forEach(country => {
+    const option = document.createElement("option");
+    option.value = country;
+    option.textContent = country;
+    select.appendChild(option);
+  });
+  if (targets.length === 0) {
+    if (display) display.textContent = "No opposing country is seated.";
+    return "";
+  }
+  const target = targets.find(country =>
+    cleanStr(country) === cleanStr(selectedBoardCountry)
+  ) || targets[0];
+  selectedBoardCountry = target;
+  select.value = target;
+  if (display) display.textContent = target;
+  return target;
+}
+
+function syncTableTargetSelectors() {
+  if (!selectedBoardCountry) return;
+  ["select-trade-partner", "select-skirmish-target-country", "select-hitman-target-country", "select-atomic-target-country"]
+    .forEach(setCommandBoardTarget);
 }
 
 window.openCommandBoardTrade = function() {
@@ -4434,6 +4486,14 @@ window.openPresidentModal = function(cardIndex) {
     return;
   }
 
+  const selectedPartner = Array.from(select1.options).find(option =>
+    cleanStr(option.value) === cleanStr(selectedBoardCountry)
+  ) || select1.options[0];
+  select1.value = selectedPartner.value;
+  selectedBoardCountry = selectedPartner.value;
+  const selectedPartnerDisplay = document.getElementById("president-partner-display");
+  if (selectedPartnerDisplay) selectedPartnerDisplay.textContent = selectedPartner.value;
+
   window.pendingCardIndex = cardIndex;
   document.getElementById("president-modal")?.classList.remove("hidden");
 };
@@ -5297,21 +5357,12 @@ window.openHitmanModal = function(cardIndex) {
   }
   const countrySelect = document.getElementById("select-hitman-target-country");
   if (!countrySelect) return;
-  countrySelect.replaceChildren();
-  const targets = liveCountryNames(true);
-  if (targets.length === 0) {
-    const empty = document.createElement("option");
-    empty.value = "";
-    empty.textContent = "No opposing countries available";
-    countrySelect.appendChild(empty);
-  } else {
-    targets.forEach(country => {
-      const option = document.createElement("option");
-      option.value = country;
-      option.textContent = country;
-      countrySelect.appendChild(option);
-    });
+  const target = populateTableTargetSelect("select-hitman-target-country", "hitman-target-display");
+  if (!target) {
+    logAction("⚠️ No opposing countries are available for Hitman.", "CARD");
+    return;
   }
+  window.updateResourceSelectorLabels();
   window.pendingCardIndex = cardIndex;
   document.getElementById("hitman-modal")?.classList.remove("hidden");
 };
@@ -5343,20 +5394,13 @@ window.openAtomicModal = function(cardIndex) {
   }
 
   const selectCountry = document.getElementById("select-atomic-target-country");
-  if (selectCountry) {
-    selectCountry.innerHTML = "";
-    liveCountryNames(true).forEach(country => {
-      const opt = document.createElement("option");
-      opt.value = country;
-      opt.textContent = country;
-      selectCountry.appendChild(opt);
-    });
-    if (!selectCountry.options.length) {
-      logAction("⚠️ No other seated country is available to target.", "ATOMIC");
-      return;
-    }
-    updateResourceSelectorLabels();
+  if (!selectCountry) return;
+  const target = populateTableTargetSelect("select-atomic-target-country", "atomic-target-display");
+  if (!target) {
+    logAction("⚠️ No other seated country is available to target.", "ATOMIC");
+    return;
   }
+  updateResourceSelectorLabels();
 
   window.pendingCardIndex = cardIndex;
   document.getElementById("atomic-modal")?.classList.remove("hidden");
@@ -5393,8 +5437,4 @@ window.initTvView = function() {
   void refreshRoomSnapshot();
   renderActiveGlobalCondition();
   startHostEventPolling();
-};
-
-window.openEditionTvView = function() {
-  window.open(`tv.html?${editionQuery()}`, "_blank", "noopener");
 };

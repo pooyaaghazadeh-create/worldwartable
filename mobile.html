@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>World War Table - Mobile Controller</title>
+  <title>World War Table - Interactive Table</title>
   <link rel="stylesheet" href="style.css">
   <style>
     .host-requests-list {
@@ -41,7 +41,6 @@
           <label id="lbl-view-mode">View Mode:</label>
           <button id="btn-mode-player" class="btn btn-small active" onclick="switchMode('player')">Mobile Player 📱</button>
           <button id="btn-mode-host" class="btn btn-small" onclick="switchMode('host')">Host Console 👑</button>
-          <button id="btn-open-tv-view" class="btn btn-small" type="button" onclick="openEditionTvView()">Open TV Table View</button>
           <button class="btn btn-small sound-toggle" type="button" data-sound-toggle aria-pressed="false" onclick="toggleGameSound()">Sound: Off</button>
           <a class="btn btn-small rulebook-link" href="rulebook.html" target="_blank" rel="noopener">📖 Rulebook</a>
           <button id="btn-exit-game" class="btn btn-small btn-danger" type="button" onclick="exitGame()">⏻ Exit Game</button>
@@ -309,18 +308,24 @@
       </div>
        <p id="act-phase-lock-notice" class="act-phase-lock-notice" role="status" hidden></p>
 
-      <!-- 2.5D COMMAND BOARD -->
+       <!-- INTERACTIVE TABLE -->
       <section class="card full-width command-board-card" aria-labelledby="txt-command-board-title">
         <div class="command-board-header">
           <div>
             <p class="section-kicker" id="txt-command-board-kicker">LIVE STRATEGIC MAP</p>
-            <h2 id="txt-command-board-title">Command Board</h2>
-            <p id="txt-command-board-desc">Select an opposing country to inspect its multipliers, total investment, and available actions.</p>
+             <h2 id="txt-command-board-title">Interactive Game Table</h2>
+             <p id="txt-command-board-desc">Tap a country badge to inspect it, then trade, battle, or target an available card.</p>
           </div>
           <span id="command-board-condition" class="command-board-condition">No active condition</span>
         </div>
-        <div id="command-board-surface" class="command-board-surface" role="region" aria-label="Interactive country command board">
-          <p id="command-board-empty" class="command-board-empty">Awaiting other seated commanders…</p>
+         <div class="tv-felt player-table-felt" aria-label="Interactive game table">
+           <div class="table-center-pot">
+             <div class="table-center-eyebrow">LIVE TABLE</div>
+             <div class="table-logo">WORLD WAR TABLE</div>
+             <div id="tv-status-ticker" class="table-ticker-broadcast">Tap a country badge to choose a target.</div>
+             <div id="tv-round-status" class="table-round-status" aria-live="polite">ROUND 1 / 3</div>
+           </div>
+           <div id="poker-seats-wrapper" class="poker-seats-grid" role="group" aria-label="Seated countries"></div>
         </div>
         <aside id="command-board-details" class="command-board-details" aria-live="polite">
           <p id="command-board-details-empty">Select an opposing country to view its command profile.</p>
@@ -434,8 +439,9 @@
       <p id="txt-modal-trade-desc">Trade coins/field investments with another nation on custom terms.</p>
       
       <div class="field-box modal-input-box">
-        <label class="modal-label" id="lbl-partner-nation">Trade Partner Nation:</label>
-          <select id="select-trade-partner" class="modal-select" onchange="updateResourceSelectorLabels()"></select>
+        <span class="modal-label" id="lbl-partner-nation">Trade Partner Nation:</span>
+        <p id="trade-target-display" class="selected-target-preview">Choose a country badge on the table.</p>
+        <select id="select-trade-partner" class="modal-select hidden" hidden aria-hidden="true" tabindex="-1" onchange="updateResourceSelectorLabels()"></select>
       </div>
 
       <div style="border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
@@ -491,8 +497,9 @@
       <h2 style="color: var(--danger-color);">⚔️ Field Battle</h2>
       <p>Target a rival country's resource field. Defeating them seizes 100% of their targeted field resources!</p>
       <div class="field-box modal-input-box">
-        <label class="modal-label">Target Enemy Nation:</label>
-          <select id="select-skirmish-target-country" class="modal-select" onchange="updateResourceSelectorLabels()"></select>
+        <span class="modal-label">Target Enemy Nation:</span>
+        <p id="skirmish-target-display" class="selected-target-preview">Choose a country badge on the table.</p>
+        <select id="select-skirmish-target-country" class="modal-select hidden" hidden aria-hidden="true" tabindex="-1" onchange="updateResourceSelectorLabels()"></select>
       </div>
       <div class="field-box modal-input-box">
         <label class="modal-label">Battleground Resource Field:</label>
@@ -574,8 +581,9 @@
       <h2>🏛️ President Mega-Merger</h2>
       <p>Select allied powers to invite into an alliance merger.</p>
       <div class="field-box modal-input-box">
-        <label class="modal-label">First Partner Country:</label>
-        <select id="select-pres-partner-1" class="modal-select"></select>
+        <span class="modal-label">First Partner Country:</span>
+        <p id="president-partner-display" class="selected-target-preview" aria-live="polite">Choose a country badge on the table.</p>
+        <select id="select-pres-partner-1" class="modal-select hidden" hidden aria-hidden="true" tabindex="-1"></select>
       </div>
       <div class="field-box modal-input-box">
         <label class="modal-label">Second Partner Country (Optional):</label>
@@ -606,10 +614,11 @@
   <div id="hitman-modal" class="modal-overlay hidden">
     <div class="modal-card alert-card">
       <h2 id="txt-hitman-modal-title">🕶️ Hitman Operation</h2>
-      <p id="txt-hitman-modal-desc">Choose an opposing country and which card type to target.</p>
+      <p id="txt-hitman-modal-desc">Your selected table country will be targeted. Choose which card type to disable.</p>
       <div class="field-box modal-input-box">
-        <label id="lbl-hitman-target-country" class="modal-label" for="select-hitman-target-country">Country to target:</label>
-        <select id="select-hitman-target-country" class="modal-select"></select>
+        <span id="lbl-hitman-target-country" class="modal-label">Country to target:</span>
+        <p id="hitman-target-display" class="selected-target-preview">Choose a country badge on the table.</p>
+        <select id="select-hitman-target-country" class="modal-select hidden" hidden aria-hidden="true" tabindex="-1"></select>
       </div>
       <div class="field-box modal-input-box">
         <label id="lbl-hitman-target-card" class="modal-label" for="select-hitman-target-card">Card type to disable:</label>
@@ -628,10 +637,11 @@
   <div id="atomic-modal" class="modal-overlay hidden">
     <div class="modal-card alert-card">
       <h2 style="color: var(--danger-color);">☢️ Atomic Bomb Targeting</h2>
-      <p>Select a rival nation and resource field to destroy 20% of its current investment for this round. Pandemic deactivates this card in Advanced Edition only.</p>
+      <p id="txt-atomic-modal-desc">Your selected table country will be targeted. Choose the field to strike.</p>
       <div class="field-box modal-input-box">
-        <label class="modal-label">Target Power:</label>
-        <select id="select-atomic-target-country" class="modal-select" onchange="updateResourceSelectorLabels()"></select>
+        <span class="modal-label">Target Power:</span>
+        <p id="atomic-target-display" class="selected-target-preview">Choose a country badge on the table.</p>
+        <select id="select-atomic-target-country" class="modal-select hidden" hidden aria-hidden="true" tabindex="-1" onchange="updateResourceSelectorLabels()"></select>
       </div>
       <div class="field-box modal-input-box">
         <label class="modal-label">Target Resource Field:</label>

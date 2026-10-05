@@ -42,9 +42,13 @@ class HitmanClientFlowTests(unittest.TestCase):
         hitman_start = source.index("window.openHitmanModal = function")
         atomic_start = source.index("window.openAtomicModal", hitman_start)
         hitman_body = source[hitman_start:atomic_start]
+        target_helper_start = source.index("function populateTableTargetSelect")
+        target_helper_end = source.index("function syncTableTargetSelectors", target_helper_start)
+        target_helper_body = source[target_helper_start:target_helper_end]
 
         self.assertIn('document.getElementById("select-hitman-target-country")', hitman_body)
-        self.assertIn("liveCountryNames(true)", hitman_body)
+        self.assertIn('populateTableTargetSelect("select-hitman-target-country", "hitman-target-display")', hitman_body)
+        self.assertIn("liveCountryNames(true)", target_helper_body)
         self.assertIn('submitRoomEvent("HITMAN_STRIKE", { targetCountry, targetCard })', hitman_body)
 
     def test_atomic_result_notifications_omit_remaining_investment(self):
