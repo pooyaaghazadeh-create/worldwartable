@@ -1396,11 +1396,28 @@ function renderTvRoster() {
   wrapper.replaceChildren();
   const interactivePlayerView = document.body.classList.contains("mobile-controller");
   const selfCountry = cleanStr(assignedCountry?.name || "");
-  activeRoomPlayers.forEach(player => {
+  const pinSelfToButton = interactivePlayerView
+    && Boolean(selfCountry)
+    && activeRoomPlayers.some(player => cleanStr(player?.country) === selfCountry);
+  const rosterPlayers = pinSelfToButton
+    ? [
+        ...activeRoomPlayers.filter(player => cleanStr(player?.country) !== selfCountry),
+        ...activeRoomPlayers.filter(player => cleanStr(player?.country) === selfCountry)
+      ]
+    : activeRoomPlayers;
+  let nextSeatPosition = 1;
+  rosterPlayers.forEach(player => {
     const country = activeCountryCard(player.country);
     const countryKey = cleanStr(player.country);
     const isSelf = Boolean(selfCountry && countryKey === selfCountry);
     const canSelect = interactivePlayerView && !isSelf;
+    let seatPosition;
+    if (pinSelfToButton && isSelf) {
+      seatPosition = 6;
+    } else {
+      if (pinSelfToButton && nextSeatPosition === 6) nextSeatPosition += 1;
+      seatPosition = nextSeatPosition++;
+    }
     const intelHidden = isCountryIntelHiddenByBlackout(player.country);
     const multipliers = intelHidden ? null : getCountryRoundMultipliers(player.country, country);
     const alliance = [activePresidentCoalition, activeCounterUnion].find(item =>
@@ -1410,6 +1427,7 @@ function renderTvRoster() {
     if (canSelect) seat.type = "button";
     const isSelected = !isSelf && countryKey === cleanStr(selectedBoardCountry);
     seat.className = `poker-seat ${player.locked ? "is-locked" : "is-planning"}${player.ready ? " is-ready" : ""}${alliance ? " is-allied" : ""}${isSelf ? " is-self" : ""}${isSelected ? " is-selected" : ""}${canSelect ? " is-targetable" : ""}`;
+    seat.dataset.seatPosition = String(seatPosition);
     const stateLabel = document.createElement("span");
     stateLabel.className = "tv-seat-state";
     stateLabel.textContent = player.ready
