@@ -27,6 +27,15 @@ class InteractiveTableTests(unittest.TestCase):
         self.assertIn("selectedBoardCountry = player.country;", self.script)
         self.assertIn("syncTableTargetSelectors();", self.script)
 
+    def test_local_country_stays_at_the_button_seat(self):
+        self.assertIn("const pinSelfToButton = interactivePlayerView", self.script)
+        self.assertIn("const rosterPlayers = pinSelfToButton", self.script)
+        self.assertIn("seatPosition = 6;", self.script)
+        self.assertIn("if (pinSelfToButton && nextSeatPosition === 6) nextSeatPosition += 1;", self.script)
+        self.assertIn("seat.dataset.seatPosition = String(seatPosition);", self.script)
+        self.assertIn('.poker-seat[data-seat-position="6"] { top: auto; bottom: 0; left: 50%; }', self.styles)
+        self.assertIn("grid-column: 1 / -1;", self.styles)
+
     def test_trade_battle_and_target_cards_use_the_selected_badge(self):
         self.assertIn("window.openCommandBoardTrade = function()", self.script)
         self.assertIn('setCommandBoardTarget("select-trade-partner");', self.script)

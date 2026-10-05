@@ -198,16 +198,16 @@
   translate: -50% 0;
 }
 
-.poker-seat:nth-child(1) { top: 0; left: 50%; }
-.poker-seat:nth-child(2) { top: 2%; left: 70%; }
-.poker-seat:nth-child(3) { top: 24%; left: 88%; }
-.poker-seat:nth-child(4) { top: 58%; left: 88%; }
-.poker-seat:nth-child(5) { top: auto; bottom: 0; left: 70%; }
-.poker-seat:nth-child(6) { top: auto; bottom: 0; left: 50%; }
-.poker-seat:nth-child(7) { top: auto; bottom: 0; left: 30%; }
-.poker-seat:nth-child(8) { top: 58%; left: 12%; }
-.poker-seat:nth-child(9) { top: 24%; left: 12%; }
-.poker-seat:nth-child(10) { top: 2%; left: 30%; }
+.poker-seat[data-seat-position="1"] { top: 0; left: 50%; }
+.poker-seat[data-seat-position="2"] { top: 2%; left: 70%; }
+.poker-seat[data-seat-position="3"] { top: 24%; left: 88%; }
+.poker-seat[data-seat-position="4"] { top: 58%; left: 88%; }
+.poker-seat[data-seat-position="5"] { top: auto; bottom: 0; left: 70%; }
+.poker-seat[data-seat-position="6"] { top: auto; bottom: 0; left: 50%; }
+.poker-seat[data-seat-position="7"] { top: auto; bottom: 0; left: 30%; }
+.poker-seat[data-seat-position="8"] { top: 58%; left: 12%; }
+.poker-seat[data-seat-position="9"] { top: 24%; left: 12%; }
+.poker-seat[data-seat-position="10"] { top: 2%; left: 30%; }
 
 .poker-seat strong { color: #ffd36a; }
 .poker-seat .tv-seat-country {
@@ -411,6 +411,12 @@
     top: auto !important;
     translate: none;
     width: 100%;
+  }
+
+  .player-table-felt .poker-seat.is-self {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: min(78%, 260px);
   }
 
   .player-table-felt .poker-seat .tv-seat-country {
