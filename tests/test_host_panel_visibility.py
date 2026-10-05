@@ -58,7 +58,8 @@ class HostPanelVisibilityTests(unittest.TestCase):
         self.assertIn('id="btn-host-advance"', act_panel[actions_index:])
         self.assertIn('id="btn-host-restart"', act_panel[actions_index:])
         self.assertIn('id="round-settlement-card"', act_panel)
-        self.assertIn('id="round-announcements"', act_panel)
+        self.assertIn('id="table-round-announcement"', act_panel)
+        self.assertNotIn('id="round-announcements"', act_panel)
 
     def test_non_hosts_still_cannot_run_host_commands(self):
         guard_start = self.script.index("function requireRoomCreator")

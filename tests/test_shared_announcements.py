@@ -39,7 +39,7 @@ class SharedAnnouncementTests(unittest.TestCase):
 
     def test_latest_round_announcement_is_shown_at_the_live_table_center(self):
         self.assertIn('id="table-round-announcement"', self.mobile)
-        self.assertIn('id="round-announcements"', self.mobile)
+        self.assertNotIn('id="round-announcements"', self.mobile)
         start = self.client.index("function renderRoundAnnouncements()")
         end = self.client.index("\nfunction ", start + 1)
         renderer = self.client[start:end]

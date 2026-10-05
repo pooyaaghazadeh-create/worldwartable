@@ -84,7 +84,7 @@ class GameTabLayoutTests(unittest.TestCase):
         self.assertNotIn('id="btn-host-advance"', consensus_card)
         self.assertNotIn('id="btn-host-restart"', consensus_card)
         self.assertIn('id="host-review-actions"', act_panel[consensus_end:])
-        self.assertIn('class="card full-width announcement-card"', act_panel)
+        self.assertNotIn('class="card full-width announcement-card"', act_panel)
         self.assertEqual(self.html.count('id="btn-player-ready"'), 1)
 
     def test_review_content_is_kept_in_act_without_review_tab(self):
@@ -94,11 +94,11 @@ class GameTabLayoutTests(unittest.TestCase):
         act_panel = self.html[act_start:self.html.index("</main>", act_start)]
         self.assertIn('id="round-settlement-card"', self.html)
         self.assertIn('id="final-placements-panel"', self.html)
-        self.assertIn('id="round-announcements"', self.html)
+        self.assertNotIn('id="round-announcements"', self.html)
+        self.assertNotIn('📣 Round Announcements', act_panel)
         for retained_panel in (
             'id="round-settlement-card"',
             'id="final-placements-panel"',
-            'id="round-announcements"',
         ):
             self.assertIn(retained_panel, act_panel)
 
