@@ -12,6 +12,7 @@ class InteractiveTableTests(unittest.TestCase):
     def setUpClass(cls):
         cls.script = (ROOT / "script.js").read_text()
         cls.mobile = (ROOT / "mobile.html").read_text()
+        cls.tv = (ROOT / "tv.html").read_text()
         cls.styles = (ROOT / "style.css").read_text()
 
     def test_interactive_table_is_the_default_player_view(self):
@@ -28,8 +29,19 @@ class InteractiveTableTests(unittest.TestCase):
         self.assertNotIn("txt-command-board-kicker", self.mobile)
         self.assertNotIn("txt-command-board-desc", self.mobile)
         self.assertNotIn('class="table-center-eyebrow">LIVE TABLE', self.mobile)
-        self.assertIn('id="tv-status-ticker" class="table-ticker-broadcast"></div>', self.mobile)
+        self.assertNotIn('id="command-board-condition"', self.mobile)
+        self.assertNotIn('id="tv-status-ticker"', self.mobile)
+        self.assertNotIn('id="tv-round-status"', self.mobile)
+        self.assertNotIn(".command-board-condition", self.styles)
+        self.assertIn('id="tv-status-ticker"', self.tv)
+        self.assertIn('id="tv-round-status"', self.tv)
         self.assertIn('if (tvTicker) tvTicker.textContent =', self.script)
+
+    def test_player_badges_are_square_at_desktop_and_mobile_sizes(self):
+        self.assertIn(".player-table-felt .poker-seat {\n  aspect-ratio: 1 / 1;", self.styles)
+        self.assertIn("height: auto;", self.styles)
+        self.assertIn("max-width: 168px;", self.styles)
+        self.assertIn("width: min(100%, 168px);", self.styles)
 
     def test_only_opposing_country_badges_are_targetable(self):
         self.assertIn('const interactivePlayerView = document.body.classList.contains("mobile-controller");', self.script)

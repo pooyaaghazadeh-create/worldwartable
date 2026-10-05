@@ -227,7 +227,6 @@ const translations = {
     txtBlackoutHidden: "🌑 BLACKOUT — Intelligence hidden",
     txtBoardBlackout: "Blackout active — opponent multipliers and total investment are hidden.",
     txtCommandBoardTitle: "Interactive Game Table",
-    txtBoardConditionClear: "No active condition",
     txtBoardEmpty: "Awaiting other seated commanders…",
     txtBoardPlanning: "Planning",
     txtBoardLocked: "Investments locked",
@@ -353,7 +352,6 @@ const translations = {
     txtBlackoutHidden: "🌑 KARARTMA — İstihbarat gizli",
     txtBoardBlackout: "Karartma aktif — rakip çarpanları ve toplam yatırımları gizli.",
     txtCommandBoardTitle: "Etkileşimli Oyun Masası",
-    txtBoardConditionClear: "Aktif etkinlik yok",
     txtBoardEmpty: "Diğer oturmuş komutanlar bekleniyor…",
     txtBoardPlanning: "Planlama",
     txtBoardLocked: "Yatırımlar kilitli",
@@ -479,7 +477,6 @@ const translations = {
     txtBlackoutHidden: "🌑 خاموشی — اطلاعات پنهان است",
     txtBoardBlackout: "خاموشی فعال است — ضرایب و مجموع سرمایه‌گذاری حریفان پنهان است.",
     txtCommandBoardTitle: "میز تعاملی بازی",
-    txtBoardConditionClear: "رویداد فعالی نیست",
     txtBoardEmpty: "در انتظار دیگر فرماندهان نشسته…",
     txtBoardPlanning: "در حال برنامه‌ریزی",
     txtBoardLocked: "سرمایه‌گذاری‌ها قفل شده‌اند",
@@ -3278,7 +3275,6 @@ function renderCommandBoardDetails(player) {
 function renderCommandBoard() {
   const surface = document.getElementById("poker-seats-wrapper");
   const felt = surface?.closest(".player-table-felt");
-  const condition = document.getElementById("command-board-condition");
   const actLockNotice = document.getElementById("act-phase-lock-notice");
   const prepareIncomplete = !isPrepareCompleteForAct();
   if (actLockNotice) {
@@ -3293,13 +3289,6 @@ function renderCommandBoard() {
   const opponentPlayers = activeRoomPlayers.filter(player =>
     player?.country && cleanStr(player.country) !== selfCountry
   );
-
-  if (condition) {
-    condition.textContent = activeGlobalCondition
-      ? activeGlobalCondition.title
-      : copy.txtBoardConditionClear;
-    condition.classList.toggle("is-active", Boolean(activeGlobalCondition));
-  }
 
   if (!opponentPlayers.some(player => cleanStr(player.country) === cleanStr(selectedBoardCountry))) {
     selectedBoardCountry = opponentPlayers[0]?.country || "";

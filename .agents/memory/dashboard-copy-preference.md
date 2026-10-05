@@ -1,10 +1,10 @@
 ---
-name: Dashboard copy preference
-description: The user's preference for phase tabs and the live table to avoid repeated visible headings and static instructional copy.
+name: Dashboard table layout
+description: The user's preference for concise tab content, no central status messages on the player table, and square player badges.
 ---
 
-In the player dashboard, do not repeat a tab name as a visible heading or add static helper instructions where the tab or interactive elements already provide the context. For the live game table, retain an accessible name for assistive technology and live status updates, but remove visible headings and static prompt text.
+In the player dashboard, do not repeat a tab name as a visible heading or add static helper instructions where the tab or interactive elements already provide the context. The player table should not show a central live-status ticker, condition tag, or round-status message. Keep player badges square and preserve their information and accessible names. The separate TV feed can retain its live status display.
 
-**Why:** the user repeatedly requested removal of repeated tab and table headings and instructional lines.
+**Why:** the user repeatedly requested a less cluttered player dashboard, removal of table status messages, and square player badges.
 
-**How to apply:** When changing dashboard panes or the live table, preserve content labels that identify distinct controls, but avoid decorative phase names and static instructions repeated by navigation or current live state.
+**How to apply:** For player dashboard changes, avoid decorative phase names and central table messages while preserving per-player badge details. Keep the separate TV broadcast display intact.
