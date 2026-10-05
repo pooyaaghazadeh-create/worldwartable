@@ -5,23 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>World War Table - Interactive Table</title>
   <link rel="stylesheet" href="style.css">
-  <style>
-    .host-requests-list {
-      margin-top: 15px;
-      padding: 10px;
-      background: rgba(0,0,0,0.3);
-      border-radius: 8px;
-      border: 1px dashed var(--gold-color, #ffd700);
-    }
-    .request-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-    .request-item:last-child { border-bottom: none; }
-  </style>
 </head>
 <body class="mobile-controller">
 
@@ -48,12 +31,7 @@
     <main class="dashboard-container">
 
       <nav class="game-tabs" role="tablist" aria-label="Game phases">
-        <button id="tab-status" class="game-tab is-active" role="tab" aria-selected="true" aria-controls="tab-panel-status" tabindex="0" data-game-tab="status" onclick="selectGameTab('status')">
-          <span class="game-tab-icon" aria-hidden="true">◎</span>
-          <span id="txt-tab-status">Status &amp; Cards</span>
-          <span class="game-tab-badge hidden" id="tab-status-badge"></span>
-        </button>
-        <button id="tab-prepare" class="game-tab" role="tab" aria-selected="false" aria-controls="tab-panel-prepare" tabindex="-1" data-game-tab="prepare" onclick="selectGameTab('prepare')">
+        <button id="tab-prepare" class="game-tab is-active" role="tab" aria-selected="true" aria-controls="tab-panel-prepare" tabindex="0" data-game-tab="prepare" onclick="selectGameTab('prepare')">
           <span class="game-tab-icon" aria-hidden="true">01</span>
           <span id="txt-tab-prepare">Prepare</span>
           <span class="game-tab-badge hidden" id="tab-prepare-badge"></span>
@@ -89,7 +67,13 @@
         </section>
       </div>
 
-      <section id="tab-panel-status" class="game-tab-panel is-active" role="tabpanel" aria-labelledby="tab-status" data-panel="status">
+      <section id="tab-panel-prepare" class="game-tab-panel is-active" role="tabpanel" aria-labelledby="tab-prepare" data-panel="prepare">
+      <div class="flow-section-label flow-prepare-label" role="heading" aria-level="2">
+        <span>01</span>
+        <strong id="txt-prepare-section">Prepare</strong>
+        <small id="txt-prepare-section-desc">Set your economy and lock investments</small>
+      </div>
+
       <!-- COMMANDER STATUS -->
       <section id="commander-status-strip" class="commander-status-strip full-width" aria-labelledby="txt-status-kicker">
         <div class="status-strip-heading">
@@ -132,14 +116,6 @@
             <span id="lbl-merchant-bonus">Merchant Bonus Active:</span>
             <strong id="merchant-status">No ❌</strong>
           </div>
-        <div class="status-purchase">
-          <div class="status-purchase-copy">
-            <span id="txt-coin-requests">Coin requests</span>
-            <strong id="status-coin-requests">0 / 5</strong>
-            <small id="status-coin-requests-help">Requests used this game</small>
-          </div>
-          <button id="btn-buy-coins" class="btn btn-primary" onclick="requestBuyCoins()">Buy 100 Coins (Max 500)</button>
-        </div>
       </section>
 
       <!-- HOST ONLY CONSOLE -->
@@ -161,13 +137,6 @@
           </div>
         </div>
 
-        <!-- HOST COIN REQUEST APPROVAL QUEUE -->
-        <div class="host-requests-list">
-          <h3 id="txt-pending-requests-title" style="margin-bottom: 5px; color: var(--gold-color);">📥 Pending Coin Purchase Requests</h3>
-          <div id="host-requests-container">
-            <p style="color: var(--text-muted); font-size: 0.9rem;">No pending coin purchase requests.</p>
-          </div>
-        </div>
       </section>
 
       <!-- GAME CARDS -->
@@ -195,14 +164,7 @@
           </section>
         </div>
       </section>
-      </section>
 
-      <section id="tab-panel-prepare" class="game-tab-panel" role="tabpanel" aria-labelledby="tab-prepare" data-panel="prepare" hidden>
-      <div class="flow-section-label flow-prepare-label" role="heading" aria-level="2">
-        <span>01</span>
-        <strong id="txt-prepare-section">Prepare</strong>
-        <small id="txt-prepare-section-desc">Set your economy and lock investments</small>
-      </div>
 
       <!-- FIELD INVESTMENTS -->
       <section class="resource-workspace full-width">
@@ -653,7 +615,7 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260824-session-reset-1"></script>
+  <script src="script.js?v=20261005-starting-coins-1"></script>
   <script>
     window.addEventListener("DOMContentLoaded", () => {
       initializeGameTabs();

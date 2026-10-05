@@ -509,6 +509,93 @@ class EditionTests(unittest.TestCase):
             ).fetchall()
         self.assertEqual([row["handle"] for row in hosts], ["Host Commander"])
 
+    def test_new_players_start_with_500_coins_and_keep_balance_after_resume(self):
+        responses = []
+        self.handler.headers = {}
+        self.handler.send_json = lambda payload, status=server.HTTPStatus.OK, cookie=None: responses.append(
+            (payload, status)
+        )
+
+        for edition in ("advanced", "simple"):
+            handle = f"{edition.title()} Commander"
+            token = server.ACTIVE_EDITION.set(edition)
+            try:
+                self.handler.join_room(
+                    {"handle": handle, "role": "player", "edition": edition}
+                )
+            finally:
+                server.ACTIVE_EDITION.reset(token)
+
+            join_payload, join_status = responses[-1]
+            self.assertEqual(join_status, server.HTTPStatus.CREATED)
+            with server.database(edition) as connection:
+                player = connection.execute(
+                    "SELECT id FROM players WHERE handle_key = ?", (handle.casefold(),)
+                ).fetchone()
+                self.assertEqual(
+                    connection.execute(
+                        "SELECT coins FROM player_wallets WHERE player_id = ?",
+                        (player["id"],),
+                    ).fetchone()["coins"],
+                    500,
+                )
+                connection.execute(
+                    "UPDATE player_wallets SET coins = 137 WHERE player_id = ?",
+                    (player["id"],),
+                )
+
+            token = server.ACTIVE_EDITION.set(edition)
+            try:
+                self.handler.resume_room(
+                    {
+                        "handle": handle,
+                        "reconnectCode": join_payload["reconnectCode"],
+                        "edition": edition,
+                    }
+                )
+            finally:
+                server.ACTIVE_EDITION.reset(token)
+
+            self.assertEqual(responses[-1][1], server.HTTPStatus.CREATED)
+            with server.database(edition) as connection:
+                self.assertEqual(
+                    connection.execute(
+                        """
+                        SELECT player_wallets.coins
+                        FROM player_wallets
+                        JOIN players ON players.id = player_wallets.player_id
+                        WHERE players.handle_key = ?
+                        """,
+                        (handle.casefold(),),
+                    ).fetchone()["coins"],
+                    137,
+                )
+
+    def test_legacy_coin_purchase_events_are_rejected(self):
+        responses = []
+        self.handler.headers = {}
+        self.handler.session_player = lambda: {"id": 1, "is_host": True}
+        self.handler.send_json = lambda payload, status=server.HTTPStatus.OK, cookie=None: responses.append(
+            (payload, status)
+        )
+
+        self.handler.create_room_event(
+            {"type": "REQUEST_COINS", "payload": {}, "edition": "advanced"}
+        )
+        self.handler.create_host_event(
+            {
+                "type": "RESOLVE_COIN_REQUEST",
+                "payload": {"requestId": 1, "approved": True},
+                "edition": "advanced",
+            }
+        )
+
+        self.assertEqual(
+            [status for _, status in responses],
+            [server.HTTPStatus.BAD_REQUEST, server.HTTPStatus.BAD_REQUEST],
+        )
+        self.assertTrue(all("Unsupported" in payload["error"] for payload, _ in responses))
+
     def test_one_browser_can_keep_independent_sessions_for_both_editions(self):
         self.http_server = server.ThreadingHTTPServer(("127.0.0.1", 0), server.GameHandler)
         self.http_thread = threading.Thread(target=self.http_server.serve_forever, daemon=True)
@@ -549,6 +636,8 @@ class EditionTests(unittest.TestCase):
         self.assertEqual(simple_status, 200)
         self.assertEqual(advanced_session["player"]["handle"], "Advanced Commander")
         self.assertEqual(simple_session["player"]["handle"], "Simple Commander")
+        self.assertEqual(advanced_session["economy"]["coins"], 500)
+        self.assertEqual(simple_session["economy"]["coins"], 500)
 
         reset_status, reset_data = request(
             "POST",

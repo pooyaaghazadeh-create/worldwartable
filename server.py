@@ -54,9 +54,7 @@ COUNTRIES = [
 CARD_TITLES = EDITIONS["advanced"]["card_titles"]
 RESOURCE_FIELDS = ("agri", "oil", "mines")
 ROUND_MULTIPLIER_VALUES = (1, 2, 3)
-COIN_PURCHASE_AMOUNT = 100
-MAX_PURCHASE_CAP = 500
-MAX_COIN_REQUESTS = 5
+STARTING_PLAYER_COINS = 500
 GLOBAL_CONDITIONS = (
     {"id": "economic-recession"},
     {"id": "global-warming"},
@@ -68,10 +66,8 @@ HOST_EVENT_TYPES = {
     "HOST_DEAL_CARDS",
     "HOST_DRAW_EVENT",
     "EXECUTE_ROUND_CALCULATION",
-    "RESOLVE_COIN_REQUEST",
 }
 ROOM_EVENT_TYPES = {
-    "REQUEST_COINS",
     "SET_READY",
     "PROPOSE_ALLIANCE",
     "APPROVE_ALLIANCE",
@@ -220,6 +216,7 @@ def initialize_database(edition: str | None = None) -> None:
               player_id INTEGER PRIMARY KEY REFERENCES players(id) ON DELETE CASCADE,
               ready_at INTEGER NOT NULL
             );
+            -- Kept for historical compatibility; coin purchase requests are no longer supported.
             CREATE TABLE IF NOT EXISTS coin_requests (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               player_id INTEGER NOT NULL REFERENCES players(id) ON DELETE CASCADE,
@@ -577,9 +574,6 @@ class GameHandler(SimpleHTTPRequestHandler):
             wallet_row = connection.execute(
                 "SELECT coins, loans, loan_interest FROM player_wallets WHERE player_id = ?", (player["id"],)
             ).fetchone()
-            coin_request_count = connection.execute(
-                "SELECT COUNT(*) FROM coin_requests WHERE player_id = ?", (player["id"],)
-            ).fetchone()[0]
             lock_row = connection.execute(
                 "SELECT agri, oil, mines FROM player_round_resources WHERE player_id = ?", (player["id"],)
             ).fetchone()
@@ -610,8 +604,6 @@ class GameHandler(SimpleHTTPRequestHandler):
                     "coins": wallet_row["coins"] if wallet_row else 0,
                     "loans": wallet_row["loans"] if wallet_row else 0,
                     "loanInterest": wallet_row["loan_interest"] if wallet_row else 0,
-                    "coinRequestsUsed": coin_request_count,
-                    "coinRequestLimit": MAX_COIN_REQUESTS,
                     "investments": {field: lock_row[field] for field in ("agri", "oil", "mines")} if lock_row else None,
                     "lastSettlement": last_settlement,
                     "battleAllowance": {
@@ -837,8 +829,8 @@ class GameHandler(SimpleHTTPRequestHandler):
                 (handle, handle_key, seat["country"], int(time.time())),
             )
             connection.execute(
-                "INSERT INTO player_wallets (player_id, coins, loans) VALUES (?, 0, 0)",
-                (cursor.lastrowid,),
+                "INSERT INTO player_wallets (player_id, coins, loans) VALUES (?, ?, 0)",
+                (cursor.lastrowid, STARTING_PLAYER_COINS),
             )
             room = connection.execute(
                 "SELECT host_player_id FROM room_state WHERE id = 1"
@@ -1012,50 +1004,6 @@ class GameHandler(SimpleHTTPRequestHandler):
                     HTTPStatus.CONFLICT,
                 )
                 return
-            elif event_type == "RESOLVE_COIN_REQUEST":
-                request_id = event_payload.get("requestId") if isinstance(event_payload, dict) else None
-                approved = event_payload.get("approved") if isinstance(event_payload, dict) else None
-                if not isinstance(request_id, int) or not isinstance(approved, bool):
-                    self.send_json({"error": "Choose a valid pending coin request."}, HTTPStatus.BAD_REQUEST)
-                    return
-                request = connection.execute(
-                    """
-                    SELECT coin_requests.*, players.country, player_wallets.coins
-                    FROM coin_requests
-                    JOIN players ON players.id = coin_requests.player_id
-                    JOIN player_wallets ON player_wallets.player_id = players.id
-                    WHERE coin_requests.id = ?
-                    """,
-                    (request_id,),
-                ).fetchone()
-                if not request or request["status"] != "pending":
-                    self.send_json({"error": "That coin request is no longer pending."}, HTTPStatus.CONFLICT)
-                    return
-                if approved and request["coins"] + request["amount"] > MAX_PURCHASE_CAP:
-                    self.send_json(
-                        {"error": f"Approving this request would exceed the {MAX_PURCHASE_CAP} coin wallet cap."},
-                        HTTPStatus.CONFLICT,
-                    )
-                    return
-                connection.execute(
-                    "UPDATE coin_requests SET status = ? WHERE id = ?",
-                    ("approved" if approved else "rejected", request_id),
-                )
-                if approved:
-                    connection.execute(
-                        "UPDATE player_wallets SET coins = coins + ? WHERE player_id = ?",
-                        (request["amount"], request["player_id"]),
-                    )
-                next_wallet = connection.execute(
-                    "SELECT coins FROM player_wallets WHERE player_id = ?", (request["player_id"],)
-                ).fetchone()
-                event_payload = {
-                    "requestId": request_id,
-                    "country": request["country"],
-                    "amount": request["amount"],
-                    "approved": approved,
-                    "coins": next_wallet["coins"],
-                }
             elif event_type == "EXECUTE_ROUND_CALCULATION":
                 player_count = connection.execute("SELECT COUNT(*) FROM players").fetchone()[0]
                 locked_count = connection.execute("SELECT COUNT(*) FROM player_round_resources").fetchone()[0]
@@ -1320,9 +1268,7 @@ class GameHandler(SimpleHTTPRequestHandler):
             )
             return
 
-        if event_type == "REQUEST_COINS":
-            self.request_coins(player, event_payload)
-        elif event_type == "SET_READY":
+        if event_type == "SET_READY":
             self.set_ready(player, event_payload)
         elif event_type == "LOCK_RESOURCES":
             self.lock_resources(player, event_payload)
@@ -2093,64 +2039,6 @@ class GameHandler(SimpleHTTPRequestHandler):
                 connection,
                 "LOCK_RESOURCES",
                 {"country": player["country"], **values},
-            )
-        self.send_json({"event": event}, HTTPStatus.CREATED)
-
-    def request_coins(self, player: sqlite3.Row, payload: dict) -> None:
-        if payload:
-            self.send_json({"error": "Coin requests do not accept client-supplied amounts."}, HTTPStatus.BAD_REQUEST)
-            return
-        with database() as connection:
-            connection.execute("BEGIN IMMEDIATE")
-            wallet = connection.execute(
-                "SELECT coins FROM player_wallets WHERE player_id = ?", (player["id"],)
-            ).fetchone()
-            pending_amount = connection.execute(
-                """
-                SELECT COALESCE(SUM(amount), 0)
-                FROM coin_requests
-                WHERE player_id = ? AND status = 'pending'
-                """,
-                (player["id"],),
-            ).fetchone()[0]
-            request_count = connection.execute(
-                "SELECT COUNT(*) FROM coin_requests WHERE player_id = ?", (player["id"],)
-            ).fetchone()[0]
-            if request_count >= MAX_COIN_REQUESTS:
-                self.send_json(
-                    {
-                        "error": (
-                            f"You have reached the limit of {MAX_COIN_REQUESTS} coin purchase requests."
-                        )
-                    },
-                    HTTPStatus.CONFLICT,
-                )
-                return
-            if not wallet or wallet["coins"] + pending_amount + COIN_PURCHASE_AMOUNT > MAX_PURCHASE_CAP:
-                self.send_json(
-                    {
-                        "error": (
-                            f"Your approved coins and pending requests already reach the "
-                            f"{MAX_PURCHASE_CAP} coin purchase cap."
-                        )
-                    },
-                    HTTPStatus.CONFLICT,
-                )
-                return
-            cursor = connection.execute(
-                "INSERT INTO coin_requests (player_id, amount, status, created_at) VALUES (?, ?, 'pending', ?)",
-                (player["id"], COIN_PURCHASE_AMOUNT, int(time.time())),
-            )
-            event = self.publish_room_event(
-                connection,
-                "REQUEST_COINS",
-                {
-                    "requestId": cursor.lastrowid,
-                    "country": player["country"],
-                    "amount": COIN_PURCHASE_AMOUNT,
-                    "requestCount": request_count + 1,
-                    "requestLimit": MAX_COIN_REQUESTS,
-                },
             )
         self.send_json({"event": event}, HTTPStatus.CREATED)
 

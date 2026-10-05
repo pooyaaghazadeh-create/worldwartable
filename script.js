@@ -2,7 +2,6 @@
 // MASTER GAME STATE & SYSTEM DATABASE
 // ==========================================
 let coins = 0;                  
-const MAX_PURCHASE_CAP = 500;   
 let loans = 0;
 let loanInterest = 0;
 let lastRoundSettlement = null;
@@ -40,7 +39,6 @@ let readyPlayersSet = new Set();
 let lockedPlayersSet = new Set();
 let registeredPlayersCount = 1;
 
-let pendingCoinRequests = [];
 let gameActivityLedger = [];
 let gameResultAlertQueue = [];
 let activeGameResultAlert = null;
@@ -53,8 +51,6 @@ const seenGameResultAlertIds = new Set();
 const seenRoundAnnouncementEventIds = new Set();
 const soundPreferenceKey = "world_war_sound_enabled";
 const visualPulseTimers = new WeakMap();
-const MAX_COIN_REQUESTS = 5;
-
 function isSimpleEdition() {
   return activeEdition === "simple";
 }
@@ -184,7 +180,6 @@ const translations = {
     btnHostEvent: "Draw Global Event",
     btnHostAdvance: "Close & Calculate Round",
     txtGlobalEventTitle: "🌍 Active Global Event",
-    txtPendingRequestsTitle: "📥 Pending Coin Purchase Requests",
     txtEconomyTitle: "Economy & Banker",
     lblCountry: "Country:",
     lblCoins: "Total Coins Balance:",
@@ -221,7 +216,6 @@ const translations = {
     lblMultAgri: "Agriculture",
     lblMultOil: "Oil",
     lblMultMines: "Mines",
-    btnBuyCoins: "Buy 100 Coins (Max 500)",
     txtInvestTitle: "Field Investments",
     lblUnallocated: "Unallocated:",
     btnLockInvest: "Lock In Investments",
@@ -271,7 +265,6 @@ const translations = {
     txtGameCardsTitle: "Game Cards",
     txtGameCardsDesc: "Live conditions and your available proficiency cards.",
     ariaGameTabs: "Game phases",
-    txtTabStatus: "Status & Cards",
     txtTabPrepare: "Prepare",
     txtTabAct: "Act",
     txtTabReview: "Review",
@@ -291,8 +284,6 @@ const translations = {
     txtStatusLoan: "Loan",
     txtStatusTrades: "Trades left",
     txtStatusBattles: "Battles left",
-    txtCoinRequests: "Coin requests",
-    txtCoinRequestsUsed: "{used} / {limit} used this game",
     txtPrepareSection: "Prepare",
     txtPrepareSectionDesc: "Set your economy and lock investments",
     txtFlowPrepare: "Prepare",
@@ -326,7 +317,6 @@ const translations = {
     btnHostEvent: "Küresel Etkinlik Çek",
     btnHostAdvance: "Raundu Kapat ve Hesapla",
     txtGlobalEventTitle: "🌍 Aktif Küresel Etkinlik",
-    txtPendingRequestsTitle: "📥 Bekleyen Coin Satın Alım İstekleri",
     txtEconomyTitle: "Ekonomi ve Banker",
     lblCountry: "Ülke:",
     lblCoins: "Toplam Coin Bakiyesi:",
@@ -363,7 +353,6 @@ const translations = {
     lblMultAgri: "Tarım",
     lblMultOil: "Petrol",
     lblMultMines: "Madenler",
-    btnBuyCoins: "100 Coin Al (Maks 500)",
     txtInvestTitle: "Saha Yatırımları",
     lblUnallocated: "Ayrılmamış:",
     btnLockInvest: "Yatırımları Kilitle",
@@ -413,7 +402,6 @@ const translations = {
     txtGameCardsTitle: "Oyun Kartları",
     txtGameCardsDesc: "Canlı koşullar ve kullanılabilir uzmanlık kartlarınız.",
     ariaGameTabs: "Oyun aşamaları",
-    txtTabStatus: "Durum ve Kartlar",
     txtTabPrepare: "Hazırlık",
     txtTabAct: "Hamle",
     txtTabReview: "Kontrol",
@@ -433,8 +421,6 @@ const translations = {
     txtStatusLoan: "Kredi",
     txtStatusTrades: "Kalan ticaret",
     txtStatusBattles: "Kalan savaş",
-    txtCoinRequests: "Coin talepleri",
-    txtCoinRequestsUsed: "Bu oyunda {used} / {limit} kullanıldı",
     txtPrepareSection: "Hazırlık",
     txtPrepareSectionDesc: "Ekonominizi kurun ve yatırımları kilitleyin",
     txtFlowPrepare: "Hazırlık",
@@ -468,7 +454,6 @@ const translations = {
     btnHostEvent: "کارت رویداد جهانی",
     btnHostAdvance: "بستن و محاسبه نتایج دور",
     txtGlobalEventTitle: "🌍 رویداد جهانی فعال",
-    txtPendingRequestsTitle: "📥 درخواست‌های معلق خرید سکه",
     txtEconomyTitle: "اقتصاد و Banker",
     lblCountry: "کشور:",
     lblCoins: "موجودی کل سکه:",
@@ -505,7 +490,6 @@ const translations = {
     lblMultAgri: "کشاورزی",
     lblMultOil: "نفت",
     lblMultMines: "معادن",
-    btnBuyCoins: "خرید ۱۰۰ سکه (حداکثر ۵۰۰)",
     txtInvestTitle: "سرمایه‌گذاری‌های زمینی",
     lblUnallocated: "تخصیص‌نیافته:",
     btnLockInvest: "قفل سرمایه‌گذاری‌ها",
@@ -555,7 +539,6 @@ const translations = {
     txtGameCardsTitle: "کارت‌های بازی",
     txtGameCardsDesc: "شرایط زنده و کارت‌های مهارت در دسترس شما.",
     ariaGameTabs: "مراحل بازی",
-    txtTabStatus: "وضعیت و کارت‌ها",
     txtTabPrepare: "آماده‌سازی",
     txtTabAct: "اقدام",
     txtTabReview: "بررسی",
@@ -575,8 +558,6 @@ const translations = {
     txtStatusLoan: "وام",
     txtStatusTrades: "معامله باقی‌مانده",
     txtStatusBattles: "نبرد باقی‌مانده",
-    txtCoinRequests: "درخواست سکه",
-    txtCoinRequestsUsed: "{used} / {limit} استفاده در این بازی",
     txtPrepareSection: "آماده‌سازی",
     txtPrepareSectionDesc: "اقتصاد خود را تنظیم و سرمایه‌گذاری‌ها را قفل کنید",
     txtFlowPrepare: "آماده‌سازی",
@@ -634,7 +615,6 @@ const notificationExactTranslations = {
   tr: {
     "↩️ Trade proposal rejected. Your reserved offer has been returned.": "↩️ Ticaret teklifi reddedildi. Rezerve teklifiniz iade edildi.",
     "❌ Trade Proposal Rejected by target nation!": "❌ Ticaret teklifi hedef ülke tarafından reddedildi!",
-    "❌ Host Rejected your coin purchase request.": "❌ Yönetici coin satın alma isteğinizi reddetti.",
     "⛔ Could not contact the game server for this host action.": "⛔ Bu yönetici işlemi için oyun sunucusuna ulaşılamadı.",
     "⛔ Could not contact the game server for this alliance action.": "⛔ Bu ittifak işlemi için oyun sunucusuna ulaşılamadı.",
     "⛔ Could not contact the game server to reset the table.": "⛔ Masayı sıfırlamak için oyun sunucusuna ulaşılamadı.",
@@ -678,7 +658,6 @@ const notificationExactTranslations = {
   fa: {
     "↩️ Trade proposal rejected. Your reserved offer has been returned.": "↩️ پیشنهاد تجارت رد شد. پیشنهاد رزروشده شما برگردانده شد.",
     "❌ Trade Proposal Rejected by target nation!": "❌ پیشنهاد تجارت توسط کشور هدف رد شد!",
-    "❌ Host Rejected your coin purchase request.": "❌ میزبان درخواست خرید سکه شما را رد کرد.",
     "⛔ Could not contact the game server for this host action.": "⛔ ارتباط با سرور بازی برای این اقدام میزبان ممکن نشد.",
     "⛔ Could not contact the game server for this alliance action.": "⛔ ارتباط با سرور بازی برای این اقدام ائتلاف ممکن نشد.",
     "⛔ Could not contact the game server to reset the table.": "⛔ ارتباط با سرور بازی برای بازنشانی میز ممکن نشد.",
@@ -786,9 +765,6 @@ function localizeNotificationMessage(message) {
   if ((match = message.match(/^🎲 Host drawn Global Event Card: (.+)!$/))) {
     return currentLang === "tr" ? `🎲 Yönetici Küresel Etkinlik kartını çekti: ${match[1]}!` : `🎲 میزبان کارت رویداد جهانی را کشید: ${match[1]}!`;
   }
-  if ((match = message.match(/^✅ Host Approved your coin purchase! Your server wallet now holds (.+) coins\.$/))) {
-    return currentLang === "tr" ? `✅ Yönetici coin satın almanızı onayladı! Sunucu cüzdanınızda artık ${match[1]} coin var.` : `✅ میزبان خرید سکه شما را تأیید کرد! کیف پول سرور شما اکنون ${match[1]} سکه دارد.`;
-  }
   if ((match = message.match(/^🏦 Banker loan settled: (.+) coins paid, including interest\.$/))) {
     return currentLang === "tr" ? `🏦 Banker kredisi kapatıldı: faiz dahil ${match[1]} coin ödendi.` : `🏦 وام Banker تسویه شد: ${match[1]} سکه شامل بهره پرداخت شد.`;
   }
@@ -818,15 +794,6 @@ function localizeNotificationMessage(message) {
   }
   if ((match = message.match(/^❌ You rejected the trade proposal from (.+)\.$/))) {
     return currentLang === "tr" ? `❌ ${match[1]} ülkesinin ticaret teklifini reddettiniz.` : `❌ پیشنهاد تجارت ${match[1]} را رد کردید.`;
-  }
-  if ((match = message.match(/^🛑 Request limit reached: you can make up to (.+) coin purchase requests per game\.$/))) {
-    return currentLang === "tr" ? `🛑 İstek sınırına ulaşıldı: oyun başına en fazla ${match[1]} coin satın alma isteği yapabilirsiniz.` : `🛑 به سقف درخواست رسیدید: در هر بازی حداکثر ${match[1]} درخواست خرید سکه می‌توانید ثبت کنید.`;
-  }
-  if ((match = message.match(/^🛑 Purchase Capped: Approved coins and pending requests cannot exceed (.+) coins\.$/))) {
-    return currentLang === "tr" ? `🛑 Satın alma sınırı: onaylanan coinler ve bekleyen istekler ${match[1]} coin'i aşamaz.` : `🛑 سقف خرید: سکه‌های تأییدشده و درخواست‌های معلق نمی‌توانند از ${match[1]} سکه بیشتر شوند.`;
-  }
-  if ((match = message.match(/^⏳ Coin Purchase Request submitted! Waiting for Host Approval \(\+100 Coins\)\.\.\.$/))) {
-    return currentLang === "tr" ? "⏳ Coin satın alma isteği gönderildi! Yönetici onayı bekleniyor (+100 Coin)..." : "⏳ درخواست خرید سکه ارسال شد! در انتظار تأیید میزبان (+۱۰۰ سکه)...";
   }
   if ((match = message.match(/^⚠️ Loan repayment requires (.+) total wallet coins; you need (.+) more\.$/))) {
     return currentLang === "tr" ? `⚠️ Kredi geri ödemesi için toplam ${match[1]} cüzdan coin'i gerekir; ${match[2]} coin daha eksik.` : `⚠️ بازپرداخت وام به ${match[1]} سکه در کیف پول نیاز دارد؛ ${match[2]} سکه دیگر لازم است.`;
@@ -1013,7 +980,6 @@ window.changeLanguage = function(lang) {
   updateAllianceUI();
   renderCommandBoard();
   syncCommanderStatus();
-  syncCoinPurchaseControl();
   if (activeGlobalCondition) {
     activeGlobalCondition = describeGlobalCondition(activeGlobalCondition);
     renderActiveGlobalCondition();
@@ -1078,17 +1044,6 @@ if (gameBroadcast) {
       pendingTradeProposal = null;
       updateAllianceUI();
       logAction(`❌ Trade Proposal Rejected by target nation!`, "TRADE");
-    } else if (data.type === "REQUEST_COINS") {
-      pendingCoinRequests.push(data.payload);
-      if (
-        assignedCountry &&
-        cleanStr(data.payload?.country) === cleanStr(assignedCountry.name) &&
-        Number.isFinite(Number(data.payload?.requestCount))
-      ) {
-        coinRequestsUsed = Number(data.payload.requestCount);
-      }
-      renderHostCoinRequests();
-      syncCoinPurchaseControl();
     } else if (data.type === "SKIRMISH_DEFEAT") {
       if (assignedCountry && cleanStr(data.payload.targetCountry) === cleanStr(assignedCountry.name)) {
         const fieldName = data.payload.targetField;
@@ -1131,7 +1086,6 @@ let investments = { agri: 0, oil: 0, mines: 0 };
 let activeRoomPlayers = [];
 let pendingServerTrades = [];
 let fieldTradeAttemptsUsed = 0;
-let coinRequestsUsed = 0;
 let activeGameTab = "act";
 let lastAutoGamePhase = null;
 let gameTabsInitialized = false;
@@ -1189,7 +1143,6 @@ function syncGameTabBadges(phase) {
   const copy = translations[currentLang] || translations.en;
   const hasPendingProposal = Boolean(pendingTradeProposal || pendingAllianceProposal);
 
-  setGameTabBadge("status", hasPendingProposal ? copy.txtTabPending : "");
   setGameTabBadge(
     "prepare",
     phase === "prepare"
@@ -1219,7 +1172,7 @@ function syncGameTabBadges(phase) {
 }
 
 window.selectGameTab = function(tabName, shouldFocus = false) {
-  const validTabs = ["status", "prepare", "act", "review"];
+  const validTabs = ["prepare", "act", "review"];
   if (!validTabs.includes(tabName)) return;
 
   const tab = document.getElementById(`tab-${tabName}`);
@@ -1375,7 +1328,6 @@ async function refreshPlayerEconomy() {
     coins = Number(session.economy.coins) || 0;
     loans = Number(session.economy.loans) || 0;
     loanInterest = Number(session.economy.loanInterest) || 0;
-    coinRequestsUsed = Math.max(0, Number(session.economy.coinRequestsUsed) || 0);
     if (session.economy.battleAllowance) {
       skirmishAttacksExecuted = Number(session.economy.battleAllowance.attacksUsed) || 0;
       skirmishMaxAllowedAttacks = Number(session.economy.battleAllowance.maxAttacks) || 1;
@@ -1529,7 +1481,6 @@ function renderFinalPlacements() {
 function syncFinishedGameControls() {
   if (!gameFinished) return;
   [
-    "btn-buy-coins",
     "btn-counter-union",
     "btn-alliance-skirmish",
     "btn-lock-invest",
@@ -2113,16 +2064,6 @@ function sharedAnnouncementForEvent(event) {
         ? `${payload.country || "A commander"} is ready to close Round ${currentRound}.`
         : `${payload.country || "A commander"} withdrew ready status.`;
       break;
-    case "REQUEST_COINS":
-      result.tag = "BANK";
-      result.country = payload.country || "Table";
-      result.message = `${payload.country || "A commander"} requested ${payload.amount || 0} Coins.`;
-      break;
-    case "RESOLVE_COIN_REQUEST":
-      result.tag = "BANK";
-      result.country = payload.country || "Table";
-      result.message = `${payload.country || "A commander"}'s ${payload.amount || 0}-Coin request was ${payload.approved ? "approved" : "rejected"}.`;
-      break;
     case "ACTIVATE_GENERAL":
       result.tag = "CARD";
       result.message = `${payload.country || "A commander"} activated General for a second Field Battle.`;
@@ -2590,23 +2531,6 @@ function applyHostEvent(event) {
         details: "Review the rankings together and choose the winner at your table."
       });
     }
-  } else if (event.type === "RESOLVE_COIN_REQUEST") {
-    const request = event.payload;
-    if (assignedCountry && cleanStr(request.country) === cleanStr(assignedCountry.name)) {
-      if (request.approved) {
-        coins = Number(request.coins) || coins;
-        updateUI();
-        logAction(`✅ Host Approved your coin purchase! Your server wallet now holds ${coins} coins.`, "BANK");
-      } else {
-        logAction("❌ Host Rejected your coin purchase request.", "BANK");
-      }
-    }
-    const matchingRequest = pendingCoinRequests.findIndex(item =>
-      item.requestId === request.requestId
-    );
-    if (matchingRequest >= 0) pendingCoinRequests.splice(matchingRequest, 1);
-    renderHostCoinRequests();
-    syncCoinPurchaseControl();
   } else if (event.type === "LOCK_RESOURCES") {
     if (event.payload?.country) {
       lockedPlayersSet.add(cleanStr(event.payload.country));
@@ -2631,17 +2555,6 @@ function applyHostEvent(event) {
       playSound(everyoneReady ? "allReady" : "ready");
       if (everyoneReady) pulseTvCenter("is-ready-center-highlight", 800);
     }
-  } else if (event.type === "REQUEST_COINS") {
-    pendingCoinRequests.push(event.payload);
-    if (
-      assignedCountry &&
-      cleanStr(event.payload?.country) === cleanStr(assignedCountry.name) &&
-      Number.isFinite(Number(event.payload?.requestCount))
-    ) {
-      coinRequestsUsed = Number(event.payload.requestCount);
-    }
-    renderHostCoinRequests();
-    syncCoinPurchaseControl();
   } else if (event.type === "ACTIVATE_GENERAL") {
     applyGeneralAllowance(event.payload);
     renderCommandBoard();
@@ -3149,7 +3062,6 @@ async function initMobilePlayerSession() {
     coins = Number(session.economy.coins) || 0;
     loans = Number(session.economy.loans) || 0;
     loanInterest = Number(session.economy.loanInterest) || 0;
-    coinRequestsUsed = Math.max(0, Number(session.economy.coinRequestsUsed) || 0);
     if (session.economy.lastSettlement?.fieldYields) {
       lastRoundSettlement = session.economy.lastSettlement;
     }
@@ -3923,127 +3835,11 @@ window.drawGlobalCondition = async function() {
   await submitHostCommand("HOST_DRAW_EVENT", {});
 };
 
-// ==========================================
-// COIN PURCHASE REQUEST ENGINE
-// ==========================================
-window.requestBuyCoins = async function() {
-  if (coinRequestsUsed >= MAX_COIN_REQUESTS) {
-    logAction(
-      `🛑 Request limit reached: you can make up to ${MAX_COIN_REQUESTS} coin purchase requests per game.`,
-      "BANK"
-    );
-    return;
-  }
-
-  const reservedCoins = getPendingCoinPurchaseAmount();
-  if (coins + reservedCoins + 100 > MAX_PURCHASE_CAP) {
-    logAction(
-      `🛑 Purchase Capped: Approved coins and pending requests cannot exceed ${MAX_PURCHASE_CAP} coins.`,
-      "BANK"
-    );
-    return;
-  }
-
-  const submitted = await submitRoomEvent("REQUEST_COINS", {});
-  if (!submitted) return;
-
-  logAction(`⏳ Coin Purchase Request submitted! Waiting for Host Approval (+100 Coins)...`, "BANK");
-};
-
-function getPendingCoinPurchaseAmount() {
-  if (!assignedCountry) return 0;
-  return pendingCoinRequests.reduce((total, request) => (
-    cleanStr(request.country) === cleanStr(assignedCountry.name)
-      ? total + (Number(request.amount) || 0)
-      : total
-  ), 0);
-}
-
-function syncCoinPurchaseControl() {
-  const button = document.getElementById("btn-buy-coins");
-  if (!button) return;
-
-  const reservedCoins = getPendingCoinPurchaseAmount();
-  const capped = coins + reservedCoins + 100 > MAX_PURCHASE_CAP;
-  const requestLimitReached = coinRequestsUsed >= MAX_COIN_REQUESTS;
-  button.disabled = capped || requestLimitReached || gameFinished;
-  button.title = requestLimitReached
-    ? `You have reached the ${MAX_COIN_REQUESTS}-request limit for this game.`
-    : capped
-      ? `Approved coins plus pending purchase requests cannot exceed ${MAX_PURCHASE_CAP} coins.`
-      : "Request 100 coins from the host.";
-
-  setTxt("status-coin-requests", `${coinRequestsUsed} / ${MAX_COIN_REQUESTS}`);
-  const copy = translations[currentLang] || translations.en;
-  setTxt(
-    "status-coin-requests-help",
-    (copy.txtCoinRequestsUsed || "{used} / {limit} used this game")
-      .replace("{used}", coinRequestsUsed)
-      .replace("{limit}", MAX_COIN_REQUESTS)
-  );
-}
-
-function renderHostCoinRequests() {
-  const container = document.getElementById("host-requests-container");
-  if (!container) return;
-
-  container.replaceChildren();
-
-  if (pendingCoinRequests.length === 0) {
-    const emptyP = document.createElement("p");
-    emptyP.style.color = "var(--text-muted)";
-    emptyP.style.fontSize = "0.9rem";
-    emptyP.textContent = "No pending coin purchase requests.";
-    container.appendChild(emptyP);
-    return;
-  }
-
-  pendingCoinRequests.forEach((req, idx) => {
-    const item = document.createElement("div");
-    item.className = "request-item";
-
-    const label = document.createElement("span");
-    label.innerHTML = `<strong>${req.country}</strong> requests <strong>+${req.amount} Coins</strong>`;
-
-    const btnGroup = document.createElement("div");
-    btnGroup.className = "button-group";
-
-    const approveBtn = document.createElement("button");
-    approveBtn.className = "btn btn-small btn-success";
-    approveBtn.textContent = "✅ Approve";
-    approveBtn.onclick = () => resolveCoinRequest(req.requestId, true);
-
-    const rejectBtn = document.createElement("button");
-    rejectBtn.className = "btn btn-small btn-danger";
-    rejectBtn.textContent = "❌ Reject";
-    rejectBtn.onclick = () => resolveCoinRequest(req.requestId, false);
-
-    btnGroup.appendChild(approveBtn);
-    btnGroup.appendChild(rejectBtn);
-
-    item.appendChild(label);
-    item.appendChild(btnGroup);
-    container.appendChild(item);
-  });
-}
-
-async function resolveCoinRequest(requestId, approved) {
-  if (!requireRoomCreator("resolve coin requests")) return;
-  const req = pendingCoinRequests.find(item => item.requestId === requestId);
-  if (!req) return;
-
-  await submitHostCommand("RESOLVE_COIN_REQUEST", {
-    requestId,
-    approved: approved
-  });
-}
-
 function updateUI() {
   setTxt("total-budget", coins);
   setTxt("merchant-status", isMerchantActive ? "Yes (+10%) ✅" : "No ❌");
   updateLoanCalculator();
   renderRoundSettlement();
-  syncCoinPurchaseControl();
 
   // Read state to text fields and calculate unallocated without overwriting sliders yet
   let totalAllocated = investments.agri + investments.oil + investments.mines;
