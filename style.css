@@ -149,6 +149,19 @@
   pointer-events: none;
 }
 
+.visually-hidden {
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
 .table-center-eyebrow {
   color: #8fe3cf;
   font-size: clamp(.55rem, .72vw, .68rem);
@@ -621,25 +634,10 @@ body.mobile-controller :where(button, a, input, select, textarea) {
 }
 
 .command-board-header {
-  align-items: flex-start;
+  align-items: center;
   display: flex;
-  gap: 12px;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-bottom: 14px;
-}
-
-.command-board-header h2 {
-  color: #f8fafc;
-  font-size: clamp(1.12rem, 3vw, 1.4rem);
-  margin-top: 3px;
-}
-
-.command-board-header > div > p:last-child {
-  color: var(--text-muted);
-  font-size: 0.84rem;
-  line-height: 1.42;
-  margin-top: 5px;
-  max-width: 520px;
 }
 
 .command-board-condition {
@@ -923,10 +921,6 @@ body.mobile-controller :where(button, a, input, select, textarea) {
 }
 
 @media (max-width: 440px) {
-  .command-board-header {
-    flex-direction: column;
-  }
-
   .command-board-condition {
     max-width: none;
   }

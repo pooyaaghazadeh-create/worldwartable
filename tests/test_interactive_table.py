@@ -19,6 +19,18 @@ class InteractiveTableTests(unittest.TestCase):
         self.assertIn('class="tv-felt player-table-felt"', self.mobile)
         self.assertNotIn('id="btn-open-tv-view"', self.mobile)
 
+    def test_live_table_hides_heading_and_static_instructions(self):
+        self.assertIn('aria-labelledby="txt-command-board-title"', self.mobile)
+        self.assertIn(
+            '<h2 class="visually-hidden" id="txt-command-board-title">Interactive Game Table</h2>',
+            self.mobile,
+        )
+        self.assertNotIn("txt-command-board-kicker", self.mobile)
+        self.assertNotIn("txt-command-board-desc", self.mobile)
+        self.assertNotIn('class="table-center-eyebrow">LIVE TABLE', self.mobile)
+        self.assertIn('id="tv-status-ticker" class="table-ticker-broadcast"></div>', self.mobile)
+        self.assertIn('if (tvTicker) tvTicker.textContent =', self.script)
+
     def test_only_opposing_country_badges_are_targetable(self):
         self.assertIn('const interactivePlayerView = document.body.classList.contains("mobile-controller");', self.script)
         self.assertIn("const canSelect = interactivePlayerView && !isSelf;", self.script)
