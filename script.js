@@ -207,8 +207,6 @@ const translations = {
     txtBattleReady: "Loan settled — Field Battle available.",
     txtBoardBattleLoanLocked: "Settle loan to battle",
     lblMerchantBonus: "Merchant Bonus Active:",
-    txtReadyTitle: "🏁 Round Closure Consensus",
-    txtReadyDesc: "Lock investments, finish all actions, and mark ready. The host can advance after every setup step is complete.",
     txtMultTitle: "Resource Multipliers",
     lblMultAgri: "Agriculture",
     lblMultOil: "Oil",
@@ -255,9 +253,7 @@ const translations = {
     txtNextMove: "NEXT MOVE",
     txtStatusRound: "Round",
     txtStatusClear: "Clear",
-    txtGameCardsKicker: "ROUND DECK",
     txtGameCardsTitle: "Game Cards",
-    txtGameCardsDesc: "Live conditions and your available proficiency cards.",
     ariaGameTabs: "Game phases",
     txtTabPrepare: "Prepare",
     txtTabAct: "Act",
@@ -286,10 +282,10 @@ const translations = {
     txtStatusReady: "Mark yourself ready",
     txtStatusWaiting: "Waiting for the host",
     txtStatusComplete: "Review final results",
-    txtStatusPrepareWait: "Wait for every commander to complete Prepare",
-    txtActActionsLocked: "Complete Prepare for every commander before using Act actions.",
+    txtStatusPrepareWait: "Waiting for the global event",
+    txtActActionsLocked: "Lock your investments before using Act actions.",
     txtActReviewLocked: "You marked ready, so Act actions are closed for you this round.",
-    txtGeneralActOnly: "🎖️ Complete Prepare before activating General in Act.",
+    txtGeneralActOnly: "🎖️ Lock your investments before activating General in Act.",
     txtHitmanPrepareOnly: "🕶️ Use Hitman during Prepare before locking investments.",
     btnHostDealUsed: "✓ Cards Dealt This Round",
     btnHostEventLocked: "Deal Cards Before Drawing Event",
@@ -332,8 +328,6 @@ const translations = {
     txtBattleReady: "Kredi kapatıldı — Saha Savaşı kullanılabilir.",
     txtBoardBattleLoanLocked: "Savaş için krediyi öde",
     lblMerchantBonus: "Tüccar Bonusu Aktif:",
-    txtReadyTitle: "🏁 Raund Kapatma Konsensüsü",
-    txtReadyDesc: "Yatırımları kilitleyin, tüm hamleleri bitirin ve hazır olun. Yönetici tüm hazırlıklar tamamlanınca ilerleyebilir.",
     txtMultTitle: "Kaynak Çarpanları",
     lblMultAgri: "Tarım",
     lblMultOil: "Petrol",
@@ -380,9 +374,7 @@ const translations = {
     txtNextMove: "SIRADAKİ HAMLE",
     txtStatusRound: "Raund",
     txtStatusClear: "Yok",
-    txtGameCardsKicker: "RAUND DESTESİ",
     txtGameCardsTitle: "Oyun Kartları",
-    txtGameCardsDesc: "Canlı koşullar ve kullanılabilir uzmanlık kartlarınız.",
     ariaGameTabs: "Oyun aşamaları",
     txtTabPrepare: "Hazırlık",
     txtTabAct: "Hamle",
@@ -411,10 +403,10 @@ const translations = {
     txtStatusReady: "Hazır olduğunuzu belirtin",
     txtStatusWaiting: "Yönetici bekleniyor",
     txtStatusComplete: "Sonuçları inceleyin",
-    txtStatusPrepareWait: "Her komutanın Hazırlığı tamamlamasını bekleyin",
-    txtActActionsLocked: "Hamle eylemlerini kullanmadan önce tüm komutanların Hazırlığı tamamlamasını bekleyin.",
+    txtStatusPrepareWait: "Küresel etkinlik bekleniyor",
+    txtActActionsLocked: "Hamle eylemlerini kullanmadan önce yatırımlarınızı kilitleyin.",
     txtActReviewLocked: "Hazır olduğunuzu belirttiniz; bu raund için Hamle eylemleri size kapalı.",
-    txtGeneralActOnly: "🎖️ General kartını Hamle aşamasında etkinleştirmeden önce Hazırlığı tamamlayın.",
+    txtGeneralActOnly: "🎖️ General kartını Hamle'de etkinleştirmeden önce yatırımlarınızı kilitleyin.",
     txtHitmanPrepareOnly: "🕶️ Yatırımları kilitlemeden önce Hitman kartını Hazırlıkta kullanın.",
     btnHostDealUsed: "✓ Kartlar Bu Raund Dağıtıldı",
     btnHostEventLocked: "Önce Kartları Dağıtın",
@@ -457,8 +449,6 @@ const translations = {
     txtBattleReady: "وام تسویه شد — نبرد میدانی در دسترس است.",
     txtBoardBattleLoanLocked: "برای نبرد وام را بپردازید",
     lblMerchantBonus: "پاداش بازرگان فعال:",
-    txtReadyTitle: "🏁 اجماع بستن دور بازی",
-    txtReadyDesc: "سرمایه‌گذاری‌ها را قفل کنید، اقدامات را تمام کنید و آماده شوید. میزبان پس از تکمیل همه مراحل می‌تواند ادامه دهد.",
     txtMultTitle: "ضریب‌های منابع",
     lblMultAgri: "کشاورزی",
     lblMultOil: "نفت",
@@ -505,9 +495,7 @@ const translations = {
     txtNextMove: "حرکت بعدی",
     txtStatusRound: "دور",
     txtStatusClear: "ندارد",
-    txtGameCardsKicker: "دسته کارت دور",
     txtGameCardsTitle: "کارت‌های بازی",
-    txtGameCardsDesc: "شرایط زنده و کارت‌های مهارت در دسترس شما.",
     ariaGameTabs: "مراحل بازی",
     txtTabPrepare: "آماده‌سازی",
     txtTabAct: "اقدام",
@@ -536,10 +524,10 @@ const translations = {
     txtStatusReady: "اعلام آمادگی",
     txtStatusWaiting: "در انتظار میزبان",
     txtStatusComplete: "بررسی نتایج نهایی",
-    txtStatusPrepareWait: "منتظر بمانید تا همه فرماندهان آماده‌سازی را تمام کنند",
-    txtActActionsLocked: "پیش از استفاده از اقدام‌های مرحله عمل، آماده‌سازی همه فرماندهان را کامل کنید.",
+    txtStatusPrepareWait: "در انتظار رویداد جهانی",
+    txtActActionsLocked: "پیش از استفاده از اقدام‌های مرحله عمل، سرمایه‌گذاری خود را قفل کنید.",
     txtActReviewLocked: "شما آماده بودن را اعلام کرده‌اید؛ اقدام‌های مرحله عمل برای این دور بسته‌اند.",
-    txtGeneralActOnly: "🎖️ پیش از فعال‌سازی ژنرال در مرحله اقدام، آماده‌سازی را کامل کنید.",
+    txtGeneralActOnly: "🎖️ پیش از فعال‌سازی ژنرال در مرحله اقدام، سرمایه‌گذاری خود را قفل کنید.",
     txtHitmanPrepareOnly: "🕶️ پیش از قفل کردن سرمایه‌گذاری‌ها، هیتمن را در آماده‌سازی استفاده کنید.",
     btnHostDealUsed: "✓ کارت‌ها در این دور توزیع شدند",
     btnHostEventLocked: "ابتدا کارت‌ها را توزیع کنید",
@@ -927,7 +915,6 @@ window.changeLanguage = function(lang) {
   document.querySelector(".round-progress")?.setAttribute("aria-label", dict.ariaRoundProgress);
   document.querySelector(".status-metrics")?.setAttribute("aria-label", dict.ariaCommanderSummary);
   document.querySelector(".game-tabs")?.setAttribute("aria-label", dict.ariaGameTabs);
-  document.getElementById("round-readiness-meter")?.setAttribute("aria-label", dict.ariaRoundReadiness);
   document.getElementById("poker-seats-wrapper")?.setAttribute("aria-label", dict.ariaCommandBoard);
   syncEditionTitle();
 
@@ -1065,20 +1052,19 @@ function liveCountryNames(excludeSelf = false) {
     .filter(country => country && (!excludeSelf || cleanStr(country) !== selfCountry));
 }
 
-function isPrepareCompleteForAct() {
+function hasLocalPrepareCompleted() {
   return !gameFinished &&
     investmentsLocked &&
-    eventDrawnThisRound &&
-    lockedPlayersSet.size >= registeredPlayersCount;
+    eventDrawnThisRound;
 }
 
 function isActPhaseReady() {
-  return isPrepareCompleteForAct() && !isLocalPlayerReadyToClose;
+  return hasLocalPrepareCompleted() && !isLocalPlayerReadyToClose;
 }
 
 function actActionLockMessage() {
   const copy = translations[currentLang] || translations.en;
-  return isPrepareCompleteForAct() ? copy.txtActReviewLocked : copy.txtActActionsLocked;
+  return hasLocalPrepareCompleted() ? copy.txtActReviewLocked : copy.txtActActionsLocked;
 }
 
 function requireActPhase() {
@@ -2126,6 +2112,19 @@ function recordSharedRoundAnnouncement(event) {
 
 function renderRoundAnnouncements() {
   const container = document.getElementById("round-announcements");
+  const tableAnnouncement = document.getElementById("table-round-announcement");
+  const latestAnnouncement = gameActivityLedger[0] || null;
+
+  if (tableAnnouncement) {
+    const meta = tableAnnouncement.querySelector(".table-round-announcement-meta");
+    const message = tableAnnouncement.querySelector(".table-round-announcement-message");
+    tableAnnouncement.hidden = !latestAnnouncement;
+    if (latestAnnouncement) {
+      if (meta) meta.textContent = `R${latestAnnouncement.round} · ${latestAnnouncement.country}`;
+      if (message) message.textContent = localizeNotificationMessage(latestAnnouncement.message);
+    }
+  }
+
   if (!container) return;
 
   container.replaceChildren();
@@ -3276,7 +3275,7 @@ function renderCommandBoard() {
   const surface = document.getElementById("poker-seats-wrapper");
   const felt = surface?.closest(".player-table-felt");
   const actLockNotice = document.getElementById("act-phase-lock-notice");
-  const prepareIncomplete = !isPrepareCompleteForAct();
+  const prepareIncomplete = !hasLocalPrepareCompleted();
   if (actLockNotice) {
     actLockNotice.hidden = !prepareIncomplete;
     actLockNotice.textContent = prepareIncomplete
@@ -3434,9 +3433,6 @@ window.togglePlayerReadyToClose = async function() {
 };
 
 function updateReadyConsensusUI() {
-  setTxt("val-ready-count", readyPlayersSet.size);
-  setTxt("val-total-players", registeredPlayersCount);
-
   const readyBtn = document.getElementById("btn-player-ready");
   if (readyBtn) {
     readyBtn.disabled = !investmentsLocked;
@@ -3448,21 +3444,6 @@ function updateReadyConsensusUI() {
       : "Lock field investments before marking ready.";
   }
   const total = Math.max(1, registeredPlayersCount || 1);
-  const progress = Math.min(100, Math.round(readyPlayersSet.size / total * 100));
-  const meter = document.getElementById("round-readiness-meter");
-  const fill = document.getElementById("round-readiness-fill");
-  if (fill) fill.style.width = `${progress}%`;
-  if (meter) {
-    meter.setAttribute("aria-valuemax", String(total));
-    meter.setAttribute("aria-valuenow", String(readyPlayersSet.size));
-    meter.classList.toggle("is-complete", readyPlayersSet.size >= total);
-  }
-  setTxt(
-    "round-readiness-label",
-    readyPlayersSet.size >= total
-      ? "All commanders are ready for the host to close the round."
-      : `${readyPlayersSet.size} of ${total} commanders ready`
-  );
   document.querySelector(".ready-consensus-card")?.classList.toggle("is-complete", readyPlayersSet.size >= total);
   syncCommanderStatus();
   updateTvRoundStatus();

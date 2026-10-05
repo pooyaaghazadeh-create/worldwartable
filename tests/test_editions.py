@@ -249,8 +249,36 @@ class EditionTests(unittest.TestCase):
         self.assertEqual(responses[1][1], server.HTTPStatus.CREATED)
         self.assertEqual(responses[2][1], server.HTTPStatus.CREATED)
 
-    def test_general_cannot_be_activated_until_prepare_is_complete(self):
+    def test_act_action_phase_gate_only_requires_the_acting_players_prepare(self):
+        player_id = self.add_player("advanced", "Acting Commander", "USA 🇺🇸")
+        self.add_player("advanced", "Pending Commander", "China 🇨🇳")
+        responses = []
+        self.handler.send_json = lambda payload, status=server.HTTPStatus.OK, cookie=None: responses.append(
+            (payload, status)
+        )
+
+        token = server.ACTIVE_EDITION.set("advanced")
+        try:
+            with server.database() as connection:
+                connection.execute(
+                    "UPDATE round_state SET cards_dealt = 1, event_drawn = 1 WHERE id = 1"
+                )
+                self.assertFalse(self.handler.require_act_phase(connection, player_id))
+                connection.execute(
+                    "INSERT INTO player_round_resources (player_id, agri, oil, mines, locked_at) VALUES (?, 0, 0, 0, 1)",
+                    (player_id,),
+                )
+                self.assertTrue(self.handler.require_act_phase(connection, player_id))
+        finally:
+            server.ACTIVE_EDITION.reset(token)
+
+        self.assertEqual(len(responses), 1)
+        self.assertEqual(responses[0][1], server.HTTPStatus.CONFLICT)
+        self.assertIn("your own Prepare", responses[0][0]["error"])
+
+    def test_general_can_activate_after_local_prepare_before_others_finish(self):
         player_id = self.add_player("advanced", "General Commander", "USA 🇺🇸")
+        self.add_player("advanced", "Pending Commander", "China 🇨🇳")
         responses = []
         self.handler.send_json = lambda payload, status=server.HTTPStatus.OK, cookie=None: responses.append(
             (payload, status)
@@ -283,7 +311,7 @@ class EditionTests(unittest.TestCase):
             server.ACTIVE_EDITION.reset(token)
 
         self.assertEqual(responses[0][1], server.HTTPStatus.CONFLICT)
-        self.assertIn("Complete Prepare", responses[0][0]["error"])
+        self.assertIn("your own Prepare", responses[0][0]["error"])
         self.assertEqual(responses[1][1], server.HTTPStatus.CREATED)
         self.assertEqual(responses[2][1], server.HTTPStatus.CONFLICT)
         self.assertIn("before you mark ready", responses[2][0]["error"])

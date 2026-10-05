@@ -2100,25 +2100,23 @@ class GameHandler(SimpleHTTPRequestHandler):
         return multiplier
 
     def require_act_phase(self, connection: sqlite3.Connection, player_id: int) -> bool:
-        """Gate independent Act actions after the whole table completes Prepare."""
+        """Gate independent Act actions until the acting player completes Prepare."""
         phase = connection.execute(
             "SELECT cards_dealt, event_drawn FROM round_state WHERE id = 1"
         ).fetchone()
-        player_count = connection.execute("SELECT COUNT(*) FROM players").fetchone()[0]
-        locked_count = connection.execute(
-            "SELECT COUNT(*) FROM player_round_resources"
-        ).fetchone()[0]
+        player_prepared = connection.execute(
+            "SELECT 1 FROM player_round_resources WHERE player_id = ?", (player_id,)
+        ).fetchone()
         if (
             not phase
             or not phase["cards_dealt"]
             or not phase["event_drawn"]
-            or not player_count
-            or locked_count != player_count
+            or not player_prepared
         ):
             self.send_json(
                 {
                     "error": (
-                        "Complete Prepare for every commander before choosing an Act action. "
+                        "Complete your own Prepare before choosing an Act action. "
                         "Field Trades and Field Battles are independent; no trade is required before an attack."
                     )
                 },
@@ -2311,19 +2309,17 @@ class GameHandler(SimpleHTTPRequestHandler):
             phase = connection.execute(
                 "SELECT cards_dealt, event_drawn FROM round_state WHERE id = 1"
             ).fetchone()
-            player_count = connection.execute("SELECT COUNT(*) FROM players").fetchone()[0]
-            locked_count = connection.execute(
-                "SELECT COUNT(*) FROM player_round_resources"
-            ).fetchone()[0]
+            player_prepared = connection.execute(
+                "SELECT 1 FROM player_round_resources WHERE player_id = ?", (player["id"],)
+            ).fetchone()
             if (
                 not phase
                 or not phase["cards_dealt"]
                 or not phase["event_drawn"]
-                or not player_count
-                or locked_count != player_count
+                or not player_prepared
             ):
                 self.send_json(
-                    {"error": "Complete Prepare for every commander before activating General in Act."},
+                    {"error": "Complete your own Prepare before activating General in Act."},
                     HTTPStatus.CONFLICT,
                 )
                 return

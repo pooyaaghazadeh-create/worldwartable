@@ -43,6 +43,14 @@ class InteractiveTableTests(unittest.TestCase):
         self.assertIn("max-width: 168px;", self.styles)
         self.assertIn("width: min(100%, 168px);", self.styles)
 
+    def test_player_table_center_keeps_announcements_without_brand_box(self):
+        self.assertIn('id="table-round-announcement"', self.mobile)
+        self.assertNotIn('class="table-logo">WORLD WAR TABLE', self.mobile)
+        self.assertIn('class="table-logo">⚔️ WORLD WAR TABLE', self.tv)
+
+    def test_player_badge_does_not_add_a_you_label(self):
+        self.assertNotIn('content: "YOU";', self.styles)
+
     def test_only_opposing_country_badges_are_targetable(self):
         self.assertIn('const interactivePlayerView = document.body.classList.contains("mobile-controller");', self.script)
         self.assertIn("const canSelect = interactivePlayerView && !isSelf;", self.script)

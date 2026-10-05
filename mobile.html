@@ -117,9 +117,7 @@
       <section class="game-cards-panel full-width" aria-labelledby="txt-game-cards-title">
         <div class="game-cards-heading">
           <div>
-            <p class="section-kicker" id="txt-game-cards-kicker">ROUND DECK</p>
             <h2 id="txt-game-cards-title">Game Cards</h2>
-            <p id="txt-game-cards-desc">Live conditions and your available proficiency cards.</p>
           </div>
           <span class="game-cards-badge">LIVE</span>
         </div>
@@ -241,12 +239,24 @@
         <h2 class="visually-hidden" id="txt-command-board-title">Interactive Game Table</h2>
          <div class="tv-felt player-table-felt" aria-label="Interactive game table">
            <div class="table-center-pot">
-             <div class="table-logo">WORLD WAR TABLE</div>
+             <div id="table-round-announcement" class="table-round-announcement" role="status" aria-live="polite" hidden>
+               <span class="table-round-announcement-meta"></span>
+               <span class="table-round-announcement-message"></span>
+             </div>
            </div>
            <div id="poker-seats-wrapper" class="poker-seats-grid" role="group" aria-label="Seated countries"></div>
         </div>
         <aside id="command-board-details" class="command-board-details" aria-live="polite"></aside>
       </section>
+
+       <!-- ROUND CLOSING CONSENSUS -->
+       <section class="card full-width ready-consensus-card compact-round-card" aria-label="Round closure">
+         <button id="btn-player-ready" class="btn btn-success btn-large" onclick="togglePlayerReadyToClose()">🏁 Ready for Next Round</button>
+       </section>
+       <div id="host-review-actions" class="host-review-actions hidden">
+         <button id="btn-host-advance" class="btn btn-success" type="button" onclick="hostAdvanceRound()">Close &amp; Calculate Round</button>
+         <button id="btn-host-restart" class="btn btn-danger hidden" type="button" onclick="restartCompletedGame()">Restart Game</button>
+       </div>
 
       <!-- ACTIVE COALITION & MERGER DISPLAY -->
       <section id="coalition-panel" class="card full-width hidden" style="border: 2px solid var(--gold-color); display: none;">
@@ -284,27 +294,6 @@
         <div id="round-settlement-details" class="round-settlement-details"></div>
       </section>
 
-      <!-- ROUND CLOSING CONSENSUS STATUS -->
-      <section class="card full-width ready-consensus-card compact-round-card">
-        <div class="round-close-layout">
-          <div>
-            <h2 id="txt-ready-title">🏁 Round Closure Consensus</h2>
-            <p id="txt-ready-desc">Finish your actions, then mark yourself ready.</p>
-          </div>
-          <div class="round-ready-actions">
-            <div class="round-ready-progress">
-              <span>Ready:</span>
-              <strong><span id="val-ready-count">0</span> / <span id="val-total-players">1</span></strong>
-            </div>
-            <button id="btn-player-ready" class="btn btn-success" onclick="togglePlayerReadyToClose()">🏁 Ready for Next Round</button>
-          </div>
-        </div>
-        <div id="round-readiness-meter" class="round-readiness-meter" role="progressbar" aria-label="Round readiness" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0">
-          <span id="round-readiness-fill"></span>
-        </div>
-        <p id="round-readiness-label" class="round-readiness-label">0 of 1 commanders ready</p>
-      </section>
-
       <section id="final-placements-panel" class="card full-width final-placements-panel hidden" aria-live="polite" aria-hidden="true">
         <p class="section-kicker">GAME COMPLETE</p>
         <h2>🏆 Final Player Placements</h2>
@@ -323,10 +312,6 @@
         </div>
         <div id="round-announcements" class="announcement-feed" aria-live="polite"></div>
       </section>
-      <div id="host-review-actions" class="host-review-actions hidden">
-        <button id="btn-host-advance" class="btn btn-success" type="button" onclick="hostAdvanceRound()">Close &amp; Calculate Round</button>
-        <button id="btn-host-restart" class="btn btn-danger hidden" type="button" onclick="restartCompletedGame()">Restart Game</button>
-      </div>
       </section>
 
     </main>

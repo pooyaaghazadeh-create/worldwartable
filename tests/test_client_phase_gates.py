@@ -1,4 +1,4 @@
-"""Regression coverage for viewable-but-locked Act phase controls."""
+"""Regression coverage for per-player Act phase gates."""
 
 import unittest
 from pathlib import Path
@@ -15,7 +15,15 @@ class ClientPhaseGateTests(unittest.TestCase):
 
         self.assertNotIn('tabName === "act" && !isActPhaseReady()', tab_body)
 
-    def test_act_map_actions_remain_locked_until_prepare_finishes(self):
+    def test_act_actions_unlock_after_local_prepare_without_waiting_for_others(self):
+        prepare_start = self.source.index("function hasLocalPrepareCompleted()")
+        prepare_end = self.source.index("function isActPhaseReady()", prepare_start)
+        local_prepare_body = self.source[prepare_start:prepare_end]
+        self.assertIn("investmentsLocked", local_prepare_body)
+        self.assertIn("eventDrawnThisRound", local_prepare_body)
+        self.assertNotIn("lockedPlayersSet", local_prepare_body)
+        self.assertNotIn("registeredPlayersCount", local_prepare_body)
+
         board_start = self.source.index("function renderCommandBoardDetails")
         board_end = self.source.index("function renderCommandBoard()", board_start)
         board_body = self.source[board_start:board_end]
@@ -27,6 +35,8 @@ class ClientPhaseGateTests(unittest.TestCase):
         self.assertIn("trade.disabled = gameFinished || actActionsLocked", board_body)
         self.assertIn("battle.disabled = gameFinished || actActionsLocked", board_body)
         self.assertIn("if (!requireActPhase()) return;", trade_body)
+        self.assertIn("Lock your investments before using Act actions.", self.source)
+        self.assertNotIn("Complete Prepare for every commander", self.source)
 
     def test_trade_and_battle_are_not_ordered_against_each_other(self):
         board_start = self.source.index("function renderCommandBoardDetails")

@@ -43,6 +43,43 @@ class GameTabLayoutTests(unittest.TestCase):
         self.assertNotIn('id="tab-panel-status"', self.html)
         self.assertNotIn('data-game-tab="status"', self.html)
 
+    def test_game_cards_box_omits_redundant_kicker_and_instruction(self):
+        prepare_start = self.html.index('<section id="tab-panel-prepare"')
+        act_start = self.html.index('<section id="tab-panel-act"', prepare_start)
+        prepare_panel = self.html[prepare_start:act_start]
+        cards_start = prepare_panel.index('class="game-cards-panel full-width"')
+        cards_grid = prepare_panel.index('<div class="game-cards-grid">', cards_start)
+        cards_header = prepare_panel[cards_start:cards_grid]
+
+        self.assertIn('aria-labelledby="txt-game-cards-title"', cards_header)
+        self.assertIn('<h2 id="txt-game-cards-title">Game Cards</h2>', cards_header)
+        self.assertIn('id="global-event-banner"', prepare_panel)
+        self.assertIn('id="cards-container"', prepare_panel)
+        self.assertNotIn("ROUND DECK", self.html)
+        self.assertNotIn("Live conditions and your available proficiency cards.", self.script)
+        self.assertNotIn("txtGameCardsKicker", self.script)
+        self.assertNotIn("txtGameCardsDesc", self.script)
+
+    def test_round_closure_consensus_is_below_live_table_in_act_tab(self):
+        act_start = self.html.index('<section id="tab-panel-act"')
+        review_start = self.html.index('<section id="tab-panel-review"', act_start)
+        act_panel = self.html[act_start:review_start]
+        table_position = act_panel.index('class="card full-width command-board-card"')
+        consensus_position = act_panel.index('class="card full-width ready-consensus-card compact-round-card"')
+
+        self.assertLess(table_position, consensus_position)
+        self.assertIn('id="btn-player-ready"', act_panel)
+        consensus_end = act_panel.index("</section>", consensus_position)
+        consensus_card = act_panel[consensus_position:consensus_end]
+        self.assertNotIn('id="txt-ready-title"', consensus_card)
+        self.assertNotIn('id="val-ready-count"', consensus_card)
+        self.assertNotIn('id="round-readiness-meter"', consensus_card)
+        self.assertNotIn('id="btn-host-advance"', consensus_card)
+        self.assertNotIn('id="btn-host-restart"', consensus_card)
+        self.assertIn('id="host-review-actions"', act_panel[consensus_end:])
+        self.assertNotIn('class="card full-width ready-consensus-card compact-round-card"', self.html[review_start:])
+        self.assertEqual(self.html.count('id="btn-player-ready"'), 1)
+
     def test_tab_navigation_and_responsive_grid_match_three_tabs(self):
         select_start = self.script.index("window.selectGameTab = function")
         select_end = self.script.index("function initializeGameTabs", select_start)

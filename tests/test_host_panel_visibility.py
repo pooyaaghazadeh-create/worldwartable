@@ -34,23 +34,31 @@ class HostPanelVisibilityTests(unittest.TestCase):
         self.assertIn('id="btn-host-reset"', self.mobile)
         self.assertNotIn('id="host-panel"', self.mobile)
 
-    def test_host_buttons_are_placed_near_exit_and_at_review_bottom(self):
+    def test_host_buttons_remain_outside_ready_box_below_live_table(self):
         header_start = self.mobile.index('<div class="game-header-actions">')
         header_end = self.mobile.index("</div>", header_start)
         header_actions = self.mobile[header_start:header_end]
         self.assertIn('id="btn-host-reset"', header_actions)
         self.assertIn('id="btn-exit-game"', header_actions)
 
+        act_start = self.mobile.index('<section id="tab-panel-act"')
         review_start = self.mobile.index('<section id="tab-panel-review"')
-        review_end = self.mobile.index("</main>", review_start)
-        review_panel = self.mobile[review_start:review_end]
-        announcements_index = review_panel.index('class="card full-width announcement-card"')
-        actions_index = review_panel.index('id="host-review-actions"')
-        close_round_index = review_panel.index('id="btn-host-advance"')
-        restart_index = review_panel.index('id="btn-host-restart"')
-        self.assertGreater(actions_index, announcements_index)
-        self.assertGreater(close_round_index, actions_index)
-        self.assertGreater(restart_index, actions_index)
+        act_panel = self.mobile[act_start:review_start]
+        table_index = act_panel.index('class="card full-width command-board-card"')
+        consensus_index = act_panel.index('class="card full-width ready-consensus-card compact-round-card"')
+        consensus_end = act_panel.index("</section>", consensus_index)
+        consensus_card = act_panel[consensus_index:consensus_end]
+        ready_index = consensus_card.index('id="btn-player-ready"')
+        actions_index = act_panel.index('id="host-review-actions"', consensus_end)
+
+        self.assertLess(table_index, consensus_index)
+        self.assertLess(ready_index, len(consensus_card))
+        self.assertGreater(actions_index, consensus_end)
+        self.assertNotIn('id="btn-host-advance"', consensus_card)
+        self.assertNotIn('id="btn-host-restart"', consensus_card)
+        self.assertIn('id="btn-host-advance"', act_panel[actions_index:])
+        self.assertIn('id="btn-host-restart"', act_panel[actions_index:])
+        self.assertNotIn('id="host-review-actions"', self.mobile[review_start:])
 
     def test_non_hosts_still_cannot_run_host_commands(self):
         guard_start = self.script.index("function requireRoomCreator")

@@ -9,6 +9,7 @@ class SharedAnnouncementTests(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         self.client = (root / "script.js").read_text()
         self.server = (root / "server.py").read_text()
+        self.mobile = (root / "mobile.html").read_text()
 
     def section(self, source, start, end):
         return source[source.index(start) : source.index(end, source.index(start))]
@@ -35,6 +36,17 @@ class SharedAnnouncementTests(unittest.TestCase):
         self.assertIn('const announceAfterApply = event.type === "EXECUTE_ROUND_CALCULATION";', event_handler)
         self.assertIn('"createdAt": row["created_at"]', self.server)
         self.assertIn('"createdAt": created_at', self.server)
+
+    def test_latest_round_announcement_is_shown_at_the_live_table_center(self):
+        self.assertIn('id="table-round-announcement"', self.mobile)
+        self.assertIn('id="round-announcements"', self.mobile)
+        start = self.client.index("function renderRoundAnnouncements()")
+        end = self.client.index("\nfunction ", start + 1)
+        renderer = self.client[start:end]
+
+        self.assertIn('document.getElementById("table-round-announcement")', renderer)
+        self.assertIn("const latestAnnouncement = gameActivityLedger[0] || null;", renderer)
+        self.assertIn("localizeNotificationMessage(latestAnnouncement.message)", renderer)
 
     def test_round_completion_announcement_contains_no_viewer_specific_settlement(self):
         lifecycle = self.section(
