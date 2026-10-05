@@ -9,7 +9,6 @@ let lastRoundSettlement = null;
 let currentRound = 1;
 let gameFinished = false;
 let finalPlacements = [];
-let activeMode = 'player';
 let currentLang = 'en';
 let activeEdition = new URLSearchParams(window.location.search).get("edition") === "simple"
   ? "simple"
@@ -177,9 +176,6 @@ function describeGlobalCondition(condition) {
 const translations = {
   en: {
     txtTitle: "Global Domination & Fortune",
-    lblViewMode: "View Mode:",
-    btnModePlayer: "Mobile Player 📱",
-    btnModeHost: "Host Console 👑",
     lblStatus: "Status",
     txtHostTitle: "👑 Game Runner (Host) Controls",
     txtReferee: "Master Referee Active",
@@ -323,9 +319,6 @@ const translations = {
   },
   tr: {
     txtTitle: "Küresel Hakimiyet ve Servet",
-    lblViewMode: "Görünüm Modu:",
-    btnModePlayer: "Mobil Oyuncu 📱",
-    btnModeHost: "Yönetici Konsolu 👑",
     lblStatus: "Durum",
     txtHostTitle: "👑 Oyun Yöneticisi Kontrolleri",
     txtReferee: "Baş Hakem Aktif",
@@ -469,9 +462,6 @@ const translations = {
   },
   fa: {
     txtTitle: "تسلط جهانی و ثروت",
-    lblViewMode: "حالت نمایش:",
-    btnModePlayer: "بازیکن موبایل 📱",
-    btnModeHost: "کنسول میزبان 👑",
     lblStatus: "وضعیت",
     txtHostTitle: "👑 کنترل‌های مدیر بازی (میزبان)",
     txtReferee: "داور اصلی فعال است",
@@ -1766,7 +1756,8 @@ const soundManager = {
 
   updateControls() {
     document.querySelectorAll("[data-sound-toggle]").forEach(button => {
-      button.textContent = this.enabled ? "Sound: On" : "Sound: Off";
+      button.textContent = this.enabled ? "🔊" : "🔇";
+      button.setAttribute("aria-label", this.enabled ? "Turn game sound off" : "Turn game sound on");
       button.setAttribute("aria-pressed", String(this.enabled));
       button.title = this.enabled
         ? "Game sound effects are on. Your next interaction enables audio if the browser requires it."
@@ -2921,27 +2912,13 @@ function initializeRoomCreator(session) {
 }
 
 function syncHostAccessUI() {
-  const hostButton = document.getElementById("btn-mode-host");
   const hostPanel = document.getElementById("host-panel");
-
-  hostButton?.classList.toggle("hidden", !isRoomCreator);
-  hostButton?.setAttribute(
-    "aria-hidden",
-    isRoomCreator ? "false" : "true"
-  );
-
-  if (!isRoomCreator) {
-    activeMode = "player";
-    hostPanel?.classList.add("hidden");
-    document.getElementById("btn-mode-player")?.classList.add("active");
-    hostButton?.classList.remove("active");
-  }
+  hostPanel?.classList.toggle("hidden", !isRoomCreator);
 }
 
 function requireRoomCreator(actionLabel) {
   if (isRoomCreator) return true;
 
-  switchMode("player");
   logAction(`⛔ Only the room creator can ${actionLabel}.`, "HOST");
   return false;
 }
@@ -3529,14 +3506,6 @@ window.openCommandBoardBattle = function() {
   if (!requireActPhase()) return;
   window.openSkirmishModal();
   setCommandBoardTarget("select-skirmish-target-country");
-};
-
-window.switchMode = function(mode) {
-  const nextMode = mode === "host" && !isRoomCreator ? "player" : mode;
-  activeMode = nextMode;
-  document.getElementById("btn-mode-player")?.classList.toggle("active", nextMode === 'player');
-  document.getElementById("btn-mode-host")?.classList.toggle("active", nextMode === 'host');
-  document.getElementById("host-panel")?.classList.toggle("hidden", nextMode !== 'host' || !isRoomCreator);
 };
 
 // ==========================================

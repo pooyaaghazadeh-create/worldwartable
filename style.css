@@ -501,7 +501,7 @@ body.mobile-controller :where(button, a, input, select, textarea) {
   width: 100%;
 }
 
-.role-switcher {
+.game-header-actions {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
@@ -510,33 +510,10 @@ body.mobile-controller :where(button, a, input, select, textarea) {
   min-width: 0;
 }
 
-.role-switcher > .btn,
-.role-switcher > .rulebook-link {
+.game-header-actions > .btn,
+.game-header-actions > .rulebook-link {
   flex: 0 1 auto;
   min-width: 0;
-}
-
-#btn-mode-player {
-  background: #0f766e;
-  border: 1px solid #2dd4bf;
-  color: #ecfeff;
-}
-
-#btn-mode-player.active {
-  background: #0d9488;
-  box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.28);
-}
-
-#btn-mode-host {
-  background: #1d4ed8;
-  border: 1px solid #60a5fa;
-  color: #eff6ff;
-}
-
-#btn-open-tv-view {
-  background: #6d28d9;
-  border: 1px solid #a78bfa;
-  color: #f5f3ff;
 }
 
 .dashboard-container {
@@ -2238,7 +2215,7 @@ body:not(.tv-body) .card {
     justify-content: flex-start;
   }
 
-  body:not(.tv-body) .role-switcher {
+  body:not(.tv-body) .game-header-actions {
     justify-content: stretch;
   }
 }
@@ -2438,7 +2415,7 @@ input[type="range"] {
     width: auto;
   }
 
-  body:not(.tv-body) .role-switcher {
+  body:not(.tv-body) .game-header-actions {
     display: flex;
     flex: 1 1 100%;
     flex-wrap: wrap;
@@ -2447,15 +2424,8 @@ input[type="range"] {
     width: 100%;
   }
 
-  body:not(.tv-body) .role-switcher > label {
-    color: var(--text-muted);
-    flex: 0 0 100%;
-    font-size: 0.68rem;
-    line-height: 1;
-  }
-
-  body:not(.tv-body) .role-switcher > .btn,
-  body:not(.tv-body) .role-switcher > .rulebook-link {
+  body:not(.tv-body) .game-header-actions > .btn,
+  body:not(.tv-body) .game-header-actions > .rulebook-link {
     flex: 1 1 calc(33.333% - 5px);
     font-size: 0.69rem;
     line-height: 1.1;
@@ -2465,6 +2435,10 @@ input[type="range"] {
     padding: 5px 6px;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  body:not(.tv-body) .game-header-actions > .sound-toggle {
+    flex: 0 0 40px;
   }
 }
 
@@ -3018,9 +2992,17 @@ input[type="range"] {
 
 /* Interactive command-center feedback */
 .sound-toggle {
+  align-items: center;
   background: rgba(148, 163, 184, 0.18);
   border: 1px solid rgba(148, 163, 184, 0.46);
   color: #e2e8f0;
+  display: inline-flex;
+  font-size: 1.1rem;
+  height: 36px;
+  justify-content: center;
+  min-width: 40px;
+  padding: 0;
+  width: 40px;
 }
 
 .sound-toggle[aria-pressed="true"] {

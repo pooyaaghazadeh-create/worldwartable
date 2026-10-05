@@ -37,11 +37,8 @@
             <option value="fa">فارسی 🇮🇷</option>
           </select>
         </div>
-        <div class="role-switcher">
-          <label id="lbl-view-mode">View Mode:</label>
-          <button id="btn-mode-player" class="btn btn-small active" onclick="switchMode('player')">Mobile Player 📱</button>
-          <button id="btn-mode-host" class="btn btn-small" onclick="switchMode('host')">Host Console 👑</button>
-          <button class="btn btn-small sound-toggle" type="button" data-sound-toggle aria-pressed="false" onclick="toggleGameSound()">Sound: Off</button>
+        <div class="game-header-actions">
+          <button class="btn btn-small sound-toggle" type="button" data-sound-toggle aria-label="Turn game sound on" title="Turn on game sound effects" aria-pressed="false" onclick="toggleGameSound()">🔇</button>
           <a class="btn btn-small rulebook-link" href="rulebook.html" target="_blank" rel="noopener">📖 Rulebook</a>
           <button id="btn-exit-game" class="btn btn-small btn-danger" type="button" onclick="exitGame()">⏻ Exit Game</button>
         </div>
