@@ -5,6 +5,6 @@
 - [Starting player funds](starting-player-funds.md) — New players start with 500 coins; preserve balances on reconnect and do not restore coin purchases.
 - [Game edition rules](game-edition-rules.md) — Simple removes Banker and President cards, so Mega-Merger and Counter-Union are unavailable.
 - [Hitman targeting](hitman-targeting.md) — A Hitman owner selects the opposing country and whether to disable General or Spy.
-- [Round card phases](round-card-phases.md) — Hitman is required during Prepare; General is available only in Act before a player is ready.
-- [Act action independence](act-action-independence.md) — After Prepare, Field Trades and Field Battles are independent choices; neither unlocks the other.
-- [Dashboard table layout](dashboard-copy-preference.md) — Show latest announcements without the center brand box; keep square badges and round controls below the Act table.
+- [Round card phases](round-card-phases.md) — Hitman is required during Prepare; General is available in the owner's Act after their own Prepare.
+- [Act action independence](act-action-independence.md) — Act actions need only the actor's completed Prepare; Field Trade and Field Battle remain independent.
+- [Dashboard table layout](dashboard-copy-preference.md) — Remove next-move copy; simplify Game Cards and the Ready box, while keeping center announcements and square badges.

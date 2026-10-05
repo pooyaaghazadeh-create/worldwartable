@@ -1722,30 +1722,6 @@ body:not(.tv-body) .card {
   font-weight: 650;
 }
 
-.status-next-action {
-  background: linear-gradient(145deg, rgba(2, 6, 23, 0.5), rgba(30, 58, 138, 0.36));
-  border: 1px solid rgba(125, 211, 252, 0.36);
-  border-radius: 10px;
-  display: grid;
-  gap: 2px;
-  max-width: 205px;
-  padding: 7px 9px;
-  text-align: right;
-}
-
-.status-next-action span {
-  color: #bfdbfe;
-  font-size: 0.63rem;
-  font-weight: 900;
-  letter-spacing: 0.09em;
-}
-
-.status-next-action strong {
-  color: #fef3c7;
-  font-size: 0.79rem;
-  line-height: 1.25;
-}
-
 .game-tabs {
   border-color: rgba(125, 211, 252, 0.32);
   box-shadow: 0 10px 20px rgba(2, 6, 23, 0.18);
@@ -1758,7 +1734,7 @@ body:not(.tv-body) .card {
 .round-progress {
   display: grid;
   gap: 6px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   list-style: none;
   margin: 16px 0 12px;
   padding: 0;
@@ -2202,7 +2178,7 @@ input[type="range"] {
 
 @media (max-width: 480px) {
   .game-tabs {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     position: static;
   }
 
@@ -2222,11 +2198,6 @@ input[type="range"] {
   .status-strip-heading {
     align-items: stretch;
     flex-direction: column;
-  }
-
-  .status-next-action {
-    max-width: none;
-    text-align: left;
   }
 
   .round-progress li {

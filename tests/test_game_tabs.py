@@ -17,7 +17,7 @@ class GameTabLayoutTests(unittest.TestCase):
         tab_end = self.html.index("</nav>", tab_start)
         tablist = self.html[tab_start:tab_end]
         tab_names = re.findall(r'data-game-tab="([^"]+)"', tablist)
-        self.assertEqual(tab_names, ["prepare", "act", "review"])
+        self.assertEqual(tab_names, ["prepare", "act"])
 
         prepare_start = self.html.index('<section id="tab-panel-prepare"')
         act_start = self.html.index('<section id="tab-panel-act"', prepare_start)
@@ -43,6 +43,14 @@ class GameTabLayoutTests(unittest.TestCase):
         self.assertNotIn('id="tab-panel-status"', self.html)
         self.assertNotIn('data-game-tab="status"', self.html)
 
+    def test_next_move_status_copy_is_removed_but_lock_button_remains(self):
+        self.assertNotIn('class="status-next-action"', self.html)
+        self.assertNotIn('id="txt-next-move"', self.html)
+        self.assertNotIn("NEXT MOVE", self.html)
+        self.assertNotIn('id="status-next-action"', self.html)
+        self.assertNotIn("txtStatusLock", self.script)
+        self.assertIn('id="btn-lock-invest"', self.html)
+
     def test_game_cards_box_omits_redundant_kicker_and_instruction(self):
         prepare_start = self.html.index('<section id="tab-panel-prepare"')
         act_start = self.html.index('<section id="tab-panel-act"', prepare_start)
@@ -62,8 +70,7 @@ class GameTabLayoutTests(unittest.TestCase):
 
     def test_round_closure_consensus_is_below_live_table_in_act_tab(self):
         act_start = self.html.index('<section id="tab-panel-act"')
-        review_start = self.html.index('<section id="tab-panel-review"', act_start)
-        act_panel = self.html[act_start:review_start]
+        act_panel = self.html[act_start:self.html.index("</main>", act_start)]
         table_position = act_panel.index('class="card full-width command-board-card"')
         consensus_position = act_panel.index('class="card full-width ready-consensus-card compact-round-card"')
 
@@ -77,19 +84,24 @@ class GameTabLayoutTests(unittest.TestCase):
         self.assertNotIn('id="btn-host-advance"', consensus_card)
         self.assertNotIn('id="btn-host-restart"', consensus_card)
         self.assertIn('id="host-review-actions"', act_panel[consensus_end:])
-        self.assertNotIn('class="card full-width ready-consensus-card compact-round-card"', self.html[review_start:])
+        self.assertIn('class="card full-width announcement-card"', act_panel)
         self.assertEqual(self.html.count('id="btn-player-ready"'), 1)
 
-    def test_tab_navigation_and_responsive_grid_match_three_tabs(self):
+    def test_review_content_is_kept_in_act_without_review_tab(self):
+        self.assertNotIn('data-game-tab="review"', self.html)
+        self.assertNotIn('id="tab-panel-review"', self.html)
+        self.assertIn('id="round-settlement-card"', self.html)
+        self.assertIn('id="final-placements-panel"', self.html)
+        self.assertIn('id="round-announcements"', self.html)
+
+    def test_tab_navigation_and_responsive_grid_match_two_tabs(self):
         select_start = self.script.index("window.selectGameTab = function")
         select_end = self.script.index("function initializeGameTabs", select_start)
         select_function = self.script[select_start:select_end]
-        self.assertIn('const validTabs = ["prepare", "act", "review"];', select_function)
+        self.assertIn('const validTabs = ["prepare", "act"];', select_function)
         self.assertNotIn('"status"', select_function)
-        self.assertGreaterEqual(
-            self.styles.count("grid-template-columns: repeat(3, minmax(0, 1fr));"),
-            2,
-        )
+        self.assertRegex(self.styles, r"\.game-tabs\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);")
+        self.assertIn('.game-tabs {\n    grid-template-columns: repeat(2, minmax(0, 1fr));', self.styles)
 
 
 if __name__ == "__main__":

@@ -250,14 +250,12 @@ const translations = {
     btnHitmanStrike: "🕶️ Execute Hitman Operation",
     txtBoardAlliance: "Alliance",
     txtStatusKicker: "COMMANDER STATUS",
-    txtNextMove: "NEXT MOVE",
     txtStatusRound: "Round",
     txtStatusClear: "Clear",
     txtGameCardsTitle: "Game Cards",
     ariaGameTabs: "Game phases",
     txtTabPrepare: "Prepare",
     txtTabAct: "Act",
-    txtTabReview: "Review",
     txtTabNow: "NOW",
     txtTabDone: "DONE",
     txtTabPending: "PENDING",
@@ -277,15 +275,9 @@ const translations = {
     txtFlowPrepare: "Prepare",
     txtFlowAct: "Act",
     txtFlowReview: "Review",
-    txtStatusLock: "Lock your investments",
-    txtStatusAct: "Trade, battle, or use a card",
-    txtStatusReady: "Mark yourself ready",
-    txtStatusWaiting: "Waiting for the host",
-    txtStatusComplete: "Review final results",
-    txtStatusPrepareWait: "Waiting for the global event",
-    txtActActionsLocked: "Lock your investments before using Act actions.",
+    txtActActionsLocked: "Complete Prepare for every commander before using Act actions.",
     txtActReviewLocked: "You marked ready, so Act actions are closed for you this round.",
-    txtGeneralActOnly: "🎖️ Lock your investments before activating General in Act.",
+    txtGeneralActOnly: "🎖️ Complete Prepare before activating General in Act.",
     txtHitmanPrepareOnly: "🕶️ Use Hitman during Prepare before locking investments.",
     btnHostDealUsed: "✓ Cards Dealt This Round",
     btnHostEventLocked: "Deal Cards Before Drawing Event",
@@ -371,14 +363,12 @@ const translations = {
     btnHitmanStrike: "🕶️ Hitman Operasyonunu Başlat",
     txtBoardAlliance: "İttifak",
     txtStatusKicker: "KOMUTAN DURUMU",
-    txtNextMove: "SIRADAKİ HAMLE",
     txtStatusRound: "Raund",
     txtStatusClear: "Yok",
     txtGameCardsTitle: "Oyun Kartları",
     ariaGameTabs: "Oyun aşamaları",
     txtTabPrepare: "Hazırlık",
     txtTabAct: "Hamle",
-    txtTabReview: "Kontrol",
     txtTabNow: "ŞİMDİ",
     txtTabDone: "TAMAM",
     txtTabPending: "BEKLİYOR",
@@ -398,15 +388,9 @@ const translations = {
     txtFlowPrepare: "Hazırlık",
     txtFlowAct: "Hamle",
     txtFlowReview: "Kontrol",
-    txtStatusLock: "Yatırımları kilitle",
-    txtStatusAct: "Ticaret, savaş veya kart",
-    txtStatusReady: "Hazır olduğunuzu belirtin",
-    txtStatusWaiting: "Yönetici bekleniyor",
-    txtStatusComplete: "Sonuçları inceleyin",
-    txtStatusPrepareWait: "Küresel etkinlik bekleniyor",
-    txtActActionsLocked: "Hamle eylemlerini kullanmadan önce yatırımlarınızı kilitleyin.",
+    txtActActionsLocked: "Hamle eylemlerini kullanmadan önce tüm komutanların Hazırlığı tamamlamasını bekleyin.",
     txtActReviewLocked: "Hazır olduğunuzu belirttiniz; bu raund için Hamle eylemleri size kapalı.",
-    txtGeneralActOnly: "🎖️ General kartını Hamle'de etkinleştirmeden önce yatırımlarınızı kilitleyin.",
+    txtGeneralActOnly: "🎖️ General kartını Hamle aşamasında etkinleştirmeden önce Hazırlığı tamamlayın.",
     txtHitmanPrepareOnly: "🕶️ Yatırımları kilitlemeden önce Hitman kartını Hazırlıkta kullanın.",
     btnHostDealUsed: "✓ Kartlar Bu Raund Dağıtıldı",
     btnHostEventLocked: "Önce Kartları Dağıtın",
@@ -492,14 +476,12 @@ const translations = {
     btnHitmanStrike: "🕶️ اجرای عملیات هیتمن",
     txtBoardAlliance: "ائتلاف",
     txtStatusKicker: "وضعیت فرمانده",
-    txtNextMove: "حرکت بعدی",
     txtStatusRound: "دور",
     txtStatusClear: "ندارد",
     txtGameCardsTitle: "کارت‌های بازی",
     ariaGameTabs: "مراحل بازی",
     txtTabPrepare: "آماده‌سازی",
     txtTabAct: "اقدام",
-    txtTabReview: "بررسی",
     txtTabNow: "اکنون",
     txtTabDone: "انجام شد",
     txtTabPending: "در انتظار",
@@ -519,15 +501,9 @@ const translations = {
     txtFlowPrepare: "آماده‌سازی",
     txtFlowAct: "اقدام",
     txtFlowReview: "بررسی",
-    txtStatusLock: "قفل کردن سرمایه‌گذاری‌ها",
-    txtStatusAct: "معامله، نبرد یا کارت",
-    txtStatusReady: "اعلام آمادگی",
-    txtStatusWaiting: "در انتظار میزبان",
-    txtStatusComplete: "بررسی نتایج نهایی",
-    txtStatusPrepareWait: "در انتظار رویداد جهانی",
-    txtActActionsLocked: "پیش از استفاده از اقدام‌های مرحله عمل، سرمایه‌گذاری خود را قفل کنید.",
+    txtActActionsLocked: "پیش از استفاده از اقدام‌های مرحله عمل، آماده‌سازی همه فرماندهان را کامل کنید.",
     txtActReviewLocked: "شما آماده بودن را اعلام کرده‌اید؛ اقدام‌های مرحله عمل برای این دور بسته‌اند.",
-    txtGeneralActOnly: "🎖️ پیش از فعال‌سازی ژنرال در مرحله اقدام، سرمایه‌گذاری خود را قفل کنید.",
+    txtGeneralActOnly: "🎖️ پیش از فعال‌سازی ژنرال در مرحله اقدام، آماده‌سازی را کامل کنید.",
     txtHitmanPrepareOnly: "🕶️ پیش از قفل کردن سرمایه‌گذاری‌ها، هیتمن را در آماده‌سازی استفاده کنید.",
     btnHostDealUsed: "✓ کارت‌ها در این دور توزیع شدند",
     btnHostEventLocked: "ابتدا کارت‌ها را توزیع کنید",
@@ -1107,22 +1083,16 @@ function syncGameTabBadges(phase) {
       ? copy.txtTabPending
       : phase === "act"
         ? copy.txtTabActions.replace("{count}", gameTabActionCount())
-        : ""
-  );
-  setGameTabBadge(
-    "review",
-    isLocalPlayerReadyToClose
-      ? copy.txtTabReady
-      : phase === "review"
-        ? copy.txtTabOpen
         : gameFinished
           ? copy.txtTabDone
-          : ""
+          : isLocalPlayerReadyToClose
+            ? copy.txtTabReady
+            : ""
   );
 }
 
 window.selectGameTab = function(tabName, shouldFocus = false) {
-  const validTabs = ["prepare", "act", "review"];
+  const validTabs = ["prepare", "act"];
   if (!validTabs.includes(tabName)) return;
 
   const tab = document.getElementById(`tab-${tabName}`);
@@ -3815,20 +3785,10 @@ function syncCommanderStatus(totalAllocated = investments.agri + investments.oil
   const battlesRemaining = Math.max(0, skirmishMaxAllowedAttacks - skirmishAttacksExecuted);
 
   let phase = "prepare";
-  let nextAction = copy.txtStatusLock;
-  if (gameFinished) {
+  if (gameFinished || (investmentsLocked && isLocalPlayerReadyToClose)) {
     phase = "review";
-    nextAction = copy.txtStatusComplete;
-  } else if (investmentsLocked && isLocalPlayerReadyToClose) {
-    phase = "review";
-    nextAction = copy.txtStatusWaiting;
   } else if (isActPhaseReady()) {
     phase = "act";
-    nextAction = copy.txtStatusAct;
-  } else if (investmentsLocked) {
-    nextAction = copy.txtStatusPrepareWait;
-  } else if (loanDue > 0 && unallocated >= loanDue) {
-    nextAction = copy.btnRepayLoan;
   }
 
   setTxt("status-round-label", `${copy.txtStatusRound} ${currentRound}`);
@@ -3838,19 +3798,18 @@ function syncCommanderStatus(totalAllocated = investments.agri + investments.oil
   setTxt("status-loan", loanDue > 0 ? loanDue : copy.txtStatusClear);
   setTxt("status-trades", tradesRemaining);
   setTxt("status-battles", battlesRemaining);
-  setTxt("status-next-action", nextAction);
-
   strip.dataset.phase = phase;
   strip.classList.toggle("has-loan", loanDue > 0);
   strip.classList.toggle("is-ready", isLocalPlayerReadyToClose);
 
   if (!gameTabsInitialized) initializeGameTabs();
+  const tabPhase = phase === "review" ? "act" : phase;
   if (lastAutoGamePhase !== null && lastAutoGamePhase !== phase) {
-    selectGameTab(phase);
+    selectGameTab(tabPhase);
   }
   lastAutoGamePhase = phase;
   document.querySelectorAll(".game-tab").forEach(tab => {
-    tab.classList.toggle("is-current-phase", tab.dataset.gameTab === phase);
+    tab.classList.toggle("is-current-phase", tab.dataset.gameTab === tabPhase);
   });
   syncGameTabBadges(phase);
 }

@@ -42,8 +42,7 @@ class HostPanelVisibilityTests(unittest.TestCase):
         self.assertIn('id="btn-exit-game"', header_actions)
 
         act_start = self.mobile.index('<section id="tab-panel-act"')
-        review_start = self.mobile.index('<section id="tab-panel-review"')
-        act_panel = self.mobile[act_start:review_start]
+        act_panel = self.mobile[act_start:self.mobile.index("</main>", act_start)]
         table_index = act_panel.index('class="card full-width command-board-card"')
         consensus_index = act_panel.index('class="card full-width ready-consensus-card compact-round-card"')
         consensus_end = act_panel.index("</section>", consensus_index)
@@ -58,7 +57,8 @@ class HostPanelVisibilityTests(unittest.TestCase):
         self.assertNotIn('id="btn-host-restart"', consensus_card)
         self.assertIn('id="btn-host-advance"', act_panel[actions_index:])
         self.assertIn('id="btn-host-restart"', act_panel[actions_index:])
-        self.assertNotIn('id="host-review-actions"', self.mobile[review_start:])
+        self.assertIn('id="round-settlement-card"', act_panel)
+        self.assertIn('id="round-announcements"', act_panel)
 
     def test_non_hosts_still_cannot_run_host_commands(self):
         guard_start = self.script.index("function requireRoomCreator")
