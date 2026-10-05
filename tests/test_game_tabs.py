@@ -111,6 +111,15 @@ class GameTabLayoutTests(unittest.TestCase):
         self.assertRegex(self.styles, r"\.game-tabs\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);")
         self.assertIn('.game-tabs {\n    grid-template-columns: repeat(2, minmax(0, 1fr));', self.styles)
 
+    def test_locking_and_phase_changes_do_not_auto_switch_tabs(self):
+        sync_start = self.script.index("function syncCommanderStatus(")
+        sync_end = self.script.index("\nfunction ", sync_start + 1)
+        sync_body = self.script[sync_start:sync_end]
+
+        self.assertNotIn("selectGameTab(", sync_body)
+        self.assertIn("lastKnownGamePhase = phase;", sync_body)
+        self.assertIn('tab.classList.toggle("is-current-phase", tab.dataset.gameTab === tabPhase)', sync_body)
+
 
 if __name__ == "__main__":
     unittest.main()

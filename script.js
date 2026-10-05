@@ -1014,7 +1014,7 @@ let activeRoomPlayers = [];
 let pendingServerTrades = [];
 let fieldTradeAttemptsUsed = 0;
 let activeGameTab = "act";
-let lastAutoGamePhase = null;
+let lastKnownGamePhase = null;
 let gameTabsInitialized = false;
 const fieldTradeAttemptLimit = 2;
 let hostPollInFlight = false;
@@ -3819,10 +3819,7 @@ function syncCommanderStatus(totalAllocated = investments.agri + investments.oil
 
   if (!gameTabsInitialized) initializeGameTabs();
   const tabPhase = phase === "review" ? "act" : phase;
-  if (lastAutoGamePhase !== null && lastAutoGamePhase !== phase) {
-    selectGameTab(tabPhase);
-  }
-  lastAutoGamePhase = phase;
+  lastKnownGamePhase = phase;
   document.querySelectorAll(".game-tab").forEach(tab => {
     tab.classList.toggle("is-current-phase", tab.dataset.gameTab === tabPhase);
   });
@@ -4507,7 +4504,7 @@ function updateAllianceUI() {
     }
   }
 
-  syncGameTabBadges(lastAutoGamePhase || "prepare");
+  syncGameTabBadges(lastKnownGamePhase || "prepare");
 }
 
 function currentInitiatedAlliance() {
